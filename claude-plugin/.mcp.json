@@ -1,0 +1,18 @@
+{
+  "_kommentar": [
+    "Serveren heter `pai`, så verktøynavnene blir",
+    "`mcp__plugin_pai_pai__<verktøy>`. MÅLT 2026-09-22: Claude Code bygger",
+    "navnet som `mcp__plugin_<plugin>_<server>__<verktøy>`, ikke",
+    "`mcp__pai__<verktøy>` som planen anga. Formen er motorens, ikke vår.",
+    "",
+    "Kommandoen peker kun på `bin/pai-mcp`. Motoren validerer at navnet",
+    "finnes under bin/, og kontrakten gjør en kompilert binær i batch 12",
+    "gratis — samme sti, ingen reinstall."
+  ],
+  "mcpServers": {
+    "pai": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-mcp",
+      "args": []
+    }
+  }
+}

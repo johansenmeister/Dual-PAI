@@ -1,0 +1,24 @@
+{
+  "name": "pai-opencode",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@google/genai": "^1.38.0",
+    "@opencode/cli": "2.0.22",
+    "@opencode/plugin": "2.0.22",
+    "ajv": "^8.17.1",
+    "handlebars": "^4.7.8",
+    "openai": "^6.16.0",
+    "replicate": "^1.4.0",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9"
+  },
+  "trustedDependencies": [
+    "@opencode/cli"
+  ],
+  "pai": {
+    "claudeCode": "2.1.283"
+  }
+}

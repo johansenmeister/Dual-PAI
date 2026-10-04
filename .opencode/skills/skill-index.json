@@ -1,0 +1,1429 @@
+{
+  "generated": "2026-10-04T22:55:26.194Z",
+  "totalSkills": 52,
+  "categories": 5,
+  "flatSkills": 10,
+  "hierarchicalSkills": 42,
+  "alwaysLoadedCount": 2,
+  "deferredCount": 50,
+  "skills": {
+    "agents": {
+      "name": "Agents",
+      "path": "Agents/SKILL.md",
+      "category": null,
+      "fullDescription": "Dynamic agent composition. USE WHEN custom agents, agent personalities, traits, personas.",
+      "triggers": [
+        "custom",
+        "agents",
+        "agent",
+        "personalities",
+        "traits",
+        "personas"
+      ],
+      "workflows": [
+        "CREATECUSTOMAGENT",
+        "CreateCustomAgent",
+        "LISTTRAITS",
+        "ListTraits",
+        "SPAWNPARALLEL",
+        "SpawnParallelAgents",
+        "CORE"
+      ],
+      "tier": "deferred",
+      "isHierarchical": false
+    },
+    "annualreports": {
+      "name": "AnnualReports",
+      "path": "Security/AnnualReports/SKILL.md",
+      "category": "Security",
+      "fullDescription": "Security report aggregation. USE WHEN annual reports, security reports, threat reports.",
+      "triggers": [
+        "annual",
+        "reports",
+        "security",
+        "threat"
+      ],
+      "workflows": [
+        "UPDATE",
+        "Update",
+        "ANALYZE",
+        "Analyze",
+        "FETCH",
+        "Fetch"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "becreative": {
+      "name": "BeCreative",
+      "path": "Thinking/BeCreative/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "Extended thinking mode. USE WHEN be creative, deep thinking, deep thinking, extended reasoning. SkillSearch('becreative') for docs.",
+      "triggers": [
+        "creative",
+        "deep",
+        "thinking",
+        "extended",
+        "reasoning"
+      ],
+      "workflows": [
+        "StandardCreativity",
+        "MaximumCreativity",
+        "IdeaGeneration",
+        "TreeOfThoughts",
+        "DomainSpecific"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "browser": {
+      "name": "Browser",
+      "path": "Utilities/Browser/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Browser automation with debug visibility. USE WHEN browser, screenshot, debug web, verify UI.",
+      "triggers": [
+        "browser",
+        "screenshot",
+        "debug",
+        "web",
+        "verify",
+        "automation"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "cloudflare": {
+      "name": "Cloudflare",
+      "path": "Utilities/Cloudflare/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Deploy Cloudflare Workers/Pages. USE WHEN Cloudflare, worker, deploy, Pages, MCP server. SkillSearch('cloudflare') for docs.",
+      "triggers": [
+        "cloudflare",
+        "worker",
+        "deploy",
+        "pages",
+        "mcp",
+        "server"
+      ],
+      "workflows": [
+        "Create",
+        "Troubleshoot"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "codereview": {
+      "name": "CodeReview",
+      "path": "Utilities/CodeReview/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "AI-powered code review via roborev. USE WHEN review code, check code quality, roborev, audit changes, review before commit, review before PR, code quality check, lint review, architecture review.",
+      "triggers": [
+        "review",
+        "code",
+        "check",
+        "quality",
+        "roborev",
+        "audit",
+        "changes",
+        "before",
+        "commit",
+        "lint",
+        "architecture"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "contentanalysis": {
+      "name": "ContentAnalysis",
+      "path": "ContentAnalysis/SKILL.md",
+      "category": null,
+      "fullDescription": "Content analysis and wisdom extraction. USE WHEN analyze content, extract insights, process media, understand content.",
+      "triggers": [
+        "analyze",
+        "content",
+        "extract",
+        "insights",
+        "process",
+        "media",
+        "understand"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": false
+    },
+    "council": {
+      "name": "Council",
+      "path": "Thinking/Council/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "\"Multi-agent debate system. USE WHEN council, debate, perspectives, agents discuss. SkillSearch('council') for docs.\"",
+      "triggers": [
+        "council",
+        "debate",
+        "perspectives",
+        "agents",
+        "discuss"
+      ],
+      "workflows": [
+        "Debate",
+        "Quick"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "createcli": {
+      "name": "CreateCLI",
+      "path": "Utilities/CreateCLI/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "\"Generate TypeScript CLIs. USE WHEN create CLI, build CLI, command-line tool. SkillSearch('createcli') for docs.\"",
+      "triggers": [
+        "create",
+        "cli",
+        "build",
+        "command-line",
+        "tool"
+      ],
+      "workflows": [
+        "CreateCli",
+        "AddCommand",
+        "UpgradeTier"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "createskill": {
+      "name": "CreateSkill",
+      "path": "Utilities/CreateSkill/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "\"Create and validate skills. USE WHEN create skill, new skill, skill structure, canonicalize. SkillSearch('createskill') for docs.\"",
+      "triggers": [
+        "create",
+        "skill",
+        "new",
+        "structure",
+        "canonicalize"
+      ],
+      "workflows": [
+        "Create",
+        "CompanyDueDiligence",
+        "WorkflowName",
+        "CreateSkill",
+        "ValidateSkill",
+        "UpdateSkill",
+        "CanonicalizeSkill"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "delegation": {
+      "name": "Delegation",
+      "path": "Utilities/Delegation/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Parallelize work via background/foreground agents, built-in types, custom agents, or agent teams/swarms. USE WHEN 3+ independent workstreams, parallel execution, agent specialization, Extended+ effort, agent team, swarm, create an agent team.",
+      "triggers": [
+        "independent",
+        "workstreams",
+        "parallel",
+        "execution",
+        "agent",
+        "specialization",
+        "extended+",
+        "effort",
+        "team",
+        "swarm",
+        "create"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "dockerportainer": {
+      "name": "DockerPortainer",
+      "path": "Infrastructure/DockerPortainer/SKILL.md",
+      "category": "Infrastructure",
+      "fullDescription": "Docker-vert og Portainer-stack administrasjon — inspect, oppgrader, migrer bind-mounts, roter secrets. USE WHEN portainer, docker stack, oppgrader stack, bump image, hvilken versjon kjører docker, stack status, migrer bind-mount, flytt bind-mount til volum, rydd root-disk, roter secret, bytt jwt_secret, secrets i compose, docker node.",
+      "triggers": [
+        "portainer",
+        "docker",
+        "stack",
+        "oppgrader",
+        "bump",
+        "image",
+        "hvilken",
+        "versjon",
+        "kjører",
+        "status",
+        "migrer",
+        "bind-mount",
+        "flytt",
+        "til",
+        "volum",
+        "rydd",
+        "root-disk",
+        "roter",
+        "secret",
+        "bytt",
+        "jwt_secret",
+        "secrets",
+        "compose",
+        "node"
+      ],
+      "workflows": [
+        "InspectStack",
+        "UpgradeStack",
+        "MigrateBindMount",
+        "RotateSecret"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "documents": {
+      "name": "Documents",
+      "path": "Utilities/Documents/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Document processing. USE WHEN document, process file. SkillSearch('documents') for docs.",
+      "triggers": [
+        "document",
+        "process",
+        "file"
+      ],
+      "workflows": [
+        "DOCX",
+        "PDF",
+        "PPTX",
+        "XLSX"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "docx": {
+      "name": "Docx",
+      "path": "Utilities/Docx/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Word document processing. USE WHEN docx, Word document. SkillSearch('docx') for docs.",
+      "triggers": [
+        "docx",
+        "word",
+        "document"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "evals": {
+      "name": "Evals",
+      "path": "Utilities/Evals/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Agent evaluation framework. USE WHEN eval, evaluate, test agent, benchmark, verify behavior.",
+      "triggers": [
+        "eval",
+        "evaluate",
+        "test",
+        "agent",
+        "benchmark",
+        "verify",
+        "behavior"
+      ],
+      "workflows": [
+        "ALGORITHM"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "extractwisdom": {
+      "name": "ExtractWisdom",
+      "path": "ContentAnalysis/ExtractWisdom/SKILL.md",
+      "category": "ContentAnalysis",
+      "fullDescription": "Dynamic wisdom extraction that adapts sections to content. USE WHEN extract wisdom, analyze video, analyze podcast, extract insights, what's interesting, extract from YouTube, what did I miss, key takeaways. Replaces static extract_wisdom with content-adaptive extraction.",
+      "triggers": [
+        "extract",
+        "wisdom",
+        "analyze",
+        "video",
+        "podcast",
+        "insights",
+        "whats",
+        "interesting",
+        "youtube",
+        "what",
+        "did",
+        "miss",
+        "key",
+        "takeaways"
+      ],
+      "workflows": [
+        "Extract"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "fabric": {
+      "name": "Fabric",
+      "path": "Utilities/Fabric/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "240+ prompt patterns for content analysis and transformation. USE WHEN fabric, extract wisdom, summarize, threat model.",
+      "triggers": [
+        "fabric",
+        "extract",
+        "wisdom",
+        "summarize",
+        "threat",
+        "model"
+      ],
+      "workflows": [
+        "ExecutePattern",
+        "UpdatePatterns"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "firstprinciples": {
+      "name": "FirstPrinciples",
+      "path": "Thinking/FirstPrinciples/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "\"First principles analysis. USE WHEN first principles, fundamental, root cause, decompose. SkillSearch('firstprinciples') for docs.\"",
+      "triggers": [
+        "first",
+        "principles",
+        "fundamental",
+        "root",
+        "cause",
+        "decompose"
+      ],
+      "workflows": [
+        "Deconstruct",
+        "Challenge",
+        "Reconstruct"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "hardening": {
+      "name": "Hardening",
+      "path": "Utilities/Hardening/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "\"Hardens your tests via property/mutation testing. USE WHEN harden, hardening, property test, property based testing, PBT, fast-check, mutation test, mutation testing, Stryker, CRAP score, CRAP analysis, DRY scan, jscpd, acceptance test mutation, strengthen tests, sharpen ISCs, find bugs example tests miss, universal quantified claim, shrink counterexample, what bugs am I missing, test the tests, test of the test. NOT FOR writing new feature tests (use bun test directly), grading agent output quality (use Evals), finding security vulnerabilities, or building new functionality.\"",
+      "triggers": [
+        "harden",
+        "hardening",
+        "property",
+        "test",
+        "based",
+        "testing",
+        "pbt",
+        "fast-check",
+        "mutation",
+        "stryker",
+        "crap",
+        "score",
+        "analysis",
+        "dry",
+        "scan",
+        "jscpd",
+        "acceptance",
+        "strengthen",
+        "tests",
+        "sharpen",
+        "iscs",
+        "find",
+        "bugs",
+        "example",
+        "miss",
+        "universal",
+        "quantified",
+        "claim",
+        "shrink",
+        "counterexample",
+        "what",
+        "missing",
+        "security"
+      ],
+      "workflows": [
+        "PropertyTest"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "harnessupdate": {
+      "name": "HarnessUpdate",
+      "path": "Utilities/HarnessUpdate/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Check whether Claude Code or OpenCode v2 has a newer version than the pinned one, and flag every change that touches the assumption register. Never upgrades. USE WHEN harness update, new Claude Code version, new OpenCode version, bump claude code, bump opencode, oppdater harnesset, ny motorversjon, er det nye versjoner. SkillSearch('harnessupdate') for docs.",
+      "triggers": [
+        "harness",
+        "update",
+        "new",
+        "claude",
+        "code",
+        "version",
+        "opencode",
+        "bump",
+        "oppdater",
+        "harnesset",
+        "motorversjon",
+        "det",
+        "nye",
+        "versjoner"
+      ],
+      "workflows": [
+        "UpdateHarness"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "infrastructure": {
+      "name": "Infrastructure",
+      "path": "Infrastructure/SKILL.md",
+      "category": null,
+      "fullDescription": "Drift av homelaben. USE WHEN portainer, docker stack, proxmox, pve, VM status, technitium, dns status, truenas, NAS status.",
+      "triggers": [
+        "portainer",
+        "docker",
+        "stack",
+        "proxmox",
+        "pve",
+        "status",
+        "technitium",
+        "dns",
+        "truenas",
+        "nas"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": false
+    },
+    "iterativedepth": {
+      "name": "IterativeDepth",
+      "path": "Thinking/IterativeDepth/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "Multi-angle iterative exploration for deeper ISC extraction. USE WHEN iterative depth, deep exploration, multi-angle analysis, explore deeper, multiple perspectives on problem, examine from angles, OR when the Algorithm's OBSERVE phase needs enhanced ISC extraction.",
+      "triggers": [
+        "iterative",
+        "depth",
+        "deep",
+        "exploration",
+        "multi-angle",
+        "analysis",
+        "explore",
+        "deeper",
+        "multiple",
+        "perspectives",
+        "problem",
+        "examine",
+        "angles",
+        "when",
+        "algorithms",
+        "observe",
+        "phase",
+        "needs",
+        "enhanced",
+        "isc",
+        "extraction"
+      ],
+      "workflows": [
+        "Explore"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "modelupdate": {
+      "name": "ModelUpdate",
+      "path": "Utilities/ModelUpdate/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Update model lists and provider profiles against OpenCode v2's model registry. USE WHEN update models, model list, new models, retired model, oppdater modeller, model IDs outdated. SkillSearch('modelupdate') for docs.",
+      "triggers": [
+        "update",
+        "models",
+        "model",
+        "list",
+        "new",
+        "retired",
+        "oppdater",
+        "modeller",
+        "ids",
+        "outdated"
+      ],
+      "workflows": [
+        "UpdateModels"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "musiclibrary": {
+      "name": "MusicLibrary",
+      "path": "MusicLibrary/SKILL.md",
+      "category": null,
+      "fullDescription": "Music library organization for Navidrome. USE WHEN organize music, fix music tags, Navidrome library, clean metadata, beets, MusicBrainz tagging, music folder structure, album artist cleanup. SkillSearch('navidrome') for Navidrome specifics, SkillSearch('beets') for beets tips.",
+      "triggers": [
+        "organize",
+        "music",
+        "fix",
+        "tags",
+        "navidrome",
+        "library",
+        "clean",
+        "metadata",
+        "beets",
+        "musicbrainz",
+        "tagging",
+        "folder",
+        "structure",
+        "album",
+        "artist",
+        "cleanup"
+      ],
+      "workflows": [
+        "Reorganize",
+        "FixMetadata"
+      ],
+      "tier": "deferred",
+      "isHierarchical": false
+    },
+    "opencodesystem": {
+      "name": "OpenCodeSystem",
+      "path": "Utilities/OpenCodeSystem/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "PAI-OpenCode system self-awareness. USE WHEN asking about tools, config, model routing, plugin handlers, MCP servers, troubleshooting, or operating environment.",
+      "triggers": [
+        "asking",
+        "tools",
+        "config",
+        "model",
+        "routing",
+        "plugin",
+        "handlers",
+        "mcp",
+        "servers",
+        "troubleshooting",
+        "operating",
+        "environment"
+      ],
+      "workflows": [
+        "PAI"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "pai": {
+      "name": "PAI",
+      "path": "PAI/SKILL.md",
+      "category": null,
+      "fullDescription": "Personal AI Infrastructure core. The authoritative reference for how PAI works.",
+      "triggers": [],
+      "workflows": [],
+      "tier": "always",
+      "isHierarchical": false
+    },
+    "paiupgrade": {
+      "name": "PAIUpgrade",
+      "path": "Utilities/PAIUpgrade/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Extract system improvements, monitor Anthropic ecosystem, and mine internal reflections for Algorithm self-improvement. USE WHEN upgrade, check Anthropic, new Claude features, mine reflections, internal improvements, reflection insights, algorithm upgrade, improve the algorithm.",
+      "triggers": [
+        "upgrade",
+        "check",
+        "anthropic",
+        "new",
+        "claude",
+        "features",
+        "mine",
+        "reflections",
+        "internal",
+        "improvements",
+        "reflection",
+        "insights",
+        "algorithm",
+        "improve",
+        "extract"
+      ],
+      "workflows": [
+        "ASPIRATIONAL",
+        "CheckForUpgrades",
+        "ResearchUpgrade",
+        "ReleaseNotesDeepDive",
+        "FindSources",
+        "MineReflections",
+        "AlgorithmUpgrade"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "parser": {
+      "name": "Parser",
+      "path": "Utilities/Parser/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Parse URLs, files, videos to JSON. USE WHEN parse, extract, URL, transcript, entities, JSON, batch, content, YouTube, PDF, article. SkillSearch('parser') for docs.",
+      "triggers": [
+        "parse",
+        "extract",
+        "url",
+        "transcript",
+        "entities",
+        "json",
+        "batch",
+        "content",
+        "youtube",
+        "pdf",
+        "article"
+      ],
+      "workflows": [
+        "ParseContent",
+        "CollisionDetection",
+        "DetectContentType",
+        "ExtractNewsletter",
+        "ExtractTwitter",
+        "ExtractArticle",
+        "ExtractYoutube",
+        "ExtractPdf",
+        "ExtractBrowserExtension"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "pdf": {
+      "name": "Pdf",
+      "path": "Utilities/Pdf/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "PDF processing. USE WHEN pdf, PDF file. SkillSearch('pdf') for docs.",
+      "triggers": [
+        "pdf",
+        "file"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "pptx": {
+      "name": "Pptx",
+      "path": "Utilities/Pptx/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "PowerPoint processing. USE WHEN pptx, PowerPoint, slides. SkillSearch('pptx') for docs.",
+      "triggers": [
+        "pptx",
+        "powerpoint",
+        "slides"
+      ],
+      "workflows": [
+        "CRITICAL",
+        "LAYOUT",
+        "VALIDATION",
+        "IMPORTANT",
+        "WARNING"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "prompting": {
+      "name": "Prompting",
+      "path": "Utilities/Prompting/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Meta-prompting for prompt generation. USE WHEN meta-prompting, template generation, prompt optimization.",
+      "triggers": [
+        "meta-prompting",
+        "template",
+        "generation",
+        "prompt",
+        "optimization"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "promptinjection": {
+      "name": "PromptInjection",
+      "path": "Security/PromptInjection/SKILL.md",
+      "category": "Security",
+      "fullDescription": "Prompt injection testing. USE WHEN prompt injection, jailbreak, LLM security, AI security assessment, pentest AI application, test chatbot vulnerabilities.",
+      "triggers": [
+        "prompt",
+        "injection",
+        "jailbreak",
+        "llm",
+        "security",
+        "assessment",
+        "pentest",
+        "application",
+        "test",
+        "chatbot",
+        "vulnerabilities"
+      ],
+      "workflows": [
+        "CompleteAssessment",
+        "Reconnaissance",
+        "DirectInjectionTesting",
+        "IndirectInjectionTesting",
+        "MultiStageAttacks"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "proxmox": {
+      "name": "Proxmox",
+      "path": "Infrastructure/Proxmox/SKILL.md",
+      "category": "Infrastructure",
+      "fullDescription": "Proxmox VE cluster administrasjon og overvåking. USE WHEN proxmox, pve, proxmox cluster, sjekk proxmox, proxmox status, hvilke VM-er kjører, VM status, LXC status, proxmox storage, proxmox tasks.",
+      "triggers": [
+        "proxmox",
+        "pve",
+        "cluster",
+        "sjekk",
+        "status",
+        "hvilke",
+        "vm-er",
+        "kjører",
+        "lxc",
+        "storage",
+        "tasks"
+      ],
+      "workflows": [
+        "ClusterStatus",
+        "ResourceList",
+        "StorageStatus"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "recon": {
+      "name": "Recon",
+      "path": "Security/Recon/SKILL.md",
+      "category": "Security",
+      "fullDescription": "\"Security reconnaissance. USE WHEN recon, reconnaissance, bug bounty, attack surface. SkillSearch('recon') for docs.\"",
+      "triggers": [
+        "recon",
+        "reconnaissance",
+        "bug",
+        "bounty",
+        "attack",
+        "surface",
+        "security"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "redteam": {
+      "name": "RedTeam",
+      "path": "Thinking/RedTeam/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "\"Adversarial analysis with 32 agents. USE WHEN red team, attack idea, counterarguments, critique, stress test. SkillSearch('redteam') for docs.\"",
+      "triggers": [
+        "red",
+        "team",
+        "attack",
+        "idea",
+        "counterarguments",
+        "critique",
+        "stress",
+        "test"
+      ],
+      "workflows": [
+        "ParallelAnalysis",
+        "AdversarialValidation"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "research": {
+      "name": "Research",
+      "path": "Research/SKILL.md",
+      "category": null,
+      "fullDescription": "Comprehensive research and content extraction. USE WHEN research, investigate, extract wisdom, analyze content. For OSINT use the WebAssessment skill.",
+      "triggers": [
+        "research",
+        "investigate",
+        "extract",
+        "wisdom",
+        "analyze",
+        "content",
+        "osint"
+      ],
+      "workflows": [
+        "DEFAULT",
+        "QuickResearch",
+        "StandardResearch",
+        "ExtensiveResearch",
+        "ExtractAlpha",
+        "Retrieve",
+        "YoutubeExtraction",
+        "WebScraping",
+        "ClaudeResearch",
+        "InterviewResearch",
+        "AnalyzeAiTrends",
+        "Fabric",
+        "Enhance",
+        "ExtractKnowledge"
+      ],
+      "tier": "always",
+      "isHierarchical": false
+    },
+    "rootcauseanalysis": {
+      "name": "RootCauseAnalysis",
+      "path": "Thinking/RootCauseAnalysis/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "\"Structured incident investigation using Five Whys, Fishbone, blameless Postmortem, Fault Tree, Kepner-Tregoe, and FMEA — traces failures to systemic root causes rather than blaming humans. USE WHEN root cause, RCA, 5 whys, fishbone, postmortem, incident analysis, fault tree, why does this keep failing, blameless, recurring bug. NOT FOR systemic loops (use SystemsThinking).\"",
+      "triggers": [
+        "root",
+        "cause",
+        "rca",
+        "whys",
+        "fishbone",
+        "postmortem",
+        "incident",
+        "analysis",
+        "fault",
+        "tree",
+        "why",
+        "does",
+        "this",
+        "keep",
+        "failing",
+        "blameless",
+        "recurring",
+        "bug"
+      ],
+      "workflows": [
+        "FiveWhys",
+        "Fishbone",
+        "Postmortem",
+        "FaultTree",
+        "KepnerTregoe"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "sales": {
+      "name": "Sales",
+      "path": "Utilities/Sales/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Sales workflows. USE WHEN sales, proposal, pricing. SkillSearch('sales') for docs.",
+      "triggers": [
+        "sales",
+        "proposal",
+        "pricing"
+      ],
+      "workflows": [
+        "Create-sales-package",
+        "Create-narrative",
+        "Create-visual"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "science": {
+      "name": "Science",
+      "path": "Thinking/Science/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "Universal thinking and iteration engine based on the scientific method. USE WHEN user says \"think about\", \"figure out\", \"try approaches\", \"experiment with\", \"test this idea\", \"iterate on\", \"improve\", \"optimize\", OR any problem-solving that benefits from structured hypothesis-test-analyze cycles. THE meta-skill that other workflows implement.",
+      "triggers": [
+        "think",
+        "figure",
+        "out",
+        "try",
+        "approaches",
+        "experiment",
+        "test",
+        "this",
+        "idea",
+        "iterate",
+        "improve",
+        "optimize",
+        "any",
+        "problem-solving",
+        "that",
+        "benefits",
+        "structured",
+        "hypothesis-test-analyze",
+        "cycles"
+      ],
+      "workflows": [
+        "DefineGoal",
+        "GenerateHypotheses",
+        "DesignExperiment",
+        "MeasureResults",
+        "AnalyzeResults",
+        "Iterate",
+        "FullCycle",
+        "QuickDiagnosis",
+        "StructuredInvestigation"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "secupdates": {
+      "name": "SECUpdates",
+      "path": "Security/SECUpdates/SKILL.md",
+      "category": "Security",
+      "fullDescription": "Security news aggregation. USE WHEN security news, security updates, breaches.",
+      "triggers": [
+        "security",
+        "news",
+        "updates",
+        "breaches"
+      ],
+      "workflows": [
+        "Update"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "security": {
+      "name": "Security",
+      "path": "Security/SKILL.md",
+      "category": null,
+      "fullDescription": "Security assessment and intelligence. USE WHEN recon, reconnaissance, port scan, subdomain, DNS, WHOIS, web assessment, pentest, vulnerability, security scan, prompt injection, jailbreak, LLM security, security news, breaches, annual reports, threat landscape, threat model, risk register, compromise scenario, documentation audit.",
+      "triggers": [
+        "recon",
+        "reconnaissance",
+        "port",
+        "scan",
+        "subdomain",
+        "dns",
+        "whois",
+        "web",
+        "assessment",
+        "pentest",
+        "vulnerability",
+        "security",
+        "prompt",
+        "injection",
+        "jailbreak",
+        "llm",
+        "news",
+        "breaches",
+        "annual",
+        "reports",
+        "threat",
+        "landscape",
+        "model",
+        "risk",
+        "register",
+        "compromise",
+        "scenario",
+        "documentation",
+        "audit"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": false
+    },
+    "system": {
+      "name": "System",
+      "path": "Utilities/System/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "System maintenance - integrity check, document session, secret scanning. USE WHEN integrity, audit, document session, secrets, security scan.",
+      "triggers": [
+        "integrity",
+        "audit",
+        "document",
+        "session",
+        "secrets",
+        "security",
+        "scan"
+      ],
+      "workflows": [
+        "PAI",
+        "IntegrityCheck",
+        "DocumentSession",
+        "DocumentRecent",
+        "GitPush",
+        "SecretScanning",
+        "CrossRepoValidation",
+        "PrivacyCheck",
+        "WorkContextRecall"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "systemsthinking": {
+      "name": "SystemsThinking",
+      "path": "Thinking/SystemsThinking/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "\"Structural analysis of complex systems — Iceberg model, Causal Loop feedback diagrams, archetype matching, Meadows leverage points, and concept maps — grounded in the premise that behavior is generated by structure. USE WHEN systems thinking, causal loop, feedback loops, archetypes, leverage points, iceberg model, fix the system, why does this keep happening, recurring problem, second-order effects. NOT FOR incident causal chains (use RootCauseAnalysis).\"",
+      "triggers": [
+        "systems",
+        "thinking",
+        "causal",
+        "loop",
+        "feedback",
+        "loops",
+        "archetypes",
+        "leverage",
+        "points",
+        "iceberg",
+        "model",
+        "fix",
+        "system",
+        "why",
+        "does",
+        "this",
+        "keep",
+        "happening",
+        "recurring",
+        "problem",
+        "second-order",
+        "effects"
+      ],
+      "workflows": [
+        "Iceberg",
+        "CausalLoop",
+        "FindArchetype",
+        "FindLeverage",
+        "ConceptMap"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "technitium": {
+      "name": "Technitium",
+      "path": "Infrastructure/Technitium/SKILL.md",
+      "category": "Infrastructure",
+      "fullDescription": "Technitium DNS Server overvåking og administrasjon via HTTP API. USE WHEN technitium, technitiumdns, dns status, sjekk dns, dns blokkering, blokkerte domener, blocklist, hvitlist dns, allowlist dns, dns cache, flush dns, resolver domenenavn, er domenet blokkert, dns trusler, dns query logs, dns soner, dns records.",
+      "triggers": [
+        "technitium",
+        "technitiumdns",
+        "dns",
+        "status",
+        "sjekk",
+        "blokkering",
+        "blokkerte",
+        "domener",
+        "blocklist",
+        "hvitlist",
+        "allowlist",
+        "cache",
+        "flush",
+        "resolver",
+        "domenenavn",
+        "domenet",
+        "blokkert",
+        "trusler",
+        "query",
+        "logs",
+        "soner",
+        "records"
+      ],
+      "workflows": [
+        "CheckStatus",
+        "ThreatScan",
+        "ResolveDomain",
+        "ManageBlocklists",
+        "ManageCache"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "telos": {
+      "name": "Telos",
+      "path": "Telos/SKILL.md",
+      "category": null,
+      "fullDescription": "\"Dual-context skill: Personal TELOS reads and updates goals, beliefs, narratives, strategies with timestamped backups; Project TELOS analyzes .md/.csv directories for dependency chains, bottlenecks, and alignment, generating reports, narrative points, or dashboards. USE WHEN telos, life goals, projects, dependencies, update telos, narrative points, McKinsey report, dashboard, what am I wrong about, life frames, mental models, tracking, books, movies.\"",
+      "triggers": [
+        "telos",
+        "life",
+        "goals",
+        "projects",
+        "dependencies",
+        "update",
+        "narrative",
+        "points",
+        "mckinsey",
+        "report",
+        "dashboard",
+        "what",
+        "wrong",
+        "frames",
+        "mental",
+        "models",
+        "tracking",
+        "books",
+        "movies"
+      ],
+      "workflows": [
+        "Update",
+        "InterviewExtraction",
+        "CreateNarrativePoints",
+        "WriteReport"
+      ],
+      "tier": "deferred",
+      "isHierarchical": false
+    },
+    "thinking": {
+      "name": "Thinking",
+      "path": "Thinking/SKILL.md",
+      "category": null,
+      "fullDescription": "Deep thinking and analysis skills. USE WHEN be creative, deep thinking, extended reasoning, first principles, decompose, red team, critique, stress test, council, debate, perspectives, science, research methodology, world analysis, root cause analysis, RCA, 5 whys, postmortem, systems thinking, feedback loops, leverage points.",
+      "triggers": [
+        "creative",
+        "deep",
+        "thinking",
+        "extended",
+        "reasoning",
+        "first",
+        "principles",
+        "decompose",
+        "red",
+        "team",
+        "critique",
+        "stress",
+        "test",
+        "council",
+        "debate",
+        "perspectives",
+        "science",
+        "research",
+        "methodology",
+        "world",
+        "analysis",
+        "root",
+        "cause",
+        "rca",
+        "whys",
+        "postmortem",
+        "systems",
+        "feedback",
+        "loops",
+        "leverage",
+        "points"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": false
+    },
+    "threatmodel": {
+      "name": "ThreatModel",
+      "path": "Security/ThreatModel/SKILL.md",
+      "category": "Security",
+      "fullDescription": "Defensive threat modeling and risk management for your own estate — map where sensitive data lives across your asset graph, run compromise scenarios (what a hacked asset exposes, its blast radius, how you'd respond), and maintain a persistent risk register with likelihood×impact scoring, owners, mitigations, and review cadence via a deterministic CLI. All real data stays in your private USER tree; this skill is code only. USE WHEN threat model, threat modeling, risk register, risk assessment, what if X got hacked, compromise scenario, blast radius, sensitive data map, where is our sensitive data, data classification, risk review, add a risk, accept a risk, security risk posture, documentation audit, security audit of our docs, blind spots. NOT FOR active pentesting or exploitation (use an offensive-security skill), world-scale futures stress-testing of ideas (use WorldThreatModelHarness), or executing incident response (use your incident-response runbooks — this skill plans them).",
+      "triggers": [
+        "threat",
+        "model",
+        "modeling",
+        "risk",
+        "register",
+        "assessment",
+        "what",
+        "got",
+        "hacked",
+        "compromise",
+        "scenario",
+        "blast",
+        "radius",
+        "sensitive",
+        "data",
+        "map",
+        "where",
+        "our",
+        "classification",
+        "review",
+        "add",
+        "accept",
+        "security",
+        "posture",
+        "documentation",
+        "audit",
+        "docs",
+        "blind",
+        "spots"
+      ],
+      "workflows": [
+        "SensitiveDataMap",
+        "CompromiseScenario",
+        "ThreatModelTarget",
+        "RiskRegister",
+        "DocumentationAudit"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "truenas": {
+      "name": "TrueNAS",
+      "path": "Infrastructure/TrueNAS/SKILL.md",
+      "category": "Infrastructure",
+      "fullDescription": "TrueNAS Scale administrasjon og overvåking via WebSocket API. USE WHEN truenas, NAS status, sjekk NAS, NAS lagring, NAS disker, TrueNAS pools, TrueNAS datasets, SMB shares, NFS shares, SMART status NAS, TrueNAS alerts, TrueNAS konfigurasjon, NAS analyse.",
+      "triggers": [
+        "truenas",
+        "nas",
+        "status",
+        "sjekk",
+        "lagring",
+        "disker",
+        "pools",
+        "datasets",
+        "smb",
+        "shares",
+        "nfs",
+        "smart",
+        "alerts",
+        "konfigurasjon",
+        "analyse"
+      ],
+      "workflows": [
+        "CheckStatus",
+        "StorageAnalysis"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "utilities": {
+      "name": "Utilities",
+      "path": "Utilities/SKILL.md",
+      "category": null,
+      "fullDescription": "Utility and helper skills. USE WHEN browser automation, Cloudflare, create CLI, build CLI, create skill, process documents, PDF, Word, Excel, evaluations, evals, hardening, property tests, fabric patterns, PAI upgrade, parser, prompting, templates.",
+      "triggers": [
+        "browser",
+        "automation",
+        "cloudflare",
+        "create",
+        "cli",
+        "build",
+        "skill",
+        "process",
+        "documents",
+        "pdf",
+        "word",
+        "excel",
+        "evaluations",
+        "evals",
+        "hardening",
+        "property",
+        "tests",
+        "fabric",
+        "patterns",
+        "pai",
+        "upgrade",
+        "parser",
+        "prompting",
+        "templates"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": false
+    },
+    "webassessment": {
+      "name": "WebAssessment",
+      "path": "Security/WebAssessment/SKILL.md",
+      "category": "Security",
+      "fullDescription": "Web security assessment. USE WHEN web assessment, pentest, security testing, vulnerability scan. SkillSearch('webassessment') for docs.",
+      "triggers": [
+        "web",
+        "assessment",
+        "pentest",
+        "security",
+        "testing",
+        "vulnerability",
+        "scan"
+      ],
+      "workflows": [
+        "UnderstandApplication",
+        "CreateThreatModel"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "worldthreatmodelharness": {
+      "name": "WorldThreatModelHarness",
+      "path": "Thinking/WorldThreatModelHarness/SKILL.md",
+      "category": "Thinking",
+      "fullDescription": "Persistent world model system across 11 time horizons (6mo→50yr) for adversarial analysis of ideas, strategies, and investments. USE WHEN threat model, world model, test idea, test strategy, future analysis, test investment, how will this hold up, test against future, update world models, view world models, time horizon analysis, adversarial future test, stress test idea.",
+      "triggers": [
+        "threat",
+        "model",
+        "world",
+        "test",
+        "idea",
+        "strategy",
+        "future",
+        "analysis",
+        "investment",
+        "how",
+        "will",
+        "this",
+        "hold",
+        "against",
+        "update",
+        "models",
+        "view",
+        "time",
+        "horizon",
+        "adversarial",
+        "stress"
+      ],
+      "workflows": [
+        "TestIdea",
+        "UpdateModels",
+        "ViewModels"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "xlsx": {
+      "name": "Xlsx",
+      "path": "Utilities/Xlsx/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Excel file processing. USE WHEN xlsx, Excel, spreadsheet. SkillSearch('xlsx') for docs.",
+      "triggers": [
+        "xlsx",
+        "excel",
+        "spreadsheet"
+      ],
+      "workflows": [],
+      "tier": "deferred",
+      "isHierarchical": true
+    }
+  },
+  "categoryMap": {
+    "ContentAnalysis": [
+      "ExtractWisdom"
+    ],
+    "Infrastructure": [
+      "DockerPortainer",
+      "Proxmox",
+      "Technitium",
+      "TrueNAS"
+    ],
+    "Security": [
+      "AnnualReports",
+      "PromptInjection",
+      "Recon",
+      "SECUpdates",
+      "ThreatModel",
+      "WebAssessment"
+    ],
+    "Thinking": [
+      "BeCreative",
+      "Council",
+      "FirstPrinciples",
+      "IterativeDepth",
+      "RedTeam",
+      "RootCauseAnalysis",
+      "Science",
+      "SystemsThinking",
+      "WorldThreatModelHarness"
+    ],
+    "Utilities": [
+      "Browser",
+      "Cloudflare",
+      "CodeReview",
+      "CreateCLI",
+      "CreateSkill",
+      "Delegation",
+      "Documents",
+      "Docx",
+      "Evals",
+      "Fabric",
+      "Hardening",
+      "HarnessUpdate",
+      "ModelUpdate",
+      "OpenCodeSystem",
+      "PAIUpgrade",
+      "Parser",
+      "Pdf",
+      "Pptx",
+      "Prompting",
+      "Sales",
+      "System",
+      "Xlsx"
+    ]
+  }
+}

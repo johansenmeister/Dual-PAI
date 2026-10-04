@@ -1,0 +1,85 @@
+# Claude Code — agentprofil
+# ═════════════════════════
+#
+# Modell og verktøy for de genererte agentene i `claude-plugin/agents/`.
+# Leses av `Tools/BuildClaudePlugin.ts`.
+#
+# HVORFOR EN PROFIL OG IKKE FRONTMATTER I KILDEN:
+# `model:` i `.opencode/agents/*.md` var nettopp det som krasjet OpenCode-siden
+# (`runbooks/erfaringer.md:75-80`). Profilene eier modellvalget i dette repoet,
+# og Claude-siden bryter ikke den konvensjonen.
+#
+# RAMMEN: ett abonnement (Team-sete). Ingen multi-leverandør-ruting her —
+# tiering skjer innenfor abonnementet, altså opus/sonnet/haiku, og `inherit`
+# betyr «samme modell som sesjonen».
+
+name: claude
+description: Claude Code under ett abonnement — tiering, ikke leverandørruting
+
+# Modell for agenter som ikke er nevnt under.
+default_model: inherit
+
+agents:
+  # Dyp resonnering — algoritmen og arkitekturen bærer konsekvensene lengst.
+  Algorithm:
+    model: opus
+  Architect:
+    model: opus
+
+  # Hovedarbeid. `inherit` gir sesjonens modell, som er det brukeren valgte.
+  Engineer:
+    model: inherit
+  Writer:
+    model: inherit
+  QATester:
+    model: inherit
+  Pentester:
+    model: inherit
+  Designer:
+    model: inherit
+  Artist:
+    model: inherit
+  UIReviewer:
+    model: inherit
+  BrowserAgent:
+    model: inherit
+
+  # Billig og kortlevd.
+  Intern:
+    model: haiku
+    # Intern skal lese og rapportere, ikke endre. `tools:` er en mulighet
+    # OpenCode-siden ikke har, og den er verdt å bruke der rollen er smal.
+    #
+    # `Skill` MÅ stå her. Målt i røyktest 2026-09-22: uten den svarte
+    # agenten «I'm told to load the PAI skill as a mandatory first action,
+    # but I don't have a Skill tool available» og gjorde halve jobben.
+    # PAI er et prompt-system — agentprompten pålegger skill-lasting, så en
+    # verktøyliste som utelater `Skill` lager en selvmotsigelse agenten
+    # bruker svaret sitt på å beskrive.
+    tools: Skill, Read, Grep, Glob, Bash
+
+  DeepResearcher:
+    model: inherit
+    # En researcher som kan skrive i arbeidstreet er en researcher som kan
+    # ødelegge det den undersøker.
+    #
+    # `Skill` av samme grunn som for Intern — se der.
+    tools: Skill, Read, Grep, Glob, WebSearch, WebFetch
+
+# Agenter som IKKE genereres for Claude-siden.
+#
+# De fem provider-researcherne finnes for å hente ULIKE leverandørers syn.
+# Under ett abonnement har de ingen egen modell å hente, og `ClaudeResearcher`
+# ville vært sesjonen som spør seg selv. `DeepResearcher` dekker rollen.
+#
+# MERK at lista er DEKLARERT og ikke utledet av `which`. Planen foreslo et
+# CLI-oppslag ved generering; det ville gjort utdata maskinavhengig, og
+# friskhetstesten sammenligner generert utdata mot fila på disk — den kan
+# ikke både være meningsfull og avhenge av hva som tilfeldigvis er installert
+# på maskinen som kjørte generatoren sist.
+utelat:
+  - ClaudeResearcher
+  - CodexResearcher
+  - GeminiResearcher
+  - GrokResearcher
+  - PerplexityResearcher

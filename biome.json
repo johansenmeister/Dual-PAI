@@ -1,0 +1,33 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+	"assist": {
+		"enabled": false
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "recommended",
+			"suspicious": {
+				"noEmptyBlockStatements": "off"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": false
+	},
+	"files": {
+		"includes": [
+			".opencode/PAI/ACTIONS/**/*.ts",
+			".opencode/PAI/Tools/*.ts",
+			".opencode/pai-core/**",
+			".opencode/pai-adapters/**",
+			"claude-plugin/**",
+			"tests/**",
+			"PAI-Install/**",
+			"Tools/**",
+			"*.ts",
+			"*.js",
+			"*.json"
+		]
+	}
+}

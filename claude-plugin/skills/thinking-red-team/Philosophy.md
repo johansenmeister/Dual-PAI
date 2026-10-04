@@ -1,0 +1,1 @@
+../../../.opencode/skills/Thinking/RedTeam/Philosophy.md

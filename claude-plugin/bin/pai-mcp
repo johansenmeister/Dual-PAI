@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# PAI MCP-server — oppstarter
+#
+# Samme kontrakt som `bin/pai-hook`: `.mcp.json` peker kun på dette navnet,
+# aldri på noe bak det, så en `bun build --compile`-binær på samme sti i
+# batch 12 krever ingen reinstall.
+#
+# Claude Code validerer at kommandoen i `mcpServers` matcher
+# `^\$\{CLAUDE_PLUGIN_ROOT\}/bin/([^/\\]+)$` og at navnet finnes — derfor
+# ligger oppstarteren under `bin/` og ikke ved siden av serveren i `mcp/`.
+#
+# `exec` av samme grunn som i pai-hook, men her teller det enda mer: MCP-
+# serveren er et DIREKTE barn av motoren (målt 2026-09-22, dybde 1), og hele
+# sesjonsoppslaget i src/session.ts hviler på at forelderen ER motoren. Uten
+# `exec` ville dette skallet blitt stående imellom og oppslaget bommet.
+
+ROT=$(dirname "$(dirname "$0")")
+
+if command -v bun >/dev/null 2>&1; then
+	exec bun "$ROT/mcp/pai-mcp.ts"
+fi
+
+for kandidat in \
+	"${BUN_INSTALL:-$HOME/.bun}/bin/bun" \
+	"$HOME/.bun/bin/bun" \
+	/usr/local/bin/bun \
+	/usr/bin/bun
+do
+	if [ -x "$kandidat" ]; then
+		exec "$kandidat" "$ROT/mcp/pai-mcp.ts"
+	fi
+done
+
+echo "[$(date -Iseconds)] [ERROR] [pai-mcp] Fant ikke bun i PATH — MCP-verktøyene er utilgjengelige" \
+	>> "${PAI_LOG_PATH:-/tmp/pai-claude-debug.log}" 2>/dev/null
+exit 1

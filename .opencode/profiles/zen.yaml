@@ -1,0 +1,50 @@
+# OpenCode ZEN FREE - Free tier (no API key required)
+#
+# Only the free models whose provider keeps no data and does not train on it,
+# per the Privacy section of https://opencode.ai/docs/zen/ (read 2026-10-04):
+#   opencode/longcat-2.5-preview-free  - 1M context, tool calls, used by the setup runbook
+#   opencode/space-bunny-free          - 1M context, the reserve
+# The other free models (Big Pickle, Ling, MiMo, Fledge, Nemotron, Muse Spark) use
+# what you send to improve the model, log it, or train on it (#197).
+#
+# The same list is NULLLAGRING in PAI-Install/cli/zen-start.ts; a test keeps the
+# two in step. Free models rotate: check both against Zen at every engine bump.
+#
+name: zen-free
+description: OpenCode ZEN free models - no API key needed, great for getting started
+
+default_model: opencode/longcat-2.5-preview-free
+
+agents:
+  Algorithm:
+    model: opencode/longcat-2.5-preview-free
+  Architect:
+    model: opencode/longcat-2.5-preview-free
+  Engineer:
+    model: opencode/longcat-2.5-preview-free
+  general:
+    model: opencode/longcat-2.5-preview-free
+  explore:
+    model: opencode/longcat-2.5-preview-free
+  Intern:
+    model: opencode/longcat-2.5-preview-free
+  Writer:
+    model: opencode/longcat-2.5-preview-free
+  DeepResearcher:
+    model: opencode/longcat-2.5-preview-free
+  GeminiResearcher:
+    model: opencode/longcat-2.5-preview-free
+  GrokResearcher:
+    model: opencode/longcat-2.5-preview-free
+  PerplexityResearcher:
+    model: opencode/longcat-2.5-preview-free
+  CodexResearcher:
+    model: opencode/longcat-2.5-preview-free
+  QATester:
+    model: opencode/longcat-2.5-preview-free
+  Pentester:
+    model: opencode/longcat-2.5-preview-free
+  Designer:
+    model: opencode/longcat-2.5-preview-free
+  Artist:
+    model: opencode/longcat-2.5-preview-free

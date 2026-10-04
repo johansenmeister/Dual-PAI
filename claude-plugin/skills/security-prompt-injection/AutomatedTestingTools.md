@@ -1,0 +1,1 @@
+../../../.opencode/skills/Security/PromptInjection/AutomatedTestingTools.md

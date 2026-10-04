@@ -1,0 +1,67 @@
+# Multi-Provider Researcher Routing
+# ═══════════════════════════════════
+#
+# Researcher-agentene finnes for ÉN grunn: å se det samme spørsmålet gjennom
+# ulike modellfamilier. Fem researchere som kjører samme modell er fem kall
+# til samme mening.
+#
+# HVORDAN DET VIRKER:
+#   `switch-provider.ts <profil> --multi-research` legger dette overlayet
+#   oppå den valgte profilen, men KUN for researchere hvis `api_key_env`
+#   finnes i ~/.opencode/.env. Mangler nøkkelen, faller agenten tilbake til
+#   primærprofilen — stille, men synlig i `switch-provider.ts --researchers`.
+#
+# MÅLT 2026-09-22: av nøklene i .env finnes ANTHROPIC, XAI og FIREWORKS.
+# GOOGLE, PERPLEXITY og OPENROUTER gjør det ikke. Ruting mot dem ga derfor
+# tre researchere som alle falt tilbake på primærprofilen — altså tre
+# duplikater som så ut som mangfold. De er flyttet til hver sin
+# modellfamilie på Fireworks, der nøkkelen faktisk finnes.
+#
+# NAVNENE LYVER DA OM LEVERANDØREN, og det er et bevisst bytte: en
+# `GeminiResearcher` på Qwen gir ekte modellmangfold, mens den samme agenten
+# rutet mot en leverandør uten nøkkel ikke gir noe som helst. Skaffes nøkkelen,
+# settes `native_model` tilbake til leverandørens egen modell — det er den
+# ene linjen som skal endres.
+#
+# ID-FORM: Fireworks-oppføringene bruker `routers/*-latest`, ikke pinnede
+# `models/*`. Routeren er leverandørens eget alias og overlever at DeepSeek
+# V4.1 blir V4.2 — uten at noe her må endres. Prisen er at modellen under
+# kan skifte uten varsel. Det er riktig bytte for en researcher, som skal
+# være fersk; det ville vært feil bytte for en agent hvis vurderinger vi
+# bygger videre på.
+
+enabled: true  # Set to false to always use primary provider for all researchers
+
+researchers:
+  ClaudeResearcher:
+    native_model: anthropic/claude-sonnet-5-5
+    api_key_env: ANTHROPIC_API_KEY
+    description: "Anthropic Claude - akademisk syntese, flerstegs spørsmålsdekomponering"
+    get_key_url: "https://console.anthropic.com/settings/keys"
+
+  GrokResearcher:
+    native_model: xai/grok-4.7
+    api_key_env: XAI_API_KEY
+    description: "xAI Grok - kontrarisk, faktabasert research"
+    get_key_url: "https://console.x.ai/"
+
+  CodexResearcher:
+    # Teknisk arkeologi er kodelesing. Kimi er repoets kodepick fra før.
+    native_model: fireworks-ai/accounts/fireworks/routers/kimi-latest
+    api_key_env: FIREWORKS_API_KEY
+    description: "Kimi (Fireworks) - teknisk arkeologi, kodelesing"
+    get_key_url: "https://fireworks.ai/account/api-keys"
+
+  GeminiResearcher:
+    # Bredeste generalist som IKKE er DeepSeek — poenget er en annen familie.
+    native_model: fireworks-ai/accounts/fireworks/routers/qwen-max-latest
+    api_key_env: FIREWORKS_API_KEY
+    description: "Qwen Max (Fireworks) - bred flerperspektiv-analyse"
+    get_key_url: "https://fireworks.ai/account/api-keys"
+
+  PerplexityResearcher:
+    # Rollen er rask bredde, ikke dybde. Flash-tieren er den riktige.
+    native_model: fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest
+    api_key_env: FIREWORKS_API_KEY
+    description: "DeepSeek Flash (Fireworks) - rask bredde, mange spørsmål"
+    get_key_url: "https://fireworks.ai/account/api-keys"

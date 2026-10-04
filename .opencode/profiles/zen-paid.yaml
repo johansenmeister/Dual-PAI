@@ -1,0 +1,55 @@
+# OpenCode ZEN PAID → Fireworks migration (September 2026)
+# Previous opencode/* paid models were retired from the registry.
+# Migrated to Fireworks AI equivalents (serverless, pay-per-token).
+#
+# Requires: FIREWORKS_API_KEY in ~/.opencode/.env
+#
+# Model IDs follow Fireworks format: accounts/fireworks/models/<name>
+# Full list: https://fireworks.ai/models
+#
+# Cost-tier replacements (previous opencode/* models retired):
+#   kimi-k3                    - general/coding workhorse
+#   glm-5p3    ($1.40/$4.40)   - premium reasoning
+#   minimax-m3 - cheapest, fast (see fireworks profile)
+#   (qwen3p7-plus, the writer/researcher sweet spot, left models.dev in
+#   September 2026: Writer is on minimax-m3, GeminiResearcher on qwen3p8-max)
+#   qwen3p8-max  ($2.00/$6.00) - premium Google-equivalent
+
+name: zen-paid
+description: "Zen paid migrated to Fireworks AI — see fireworks profile for full routing"
+
+default_model: fireworks-ai/accounts/fireworks/models/kimi-k3
+
+agents:
+  Algorithm:
+    model: fireworks-ai/accounts/fireworks/models/kimi-k3
+  Architect:
+    model: fireworks-ai/accounts/fireworks/models/kimi-k3
+  Engineer:
+    model: fireworks-ai/accounts/fireworks/models/kimi-k3
+  general:
+    model: fireworks-ai/accounts/fireworks/models/glm-5p3
+  explore:
+    model: fireworks-ai/accounts/fireworks/models/minimax-m3
+  Intern:
+    model: fireworks-ai/accounts/fireworks/models/minimax-m3
+  Writer:
+    model: fireworks-ai/accounts/fireworks/models/minimax-m3
+  DeepResearcher:
+    model: fireworks-ai/accounts/fireworks/models/glm-5p3
+  GeminiResearcher:
+    model: fireworks-ai/accounts/fireworks/models/qwen3p8-max
+  GrokResearcher:
+    model: fireworks-ai/accounts/fireworks/models/kimi-k3
+  PerplexityResearcher:
+    model: fireworks-ai/accounts/fireworks/models/kimi-k3
+  CodexResearcher:
+    model: fireworks-ai/accounts/fireworks/models/kimi-k3
+  QATester:
+    model: fireworks-ai/accounts/fireworks/models/glm-5p3
+  Pentester:
+    model: fireworks-ai/accounts/fireworks/models/kimi-k3
+  Designer:
+    model: fireworks-ai/accounts/fireworks/models/glm-5p3
+  Artist:
+    model: fireworks-ai/accounts/fireworks/models/glm-5p3

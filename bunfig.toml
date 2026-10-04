@@ -1,0 +1,3 @@
+[test]
+# Isolerer hele suiten fra det ekte MEMORY-treet og stubber modellkall (K1).
+preload = ["./tests/preload.ts"]

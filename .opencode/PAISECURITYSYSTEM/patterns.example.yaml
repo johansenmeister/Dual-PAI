@@ -1,0 +1,148 @@
+# PAI Security System - Example Patterns Configuration
+# This file demonstrates the security patterns that can be customized
+# Copy this file to patterns.yaml and modify rules as needed for your environment
+
+# DANGEROUS_PATTERNS: Patterns that will be BLOCKED and require explicit override
+# These are high-risk operations that could cause system damage
+DANGEROUS_PATTERNS:
+  # Destructive filesystem operations
+  - pattern: "rm\\s+(-rf|-r|--recursive)\\s+(/|~|\\.\\./|\\/.*)"
+    description: "Recursive delete from root or home directory"
+    severity: "CRITICAL"
+    suggestion: "Use specific paths and verify before deleting"
+
+  - pattern: "mkfs"
+    description: "Create filesystem (wipes disk)"
+    severity: "CRITICAL"
+    suggestion: "Only run on intended target disk with explicit confirmation"
+
+  - pattern: "dd\\s+if=.*of=(/dev/|/|~)"
+    description: "Disk copy to critical location"
+    severity: "CRITICAL"
+    suggestion: "Verify source and destination carefully"
+
+  # Process/system termination
+  - pattern: "kill\\s+(-9|-KILL)\\s+1"
+    description: "Kill init process (system crash)"
+    severity: "CRITICAL"
+    suggestion: "Only use on non-critical processes"
+
+  # Password/credential exposure
+  - pattern: "(password|secret|token|apikey)\\s*[=:]\\s*['\"](.*)['\"]"
+    description: "Hardcoded credentials in command"
+    severity: "HIGH"
+    suggestion: "Use environment variables or secure vaults"
+
+  # Reverse shells / remote execution
+  - pattern: "(bash|sh)\\s+-i\\s+>(&?\\s*/dev/|<)"
+    description: "Reverse shell pattern"
+    severity: "CRITICAL"
+    suggestion: "Only use in controlled security testing with approval"
+
+  - pattern: "curl\\s+.*\\|\\s*(bash|sh|python|perl)"
+    description: "Remote code execution via pipe"
+    severity: "CRITICAL"
+    suggestion: "Download and inspect script before execution"
+
+# WARNING_PATTERNS: Patterns that trigger warnings but allow continuation
+# These are potentially risky and should be reviewed before execution
+WARNING_PATTERNS:
+  # Privilege escalation
+  - pattern: "sudo\\s+(su|passwd|visudo)"
+    description: "Privilege escalation operation"
+    severity: "HIGH"
+    suggestion: "Verify the necessity and scope of privilege increase"
+
+  # Network operations
+  - pattern: "nc\\s+(-l|--listen)\\s+.*"
+    description: "Opening listening network socket"
+    severity: "MEDIUM"
+    suggestion: "Ensure firewall rules and intended clients"
+
+  - pattern: "iptables|ufw\\s+(--delete|delete)"
+    description: "Removing firewall rules"
+    severity: "MEDIUM"
+    suggestion: "Verify you don't break essential connectivity"
+
+  # Package/system modifications
+  - pattern: "apt-get\\s+(remove|purge)\\s+[a-z-]+"
+    description: "Removing system packages"
+    severity: "MEDIUM"
+    suggestion: "Verify dependencies before removal"
+
+  - pattern: "npm\\s+(uninstall|remove)\\s+-g"
+    description: "Removing global npm packages"
+    severity: "LOW"
+    suggestion: "Check for dependent projects"
+
+  # File modifications in system directories
+  - pattern: "(cp|mv|sed|ed|nano|vi)\\s+.*(/etc/|/boot/|/sys/)"
+    description: "Modifying system configuration"
+    severity: "MEDIUM"
+    suggestion: "Backup original and test in staging first"
+
+  # Database operations
+  - pattern: "(mysql|psql|sqlite3)\\s+.*DROP\\s+(DATABASE|TABLE)"
+    description: "Dropping database or table"
+    severity: "HIGH"
+    suggestion: "Backup database before destructive operations"
+
+# ALLOWED_PATTERNS: Optional whitelist of patterns that bypass warnings
+# Useful for known-safe repetitive operations
+ALLOWED_PATTERNS:
+  - pattern: "ls\\s+.*"
+    description: "Directory listing is always safe"
+
+  - pattern: "pwd"
+    description: "Print working directory"
+
+  - pattern: "echo\\s+.*"
+    description: "Echo is safe unless piped to sensitive locations"
+
+  - pattern: "cat\\s+[^/]*(?!(/etc/|/root/|/home/\\.))"
+    description: "Read non-sensitive files"
+
+# SECURITY_RULES: General security configuration
+SECURITY_RULES:
+  # Enable pattern matching
+  enabled: true
+
+  # Block dangerous patterns by default (true) or warn (false)
+  block_dangerous: true
+
+  # Require explicit confirmation for warnings
+  require_confirmation_for_warnings: true
+
+  # Audit logging
+  audit_log_path: "~/.opencode/logs/security-audit.log"
+
+  # Maximum command length before triggering inspection
+  max_command_length: 1000
+
+  # Additional environment variable checks
+  check_for_credentials: true
+  credential_keywords:
+    - "password"
+    - "secret"
+    - "token"
+    - "api_key"
+    - "apikey"
+    - "auth"
+    - "aws_access"
+    - "aws_secret"
+
+# CUSTOM_RULES: Define environment-specific security rules
+# Example: Customize for your workspace
+CUSTOM_RULES:
+  development:
+    # More permissive in development
+    block_dangerous: false
+    require_confirmation_for_warnings: false
+
+  production:
+    # Strict in production
+    block_dangerous: true
+    require_confirmation_for_warnings: true
+    additional_dangerous_patterns:
+      - pattern: "deploy|release|push.*main"
+        description: "Production deployment"

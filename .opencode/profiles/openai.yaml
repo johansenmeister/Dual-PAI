@@ -1,0 +1,55 @@
+# OpenAI GPT - Premium alternative provider
+#
+# Each agent uses one model. Heavy agents get gpt-5.1, light agents get
+# gpt-4.1-mini, everyone else gets gpt-4.1.
+#
+# Requires: OPENAI_API_KEY in ~/.opencode/.env
+#
+# Available models (Feb 2026):
+#   openai/gpt-5.1          - Most capable, reasoning + coding
+#   openai/gpt-4.1          - Balanced standard
+#   openai/gpt-4.1-mini     - Fast budget
+#   openai/gpt-4o           - Previous generation (still available)
+#   openai/gpt-5-mini       - Newer budget alternative
+#   openai/o3-mini          - Reasoning specialist (budget)
+#
+name: openai
+description: OpenAI GPT models - premium alternative provider
+
+# Default model for the main opencode.json "model" field
+default_model: openai/gpt-5.4
+
+# Agent routing — one model per agent
+agents:
+  Algorithm:
+    model: openai/gpt-5.5
+  Architect:
+    model: openai/gpt-5.4
+  Engineer:
+    model: openai/gpt-5.4
+  general:
+    model: openai/gpt-5.4
+  explore:
+    model: openai/gpt-5.4-mini
+  Intern:
+    model: openai/gpt-5.4-mini
+  Writer:
+    model: openai/gpt-5.4
+  DeepResearcher:
+    model: openai/gpt-5.4
+  GeminiResearcher:
+    model: openai/gpt-5.4
+  GrokResearcher:
+    model: openai/gpt-5.4
+  PerplexityResearcher:
+    model: openai/gpt-5.4
+  CodexResearcher:
+    model: openai/gpt-5.4
+  QATester:
+    model: openai/gpt-5.4
+  Pentester:
+    model: openai/gpt-5.4
+  Designer:
+    model: openai/gpt-5.4
+  Artist:
+    model: openai/gpt-5.4

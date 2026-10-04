@@ -1,0 +1,64 @@
+# Local Ollama - Fully offline, private deployment
+# All data stays on your machine. No API key required.
+#
+# IMPORTANT: You must have Ollama installed and models pulled locally.
+# The models below are SUGGESTIONS — replace with what you have installed.
+#
+# To check available models: ollama list
+# To pull a model:            ollama pull <model>
+#
+# Recommended models to pull:
+#   ollama pull qwen3.5:27b           # Most capable coding and general model
+#   ollama pull qwen3.5:9b            # Standard coding model
+#   ollama pull qwen3.5:2b            # Fast budget model
+#   ollama pull mistral-small3.2:24b  # Writing focused
+#
+# Alternative suggestions:
+#   ollama pull deepseek-coder-v2:latest  # Great for code
+#   ollama pull gpt-oss:20b               # General purpose
+#   ollama pull qwen3.5:35b               # Code-focused
+#
+# Credit: Ollama model selections by @ktneely in PR #103. Updated from
+# qwen2.5-coder (retired) to the qwen3.5 family + mistral-small3.2 for
+# writing tasks. Thank you, Kevin, for the community contribution!
+#
+name: local
+description: Local Ollama models - offline/private, customize to your installed models
+
+# Default model for the main opencode.json "model" field
+default_model: ollama/qwen3.5:9b
+
+# Agent routing — one model per agent (CUSTOMIZE THESE!)
+agents:
+  Algorithm:
+    model: ollama/qwen3.5:27b
+  Architect:
+    model: ollama/qwen3.5:9b
+  Engineer:
+    model: ollama/qwen3.5:9b
+  general:
+    model: ollama/qwen3.5:9b
+  explore:
+    model: ollama/qwen3.5:2b
+  Intern:
+    model: ollama/qwen3.5:2b
+  Writer:
+    model: ollama/mistral-small3.2:24b
+  DeepResearcher:
+    model: ollama/qwen3.5:9b
+  GeminiResearcher:
+    model: ollama/qwen3.5:9b
+  GrokResearcher:
+    model: ollama/qwen3.5:9b
+  PerplexityResearcher:
+    model: ollama/qwen3.5:9b
+  CodexResearcher:
+    model: ollama/qwen3.5:9b
+  QATester:
+    model: ollama/qwen3.5:9b
+  Pentester:
+    model: ollama/qwen3.5:9b
+  Designer:
+    model: ollama/qwen3.5:9b
+  Artist:
+    model: ollama/qwen3.5:9b

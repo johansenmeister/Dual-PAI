@@ -1,0 +1,485 @@
+{
+  "_kommentar": [
+    "GENERERT av Tools/BuildClaudePlugin.ts — ikke rediger.",
+    "",
+    "Flatt skill-navn → kilden speilet kom fra. Konsumeres av",
+    "pai-core/handlers/skill-guard.ts, som ellers gjør sitt eget",
+    "katalogsøk og dermed ikke kan vite hva Claude-siden faktisk",
+    "eksponerer.",
+    "",
+    "Claude Code adresserer en skill som `pai:<flatt-navn>` — slå av",
+    "prefikset før oppslag. `aliaser` dekker navnet KILDEN bruker,",
+    "som er det OpenCode-siden sender (`Proxmox`, ikke",
+    "`infrastructure-proxmox`)."
+  ],
+  "plugin": "pai",
+  "skills": {
+    "agents": {
+      "kilde": ".opencode/skills/Agents",
+      "segmenter": [
+        "Agents"
+      ],
+      "navn": "Agents"
+    },
+    "content-analysis": {
+      "kilde": ".opencode/skills/ContentAnalysis",
+      "segmenter": [
+        "ContentAnalysis"
+      ],
+      "navn": "ContentAnalysis"
+    },
+    "content-analysis-extract-wisdom": {
+      "kilde": ".opencode/skills/ContentAnalysis/ExtractWisdom",
+      "segmenter": [
+        "ContentAnalysis",
+        "ExtractWisdom"
+      ],
+      "navn": "ExtractWisdom"
+    },
+    "infrastructure": {
+      "kilde": ".opencode/skills/Infrastructure",
+      "segmenter": [
+        "Infrastructure"
+      ],
+      "navn": "Infrastructure"
+    },
+    "infrastructure-docker-portainer": {
+      "kilde": ".opencode/skills/Infrastructure/DockerPortainer",
+      "segmenter": [
+        "Infrastructure",
+        "DockerPortainer"
+      ],
+      "navn": "DockerPortainer"
+    },
+    "infrastructure-proxmox": {
+      "kilde": ".opencode/skills/Infrastructure/Proxmox",
+      "segmenter": [
+        "Infrastructure",
+        "Proxmox"
+      ],
+      "navn": "Proxmox"
+    },
+    "infrastructure-technitium": {
+      "kilde": ".opencode/skills/Infrastructure/Technitium",
+      "segmenter": [
+        "Infrastructure",
+        "Technitium"
+      ],
+      "navn": "Technitium"
+    },
+    "infrastructure-true-nas": {
+      "kilde": ".opencode/skills/Infrastructure/TrueNAS",
+      "segmenter": [
+        "Infrastructure",
+        "TrueNAS"
+      ],
+      "navn": "TrueNAS"
+    },
+    "music-library": {
+      "kilde": ".opencode/skills/MusicLibrary",
+      "segmenter": [
+        "MusicLibrary"
+      ],
+      "navn": "MusicLibrary"
+    },
+    "research": {
+      "kilde": ".opencode/skills/Research",
+      "segmenter": [
+        "Research"
+      ],
+      "navn": "Research"
+    },
+    "security": {
+      "kilde": ".opencode/skills/Security",
+      "segmenter": [
+        "Security"
+      ],
+      "navn": "Security"
+    },
+    "security-annual-reports": {
+      "kilde": ".opencode/skills/Security/AnnualReports",
+      "segmenter": [
+        "Security",
+        "AnnualReports"
+      ],
+      "navn": "AnnualReports"
+    },
+    "security-prompt-injection": {
+      "kilde": ".opencode/skills/Security/PromptInjection",
+      "segmenter": [
+        "Security",
+        "PromptInjection"
+      ],
+      "navn": "PromptInjection"
+    },
+    "security-recon": {
+      "kilde": ".opencode/skills/Security/Recon",
+      "segmenter": [
+        "Security",
+        "Recon"
+      ],
+      "navn": "Recon"
+    },
+    "security-sec-updates": {
+      "kilde": ".opencode/skills/Security/SECUpdates",
+      "segmenter": [
+        "Security",
+        "SECUpdates"
+      ],
+      "navn": "SECUpdates"
+    },
+    "security-threat-model": {
+      "kilde": ".opencode/skills/Security/ThreatModel",
+      "segmenter": [
+        "Security",
+        "ThreatModel"
+      ],
+      "navn": "ThreatModel"
+    },
+    "security-web-assessment": {
+      "kilde": ".opencode/skills/Security/WebAssessment",
+      "segmenter": [
+        "Security",
+        "WebAssessment"
+      ],
+      "navn": "WebAssessment"
+    },
+    "telos": {
+      "kilde": ".opencode/skills/Telos",
+      "segmenter": [
+        "Telos"
+      ],
+      "navn": "Telos"
+    },
+    "thinking": {
+      "kilde": ".opencode/skills/Thinking",
+      "segmenter": [
+        "Thinking"
+      ],
+      "navn": "Thinking"
+    },
+    "thinking-be-creative": {
+      "kilde": ".opencode/skills/Thinking/BeCreative",
+      "segmenter": [
+        "Thinking",
+        "BeCreative"
+      ],
+      "navn": "BeCreative"
+    },
+    "thinking-council": {
+      "kilde": ".opencode/skills/Thinking/Council",
+      "segmenter": [
+        "Thinking",
+        "Council"
+      ],
+      "navn": "Council"
+    },
+    "thinking-first-principles": {
+      "kilde": ".opencode/skills/Thinking/FirstPrinciples",
+      "segmenter": [
+        "Thinking",
+        "FirstPrinciples"
+      ],
+      "navn": "FirstPrinciples"
+    },
+    "thinking-iterative-depth": {
+      "kilde": ".opencode/skills/Thinking/IterativeDepth",
+      "segmenter": [
+        "Thinking",
+        "IterativeDepth"
+      ],
+      "navn": "IterativeDepth"
+    },
+    "thinking-red-team": {
+      "kilde": ".opencode/skills/Thinking/RedTeam",
+      "segmenter": [
+        "Thinking",
+        "RedTeam"
+      ],
+      "navn": "RedTeam"
+    },
+    "thinking-root-cause-analysis": {
+      "kilde": ".opencode/skills/Thinking/RootCauseAnalysis",
+      "segmenter": [
+        "Thinking",
+        "RootCauseAnalysis"
+      ],
+      "navn": "RootCauseAnalysis"
+    },
+    "thinking-science": {
+      "kilde": ".opencode/skills/Thinking/Science",
+      "segmenter": [
+        "Thinking",
+        "Science"
+      ],
+      "navn": "Science"
+    },
+    "thinking-systems-thinking": {
+      "kilde": ".opencode/skills/Thinking/SystemsThinking",
+      "segmenter": [
+        "Thinking",
+        "SystemsThinking"
+      ],
+      "navn": "SystemsThinking"
+    },
+    "thinking-world-threat-model-harness": {
+      "kilde": ".opencode/skills/Thinking/WorldThreatModelHarness",
+      "segmenter": [
+        "Thinking",
+        "WorldThreatModelHarness"
+      ],
+      "navn": "WorldThreatModelHarness"
+    },
+    "utilities": {
+      "kilde": ".opencode/skills/Utilities",
+      "segmenter": [
+        "Utilities"
+      ],
+      "navn": "Utilities"
+    },
+    "utilities-browser": {
+      "kilde": ".opencode/skills/Utilities/Browser",
+      "segmenter": [
+        "Utilities",
+        "Browser"
+      ],
+      "navn": "Browser"
+    },
+    "utilities-cloudflare": {
+      "kilde": ".opencode/skills/Utilities/Cloudflare",
+      "segmenter": [
+        "Utilities",
+        "Cloudflare"
+      ],
+      "navn": "Cloudflare"
+    },
+    "utilities-code-review": {
+      "kilde": ".opencode/skills/Utilities/CodeReview",
+      "segmenter": [
+        "Utilities",
+        "CodeReview"
+      ],
+      "navn": "CodeReview"
+    },
+    "utilities-create-cli": {
+      "kilde": ".opencode/skills/Utilities/CreateCLI",
+      "segmenter": [
+        "Utilities",
+        "CreateCLI"
+      ],
+      "navn": "CreateCLI"
+    },
+    "utilities-create-skill": {
+      "kilde": ".opencode/skills/Utilities/CreateSkill",
+      "segmenter": [
+        "Utilities",
+        "CreateSkill"
+      ],
+      "navn": "CreateSkill"
+    },
+    "utilities-delegation": {
+      "kilde": ".opencode/skills/Utilities/Delegation",
+      "segmenter": [
+        "Utilities",
+        "Delegation"
+      ],
+      "navn": "Delegation"
+    },
+    "utilities-documents": {
+      "kilde": ".opencode/skills/Utilities/Documents",
+      "segmenter": [
+        "Utilities",
+        "Documents"
+      ],
+      "navn": "Documents"
+    },
+    "utilities-docx": {
+      "kilde": ".opencode/skills/Utilities/Docx",
+      "segmenter": [
+        "Utilities",
+        "Docx"
+      ],
+      "navn": "Docx"
+    },
+    "utilities-evals": {
+      "kilde": ".opencode/skills/Utilities/Evals",
+      "segmenter": [
+        "Utilities",
+        "Evals"
+      ],
+      "navn": "Evals"
+    },
+    "utilities-fabric": {
+      "kilde": ".opencode/skills/Utilities/Fabric",
+      "segmenter": [
+        "Utilities",
+        "Fabric"
+      ],
+      "navn": "Fabric"
+    },
+    "utilities-hardening": {
+      "kilde": ".opencode/skills/Utilities/Hardening",
+      "segmenter": [
+        "Utilities",
+        "Hardening"
+      ],
+      "navn": "Hardening"
+    },
+    "utilities-harness-update": {
+      "kilde": ".opencode/skills/Utilities/HarnessUpdate",
+      "segmenter": [
+        "Utilities",
+        "HarnessUpdate"
+      ],
+      "navn": "HarnessUpdate"
+    },
+    "utilities-model-update": {
+      "kilde": ".opencode/skills/Utilities/ModelUpdate",
+      "segmenter": [
+        "Utilities",
+        "ModelUpdate"
+      ],
+      "navn": "ModelUpdate"
+    },
+    "utilities-open-code-system": {
+      "kilde": ".opencode/skills/Utilities/OpenCodeSystem",
+      "segmenter": [
+        "Utilities",
+        "OpenCodeSystem"
+      ],
+      "navn": "OpenCodeSystem"
+    },
+    "utilities-pai-upgrade": {
+      "kilde": ".opencode/skills/Utilities/PAIUpgrade",
+      "segmenter": [
+        "Utilities",
+        "PAIUpgrade"
+      ],
+      "navn": "PAIUpgrade"
+    },
+    "utilities-parser": {
+      "kilde": ".opencode/skills/Utilities/Parser",
+      "segmenter": [
+        "Utilities",
+        "Parser"
+      ],
+      "navn": "Parser"
+    },
+    "utilities-pdf": {
+      "kilde": ".opencode/skills/Utilities/Pdf",
+      "segmenter": [
+        "Utilities",
+        "Pdf"
+      ],
+      "navn": "Pdf"
+    },
+    "utilities-pptx": {
+      "kilde": ".opencode/skills/Utilities/Pptx",
+      "segmenter": [
+        "Utilities",
+        "Pptx"
+      ],
+      "navn": "Pptx"
+    },
+    "utilities-prompting": {
+      "kilde": ".opencode/skills/Utilities/Prompting",
+      "segmenter": [
+        "Utilities",
+        "Prompting"
+      ],
+      "navn": "Prompting"
+    },
+    "utilities-sales": {
+      "kilde": ".opencode/skills/Utilities/Sales",
+      "segmenter": [
+        "Utilities",
+        "Sales"
+      ],
+      "navn": "Sales"
+    },
+    "utilities-system": {
+      "kilde": ".opencode/skills/Utilities/System",
+      "segmenter": [
+        "Utilities",
+        "System"
+      ],
+      "navn": "System"
+    },
+    "utilities-xlsx": {
+      "kilde": ".opencode/skills/Utilities/Xlsx",
+      "segmenter": [
+        "Utilities",
+        "Xlsx"
+      ],
+      "navn": "Xlsx"
+    }
+  },
+  "aliaser": {
+    "contentanalysis": "content-analysis",
+    "extractwisdom": "content-analysis-extract-wisdom",
+    "extract-wisdom": "content-analysis-extract-wisdom",
+    "dockerportainer": "infrastructure-docker-portainer",
+    "docker-portainer": "infrastructure-docker-portainer",
+    "proxmox": "infrastructure-proxmox",
+    "technitium": "infrastructure-technitium",
+    "truenas": "infrastructure-true-nas",
+    "true-nas": "infrastructure-true-nas",
+    "musiclibrary": "music-library",
+    "annualreports": "security-annual-reports",
+    "annual-reports": "security-annual-reports",
+    "promptinjection": "security-prompt-injection",
+    "prompt-injection": "security-prompt-injection",
+    "recon": "security-recon",
+    "secupdates": "security-sec-updates",
+    "sec-updates": "security-sec-updates",
+    "threatmodel": "security-threat-model",
+    "threat-model": "security-threat-model",
+    "webassessment": "security-web-assessment",
+    "web-assessment": "security-web-assessment",
+    "becreative": "thinking-be-creative",
+    "be-creative": "thinking-be-creative",
+    "council": "thinking-council",
+    "firstprinciples": "thinking-first-principles",
+    "first-principles": "thinking-first-principles",
+    "iterativedepth": "thinking-iterative-depth",
+    "iterative-depth": "thinking-iterative-depth",
+    "redteam": "thinking-red-team",
+    "red-team": "thinking-red-team",
+    "rootcauseanalysis": "thinking-root-cause-analysis",
+    "root-cause-analysis": "thinking-root-cause-analysis",
+    "science": "thinking-science",
+    "systemsthinking": "thinking-systems-thinking",
+    "systems-thinking": "thinking-systems-thinking",
+    "worldthreatmodelharness": "thinking-world-threat-model-harness",
+    "world-threat-model-harness": "thinking-world-threat-model-harness",
+    "browser": "utilities-browser",
+    "cloudflare": "utilities-cloudflare",
+    "codereview": "utilities-code-review",
+    "code-review": "utilities-code-review",
+    "createcli": "utilities-create-cli",
+    "create-cli": "utilities-create-cli",
+    "createskill": "utilities-create-skill",
+    "create-skill": "utilities-create-skill",
+    "delegation": "utilities-delegation",
+    "documents": "utilities-documents",
+    "docx": "utilities-docx",
+    "evals": "utilities-evals",
+    "fabric": "utilities-fabric",
+    "hardening": "utilities-hardening",
+    "harnessupdate": "utilities-harness-update",
+    "harness-update": "utilities-harness-update",
+    "modelupdate": "utilities-model-update",
+    "model-update": "utilities-model-update",
+    "opencodesystem": "utilities-open-code-system",
+    "open-code-system": "utilities-open-code-system",
+    "paiupgrade": "utilities-pai-upgrade",
+    "pai-upgrade": "utilities-pai-upgrade",
+    "parser": "utilities-parser",
+    "pdf": "utilities-pdf",
+    "pptx": "utilities-pptx",
+    "prompting": "utilities-prompting",
+    "sales": "utilities-sales",
+    "system": "utilities-system",
+    "xlsx": "utilities-xlsx"
+  }
+}

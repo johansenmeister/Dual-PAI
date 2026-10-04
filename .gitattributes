@@ -1,0 +1,2 @@
+# Append-only PAI-logger: union-merge hindrer konflikt på hver divergerende linje
+*.jsonl merge=union

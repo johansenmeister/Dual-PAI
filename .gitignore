@@ -1,0 +1,80 @@
+node_modules/
+
+# OpenCode-binæren skal aldri i git
+.opencode/bin/
+
+# Den kompilerte hook-dispatcheren: 81 MB byggeartefakt, ikke kildekode.
+# Bygges av `pai claude sync`; shell-oppstarteren faller tilbake på kilden
+# når den mangler, så et friskt klonet repo virker uten den.
+claude-plugin/bin/*.bin
+claude-plugin/bin/*.bin.tmp
+
+# Backup folders created by converter/migration tools
+.opencode.backup-*/
+
+# Environment files with secrets
+.opencode/.env
+.env
+*.env.local
+
+# Byggeartefakter fra Python. En .pyc BÆRER kildestrengene, så en sporet
+# bytekodefil lekker innhold man tror man har fjernet fra kilden — det var
+# nøyaktig slik health-digest.cpython-313.pyc overlevde saniteringen av det
+# delbare harnesset i batch 14.
+__pycache__/
+*.pyc
+
+# Runtime artifacts
+*.log
+.DS_Store
+
+# Personal content (user customizes)
+.opencode/USER/*
+!.opencode/USER/README.md
+!.opencode/USER/.gitkeep
+# PAI/USER (identitet, TELOS, customizations) synkes via git i eierens oppsett
+
+# Security patterns (user customizes)
+.opencode/PAISECURITYSYSTEM/patterns.yaml
+
+# MEMORY synkes via git mellom maskiner (eierens oppsett), bortsett fra STATE/
+.opencode/settings.json
+# STATE/ er maskinlokal driftstilstand: en tillatelsesliste, ikke en blokkliste.
+# Alt ignoreres; bare katalogene og deres .gitkeep er sporet. Blokklista mistet
+# prd-registry.json (0f1f8ef) og subagent-registry-*.json. Vakten er
+# tests/state-maskinlokal.test.ts (K17).
+.opencode/MEMORY/STATE/**
+!.opencode/MEMORY/STATE/**/
+!.opencode/MEMORY/STATE/**/.gitkeep
+.opencode/MEMORY/VOICE/voice-events.jsonl
+
+# OpenCode v2s plan-modus skriver `$HOME/.opencode/plan/plan.md`, og
+# `~/.opencode` er en symlink inn hit. Arbeidsfila skal ikke committes av
+# `sync-end.sh`; øyeblikksbildet i `.opencode/Plans/` er det som synkes.
+.opencode/plan/
+
+# Exploration artifacts
+EXPLORATION-*.md
+EXPLORATION-*.txt
+
+# npm-artefakt fra installeren (repoet bruker bun.lock)
+.opencode/package-lock.json
+
+# migrerings-backuper fra opencode TUI
+*.tui-migration.bak
+
+# Selvrefererende symlenke (maskinlokal), sto i jobbens .gitignore før v2
+.opencode/.opencode
+
+# Swapfiler fra vim: ..env.swp lå usporet i .opencode/ og ville blitt
+# committet av sync-end.sh (git add -A), med .env-innhold i seg
+*.swp
+*.swo
+
+# Nøkler (K16). Jobbens Graph-privatnøkkel ligger usporet i .opencode/, og
+# jobbens *.pem-regel var det eneste som holdt den ute. sync-end.sh nekter
+# uansett, men regelen gjør at `git status` ikke viser den i det hele tatt.
+*.pem
+
+# OpenCode Desktop skriver tjenestepassordet her (serve --service); ~/.config/opencode peker inn i repoet
+config/opencode/service.json

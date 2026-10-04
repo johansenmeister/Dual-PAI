@@ -1,0 +1,161 @@
+{
+  "description": "GENERERT av Tools/BuildClaudePlugin.ts fra HÅNDTERTE_HENDELSER i src/adapter/routes.ts — ikke rediger. ÉN oppføring per hendelse, ikke én per handler. Dispatcheren fan-outer internt, så 25 handlere koster tretten prosesser og ikke 25. INGEN matchers, med vilje. Claude Codes matcher filtrerer på verktøynavn, og den samme filtreringen ligger i routes.ts — der den kan speile kjernens egne navnetester og låses av en test som leser begge. Prisen er én bun-oppstart (~69 ms målt) for kall hurtigutgangen forkaster; gevinsten er at filtreringen ikke kan drive fra kjernen uten at en test faller. `timeout` er sekunder og ligger bevisst over dispatcherens egen vaktbikkje (bin/pai-hook.ts): PAI skal selv avgjøre hva som skjer når noe henger, framfor at Claude Code dreper prosessen midt i en filskriving.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 45
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 45
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/pai-hook",
+            "args": [],
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

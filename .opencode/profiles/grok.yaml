@@ -1,0 +1,50 @@
+# xAI Grok — full Grok-ruting per agent
+#
+# Krever: XAI_API_KEY i ~/.opencode/.env (hentes fra https://console.x.ai)
+# Modellutvalg per 2026-09 (`opencode models | grep xai`):
+#   grok-4.6                    — nyeste flaggskip: research, generelt, dyp resonnering
+#   grok-4.5                    — forrige generasjons flaggskip
+#   grok-4.20-0309-reasoning    — koding og resonnering
+#   grok-4.20-0309-non-reasoning — raske svar, lettvektsoppgaver
+#   grok-4.20-multi-agent-0309  — multi-agent-arbeidsflyter
+#
+name: grok
+description: xAI Grok - 4.6 til research/dybde, 4.20-reasoning til koding
+
+# Default model for the main opencode.json "model" field
+default_model: xai/grok-4.6
+
+# Agent routing — one model per agent
+agents:
+  Algorithm:
+    model: xai/grok-4.6
+  Architect:
+    model: xai/grok-4.20-0309-reasoning
+  Engineer:
+    model: xai/grok-4.20-0309-reasoning
+  general:
+    model: xai/grok-4.6
+  explore:
+    model: xai/grok-4.20-0309-non-reasoning
+  Intern:
+    model: xai/grok-4.20-0309-non-reasoning
+  Writer:
+    model: xai/grok-4.6
+  DeepResearcher:
+    model: xai/grok-4.6
+  GeminiResearcher:
+    model: xai/grok-4.6
+  GrokResearcher:
+    model: xai/grok-4.6
+  PerplexityResearcher:
+    model: xai/grok-4.6
+  CodexResearcher:
+    model: xai/grok-4.6
+  QATester:
+    model: xai/grok-4.20-0309-reasoning
+  Pentester:
+    model: xai/grok-4.6
+  Designer:
+    model: xai/grok-4.6
+  Artist:
+    model: xai/grok-4.6

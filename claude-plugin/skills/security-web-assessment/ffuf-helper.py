@@ -1,0 +1,1 @@
+../../../.opencode/skills/Security/WebAssessment/ffuf-helper.py

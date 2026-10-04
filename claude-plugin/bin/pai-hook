@@ -1,0 +1,76 @@
+#!/bin/sh
+#
+# PAI hook-dispatcher — oppstarter
+#
+# KONTRAKTEN denne fila oppfyller: `bin/pai-hook` er en kjørbar som leser en
+# hook-payload på stdin og skriver ett JSON-dokument på stdout. `hooks.json`
+# peker kun på dette navnet, aldri på noe bak det. Derfor kan innmaten byttes
+# uten at noen installert plugin må reinstalleres.
+#
+# TO VEIER BAK NAVNET, i prioritert rekkefølge:
+#
+#   1. `bin/pai-hook.bin` — en `bun build --compile --bytecode`-binær, bygget
+#      av `pai claude sync` og gitignorert. MÅLT 2026-09-22: 30 ms mot 74 ms
+#      på hurtigutgangen, 36 ms mot 89 ms på full sti.
+#   2. `bun bin/pai-hook.ts` — kilden direkte, som før.
+#
+# Fallbacken er ikke pynt. Binæren er et byggeartefakt som ikke ligger i git,
+# så et friskt klonet repo har den ikke. Uten steg 2 ville PAI vært AV på en
+# ny maskin til noen husket å bygge — og en hook som ikke starter er usynlig.
+# Den feilmodusen er den dyreste i dette systemet.
+#
+# `exec` er ikke pynt heller: uten den ville vi lagt en ekstra prosess mellom
+# Claude Code og dispatcheren, og slektsoppslaget i src/owner.ts teller nivåer
+# oppover for å finne motorprosessen. Med `exec` blir dette skallet TIL
+# dispatcheren, så slekten er uendret.
+#
+# INGEN `dirname`-kall. Hvert av dem er en fork, og på en sti som nå koster
+# 30 ms teller to forker. POSIX-parameterekspansjon gjør det samme gratis.
+
+# CLAUDE_PLUGIN_ROOT settes av motoren og er den pålitelige kilden. Faller vi
+# tilbake på $0, er det for manuelle kjøringer og for tester.
+ROT=${CLAUDE_PLUGIN_ROOT:-}
+if [ -z "$ROT" ]; then
+	KAT=${0%/*}
+	ROT=${KAT%/*}
+	# Uten skråstrek i $0 gir ekspansjonen $0 uendret; da er vi i bin/.
+	[ "$KAT" = "$0" ] && ROT=..
+	CLAUDE_PLUGIN_ROOT=$ROT
+	export CLAUDE_PLUGIN_ROOT
+fi
+
+# === 1. KOMPILERT BINÆR ===
+#
+# Den bærer sin egen bun-runtime, så den trenger verken bun på PATH eller
+# noe fra brukerens profil.
+if [ -x "$ROT/bin/pai-hook.bin" ]; then
+	exec "$ROT/bin/pai-hook.bin"
+fi
+
+# === 2. KILDEN VIA BUN ===
+#
+# Hvorfor lete etter bun i det hele tatt: hooks kjøres via `/bin/sh -c`, som
+# ikke leser brukerens profil. Er ~/.bun/bin bare i .bashrc, finnes ikke bun
+# i PATH her.
+if command -v bun >/dev/null 2>&1; then
+	exec bun "$ROT/bin/pai-hook.ts"
+fi
+
+for kandidat in \
+	"${BUN_INSTALL:-$HOME/.bun}/bin/bun" \
+	"$HOME/.bun/bin/bun" \
+	/usr/local/bin/bun \
+	/usr/bin/bun
+do
+	if [ -x "$kandidat" ]; then
+		exec "$kandidat" "$ROT/bin/pai-hook.ts"
+	fi
+done
+
+# Fant vi verken binær eller bun, er det bedre å si fra i loggen enn å dø
+# stille. Exit 0 med tomt objekt: en hook som feiler skal ALDRI blokkere
+# brukerens arbeid.
+echo "[$(date -Iseconds)] [ERROR] [pai-hook] Fant verken bin/pai-hook.bin eller bun — PAI er av for denne hendelsen" \
+	>> "${PAI_LOG_PATH:-/tmp/pai-claude-debug.log}" 2>/dev/null
+echo '{}'
+exit 0

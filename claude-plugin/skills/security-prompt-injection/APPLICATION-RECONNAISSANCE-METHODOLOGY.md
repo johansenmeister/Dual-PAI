@@ -1,0 +1,1 @@
+../../../.opencode/skills/Security/PromptInjection/APPLICATION-RECONNAISSANCE-METHODOLOGY.md

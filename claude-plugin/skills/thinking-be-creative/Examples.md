@@ -1,0 +1,1 @@
+../../../.opencode/skills/Thinking/BeCreative/Examples.md

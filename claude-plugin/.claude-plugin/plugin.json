@@ -1,0 +1,8 @@
+{
+  "name": "pai",
+  "description": "Personal AI Infrastructure — kontekstinjeksjon, arbeidssporing, læring og sikkerhetsvakt. Adapter mot pai-core, som deles med OpenCode-siden.",
+  "version": "3.0.1",
+  "author": {
+    "name": "johansenmeister"
+  }
+}

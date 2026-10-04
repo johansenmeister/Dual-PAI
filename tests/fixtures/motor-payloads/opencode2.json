@@ -1,0 +1,97 @@
+{
+	"motor": "opencode2",
+	"versjon": "2.0.18",
+	"målt": "2026-09-28",
+	"kilde": "bun Tools/V2Smoke.ts --fixtures, steg g",
+	"kall": [
+		{
+			"klasse": "shell",
+			"forventet": {
+				"kommando": "echo pai-gylden-skall"
+			},
+			"payload": {
+				"tool": "shell",
+				"sessionID": "ses_f16e0e7f9ffet9IoJFqVAWuwHF",
+				"agent": "build",
+				"messageID": "msg_0e91f1e7f001RNexMnPazcP33v",
+				"id": "call_71261549733d4739b730a79c",
+				"input": {
+					"command": "echo pai-gylden-skall"
+				}
+			}
+		},
+		{
+			"klasse": "write",
+			"forventet": {
+				"sti": "/tmp/pai-gylden/proj/gylden.txt",
+				"innhold": "gylden-for"
+			},
+			"payload": {
+				"tool": "write",
+				"sessionID": "ses_f16e0e7f9ffet9IoJFqVAWuwHF",
+				"agent": "build",
+				"messageID": "msg_0e91f2a7c001vD0pZFOu1PRu1i",
+				"id": "call_d6913c708f6e4163afde8cab",
+				"input": {
+					"path": "/tmp/pai-gylden/proj/gylden.txt",
+					"content": "gylden-for"
+				}
+			}
+		},
+		{
+			"klasse": "edit",
+			"forventet": {
+				"sti": "/tmp/pai-gylden/proj/gylden.txt",
+				"gammel": "gylden-for",
+				"ny": "gylden-etter"
+			},
+			"payload": {
+				"tool": "edit",
+				"sessionID": "ses_f16e0e7f9ffet9IoJFqVAWuwHF",
+				"agent": "build",
+				"messageID": "msg_0e91f30aa001MTOSxHc5XQyzOK",
+				"id": "call_1926b66191774d1885d57e9c",
+				"input": {
+					"path": "/tmp/pai-gylden/proj/gylden.txt",
+					"oldString": "gylden-for",
+					"newString": "gylden-etter"
+				}
+			}
+		},
+		{
+			"klasse": "skill",
+			"forventet": {
+				"navn": "Proxmox"
+			},
+			"payload": {
+				"tool": "skill",
+				"sessionID": "ses_f16e0e7f9ffet9IoJFqVAWuwHF",
+				"agent": "build",
+				"messageID": "msg_0e91f381c0015Uv2fb0Wz26P5y",
+				"id": "call_3bd651f4e7904302a2893b6c",
+				"input": {
+					"id": "Proxmox"
+				}
+			}
+		},
+		{
+			"klasse": "subagent",
+			"forventet": {
+				"type": "Intern",
+				"prompt": "GYLDEN-SVAR"
+			},
+			"payload": {
+				"tool": "subagent",
+				"sessionID": "ses_f16e0e7f9ffet9IoJFqVAWuwHF",
+				"agent": "build",
+				"messageID": "msg_0e91f3c85001kHsaRgXV1pYIJv",
+				"id": "call_2c5c2d7a47c74f9fb4765c4b",
+				"input": {
+					"agent": "Intern",
+					"description": "gylden",
+					"prompt": "Reply with exactly the text GYLDEN-SVAR and nothing else."
+				}
+			}
+		}
+	]
+}

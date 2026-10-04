@@ -1,0 +1,75 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest",
+  "snapshot": true,
+  "autoupdate": "notify",
+  "permission": {
+    "*": "allow",
+    "websearch": "allow",
+    "codesearch": "allow",
+    "webfetch": "allow",
+    "doom_loop": "ask",
+    "external_directory": "ask"
+  },
+  "mode": {
+    "build": {
+      "prompt": "You are a Personal AI assistant powered by PAI-OpenCode infrastructure."
+    },
+    "plan": {
+      "prompt": "You are a Personal AI assistant powered by PAI-OpenCode infrastructure."
+    }
+  },
+  "agent": {
+    "Algorithm": {
+      "model": "fireworks-ai/accounts/fireworks/models/qwen3p8-2p4t-a95b"
+    },
+    "Architect": {
+      "model": "fireworks-ai/accounts/fireworks/routers/glm-latest"
+    },
+    "Engineer": {
+      "model": "fireworks-ai/accounts/fireworks/routers/kimi-latest"
+    },
+    "Pentester": {
+      "model": "fireworks-ai/accounts/fireworks/routers/kimi-latest"
+    },
+    "QATester": {
+      "model": "fireworks-ai/accounts/fireworks/models/nemotron-3-ultra-nvfp4"
+    },
+    "general": {
+      "model": "fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest"
+    },
+    "explore": {
+      "model": "fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest"
+    },
+    "Intern": {
+      "model": "fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest"
+    },
+    "Writer": {
+      "model": "fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest"
+    },
+    "DeepResearcher": {
+      "model": "fireworks-ai/accounts/fireworks/models/inkling"
+    },
+    "Designer": {
+      "model": "fireworks-ai/accounts/fireworks/routers/minimax-latest"
+    },
+    "Artist": {
+      "model": "fireworks-ai/accounts/fireworks/routers/minimax-latest"
+    },
+    "ClaudeResearcher": {
+      "model": "anthropic/claude-sonnet-5-5"
+    },
+    "GrokResearcher": {
+      "model": "xai/grok-4.7"
+    },
+    "GeminiResearcher": {
+      "model": "fireworks-ai/accounts/fireworks/routers/qwen-max-latest"
+    },
+    "PerplexityResearcher": {
+      "model": "fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest"
+    },
+    "CodexResearcher": {
+      "model": "fireworks-ai/accounts/fireworks/routers/kimi-latest"
+    }
+  }
+}

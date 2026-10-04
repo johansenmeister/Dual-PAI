@@ -1,0 +1,1 @@
+../../../.opencode/skills/Thinking/Science/Examples.md

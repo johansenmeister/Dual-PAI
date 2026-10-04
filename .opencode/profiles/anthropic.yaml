@@ -1,0 +1,47 @@
+# Anthropic Claude - Recommended for best PAI experience
+#
+# Each agent uses one model. Model selection per agent is chosen to match
+# the agent's typical workload (explore/Intern = fast, Algorithm = deep).
+#
+# Requires: ANTHROPIC_API_KEY (abonnement støttes ikke i opencode)
+#
+name: anthropic
+description: Anthropic Claude models - recommended for best quality
+
+# Default model for the main opencode.json "model" field
+default_model: anthropic/claude-sonnet-5-5
+
+# Agent routing — one model per agent
+agents:
+  Algorithm:
+    model: anthropic/claude-opus-5-5
+  Architect:
+    model: anthropic/claude-sonnet-5-5
+  Engineer:
+    model: anthropic/claude-sonnet-5-5
+  general:
+    model: anthropic/claude-sonnet-5-5
+  explore:
+    model: anthropic/claude-haiku-4-5
+  Intern:
+    model: anthropic/claude-haiku-4-5
+  Writer:
+    model: anthropic/claude-sonnet-5-5
+  DeepResearcher:
+    model: anthropic/claude-sonnet-5-5
+  GeminiResearcher:
+    model: anthropic/claude-sonnet-5-5
+  GrokResearcher:
+    model: anthropic/claude-sonnet-5-5
+  PerplexityResearcher:
+    model: anthropic/claude-sonnet-5-5
+  CodexResearcher:
+    model: anthropic/claude-sonnet-5-5
+  QATester:
+    model: anthropic/claude-sonnet-5-5
+  Pentester:
+    model: anthropic/claude-sonnet-5-5
+  Designer:
+    model: anthropic/claude-sonnet-5-5
+  Artist:
+    model: anthropic/claude-sonnet-5-5

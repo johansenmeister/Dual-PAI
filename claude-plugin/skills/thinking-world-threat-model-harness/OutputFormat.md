@@ -1,0 +1,1 @@
+../../../.opencode/skills/Thinking/WorldThreatModelHarness/OutputFormat.md

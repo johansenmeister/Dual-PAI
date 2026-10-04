@@ -1,0 +1,1 @@
+../../../.opencode/skills/MusicLibrary/BeetsGuide.md

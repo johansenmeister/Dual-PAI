@@ -1,0 +1,22 @@
+# Gitea for PAI's repository and issues (guide/gitea.md). Copied to the server
+# as docker-compose.yml, next to a .env file with GIT_HOST=<the server's address>.
+# The version is pinned, like the engines: change it on purpose, not by accident.
+services:
+  gitea:
+    image: gitea/gitea:1.27.3
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__security__INSTALL_LOCK=true
+      - GITEA__server__ROOT_URL=http://${GIT_HOST}:3000/
+      - GITEA__server__SSH_DOMAIN=${GIT_HOST}
+      - GITEA__server__SSH_PORT=2222
+      - GITEA__service__DISABLE_REGISTRATION=true
+    volumes:
+      - ./data:/data
+    ports:
+      - "3000:3000"
+      - "2222:22"

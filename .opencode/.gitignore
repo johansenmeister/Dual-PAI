@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Runtime artifacts
+*.log
+.DS_Store
+
+# Personal content (user customizes)
+USER/*
+!USER/README.md
+!USER/.gitkeep
+
+# Security patterns (user customizes)
+PAISECURITYSYSTEM/patterns.yaml
+
+# Voice server logs (runtime generated)
+voice-server/logs/*.log

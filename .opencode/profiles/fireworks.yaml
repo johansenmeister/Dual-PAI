@@ -1,0 +1,97 @@
+# Fireworks AI - serverless inference
+#
+# Krever: FIREWORKS_API_KEY i ~/.opencode/.env
+# Full liste: https://fireworks.ai/models
+#
+# ID-FORM: `routers/*-latest`, ikke pinnede `models/*`.
+#
+#   En router er leverandørens EGET alias og følger med når DeepSeek V4.1
+#   blir V4.2. Med pinnede IDer blir hver slik versjon en utgått referanse
+#   som må fanges av model-sync og byttes for hånd — altså akkurat det
+#   arbeidet som er vanskelig, fordi ingen vet på forhånd hva leverandøren
+#   kommer til å kalle neste modell.
+#
+#   Prisen er ekte: modellen under aliaset kan skifte uten varsel, så to
+#   kjøringer med samme profil er ikke nødvendigvis samme modell. Byttet er
+#   gjort bevisst — ferskhet framfor reproduserbarhet — og det er grunnen
+#   til at model-sync fortsatt kjøres: routeren beskytter mot omdøping, ikke
+#   mot at en hel familie forsvinner.
+#
+# ROLLEFORDELING, én familie per behov:
+#   deepseek-flash   rask generalist — arbeidshesten
+#   qwen-max         dyp resonnering (ClaudeResearcher, GeminiResearcher)
+#   kimi             koding
+#   glm              lang kontekst, strukturert planlegging
+#   minimax          design og bilde
+
+name: fireworks
+description: Fireworks AI - routere som overlever omdøpinger, tre agenter på prøve
+
+default_model: fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest
+
+agents:
+  # PRØVE (fra jobb 2026-09-29, tatt hjem 2026-10-02): Algorithm, DeepResearcher
+  # og QATester står på tre nye modeller uten router. Holder de ikke, rulles de
+  # tilbake til verdien i kommentaren ved hver av dem. Pinnet, ikke router: en
+  # prøve skal måle én modell, ikke det aliaset peker på i dag.
+  #
+  # Algorithm sto på kryssleverandør, og står der igjen ved tilbakerulling:
+  # KRYSSLEVERANDØR, med vilje. Algorithm sto på kodemodellen (kimi-k3);
+  # algoritmen tar konstitusjonelle avgjørelser resten av økten bygger på,
+  # og det er resonnering, ikke koding.
+  #
+  # Den er den ENE agenten som ikke er en Fireworks-modell i denne profilen.
+  # Mekanismen er den samme som researchers.yaml allerede bruker —
+  # `applyProfile` skriver modellstrengen ordrett og binder den ikke til
+  # profilens leverandør — men her er den DEKLARERT framfor å komme fra
+  # overlayet, så den gjelder også uten `--multi-research`.
+  #
+  # Pinnet, ikke router: dette er agenten hvis vurderinger alt annet hviler
+  # på, og der er reproduserbarhet verdt mer enn ferskhet.
+  Algorithm:
+    model: fireworks-ai/accounts/fireworks/models/qwen3p8-2p4t-a95b   # prøve; ellers anthropic/claude-sonnet-5-5
+
+  # Arkitektur er lang kontekst og struktur før det er syntaks.
+  Architect:
+    model: fireworks-ai/accounts/fireworks/routers/glm-latest
+
+  Engineer:
+    model: fireworks-ai/accounts/fireworks/routers/kimi-latest
+  Pentester:
+    model: fireworks-ai/accounts/fireworks/routers/kimi-latest
+  QATester:
+    model: fireworks-ai/accounts/fireworks/models/nemotron-3-ultra-nvfp4   # prøve; ellers routers/kimi-latest
+
+  general:
+    model: fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest
+  explore:
+    model: fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest
+  Intern:
+    model: fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest
+  Writer:
+    model: fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest
+
+  DeepResearcher:
+    model: fireworks-ai/accounts/fireworks/models/inkling   # prøve; ellers routers/glm-latest
+
+  Designer:
+    model: fireworks-ai/accounts/fireworks/routers/minimax-latest
+  Artist:
+    model: fireworks-ai/accounts/fireworks/routers/minimax-latest
+
+  # De fire under overstyres av profiles/researchers.yaml når
+  # `--multi-research` er på. Verdiene her er fallback uten det flagget.
+  #
+  # ClaudeResearcher er dyp resonnering. DeepSeek-pro-familien er borte fra
+  # katalogen (routeren og så `models/deepseek-v4-pro`, september 2026, pai
+  # doctor K29), så den står på qwen-max-routeren, som GeminiResearcher.
+  ClaudeResearcher:
+    model: fireworks-ai/accounts/fireworks/routers/qwen-max-latest
+  GrokResearcher:
+    model: fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest
+  GeminiResearcher:
+    model: fireworks-ai/accounts/fireworks/routers/qwen-max-latest
+  PerplexityResearcher:
+    model: fireworks-ai/accounts/fireworks/routers/deepseek-flash-latest
+  CodexResearcher:
+    model: fireworks-ai/accounts/fireworks/routers/kimi-latest

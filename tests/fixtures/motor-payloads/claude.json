@@ -1,0 +1,114 @@
+{
+	"motor": "claude",
+	"versjon": "2.1.283",
+	"målt": "2026-09-28",
+	"kilde": "bun Tools/ClaudeSmoke.ts --fixtures, steg G",
+	"kall": [
+		{
+			"klasse": "shell",
+			"forventet": {
+				"kommando": "echo pai-gylden-skall"
+			},
+			"payload": {
+				"session_id": "c756f697-c13f-4bf4-9b78-42048583af00",
+				"transcript_path": "/home/bruker/.claude/projects/-tmp-pai-gylden-proj/c756f697-c13f-4bf4-9b78-42048583af00.jsonl",
+				"cwd": "/tmp/pai-gylden/proj",
+				"prompt_id": "6d48160a-56f6-4aec-85fe-484427a79e36",
+				"permission_mode": "default",
+				"hook_event_name": "PreToolUse",
+				"tool_name": "Bash",
+				"tool_input": {
+					"command": "echo pai-gylden-skall",
+					"description": "Run echo pai-gylden-skall"
+				},
+				"tool_use_id": "toolu_01AUARLDKzfSsTTZmPouY7LL"
+			}
+		},
+		{
+			"klasse": "write",
+			"forventet": {
+				"sti": "/tmp/pai-gylden/proj/gylden.txt",
+				"innhold": "gylden-for"
+			},
+			"payload": {
+				"session_id": "c756f697-c13f-4bf4-9b78-42048583af00",
+				"transcript_path": "/home/bruker/.claude/projects/-tmp-pai-gylden-proj/c756f697-c13f-4bf4-9b78-42048583af00.jsonl",
+				"cwd": "/tmp/pai-gylden/proj",
+				"prompt_id": "6d48160a-56f6-4aec-85fe-484427a79e36",
+				"permission_mode": "default",
+				"hook_event_name": "PreToolUse",
+				"tool_name": "Write",
+				"tool_input": {
+					"file_path": "/tmp/pai-gylden/proj/gylden.txt",
+					"content": "gylden-for"
+				},
+				"tool_use_id": "toolu_01JbYKU2fS6DLnriXqXQE7Ua"
+			}
+		},
+		{
+			"klasse": "edit",
+			"forventet": {
+				"sti": "/tmp/pai-gylden/proj/gylden.txt",
+				"gammel": "gylden-for",
+				"ny": "gylden-etter"
+			},
+			"payload": {
+				"session_id": "c756f697-c13f-4bf4-9b78-42048583af00",
+				"transcript_path": "/home/bruker/.claude/projects/-tmp-pai-gylden-proj/c756f697-c13f-4bf4-9b78-42048583af00.jsonl",
+				"cwd": "/tmp/pai-gylden/proj",
+				"prompt_id": "6d48160a-56f6-4aec-85fe-484427a79e36",
+				"permission_mode": "default",
+				"hook_event_name": "PreToolUse",
+				"tool_name": "Edit",
+				"tool_input": {
+					"file_path": "/tmp/pai-gylden/proj/gylden.txt",
+					"old_string": "gylden-for",
+					"new_string": "gylden-etter",
+					"replace_all": false
+				},
+				"tool_use_id": "toolu_011pases3zRtyuPKPkxbRWQv"
+			}
+		},
+		{
+			"klasse": "skill",
+			"forventet": {
+				"navn": "pai:infrastructure-proxmox"
+			},
+			"payload": {
+				"session_id": "c756f697-c13f-4bf4-9b78-42048583af00",
+				"transcript_path": "/home/bruker/.claude/projects/-tmp-pai-gylden-proj/c756f697-c13f-4bf4-9b78-42048583af00.jsonl",
+				"cwd": "/tmp/pai-gylden/proj",
+				"prompt_id": "6d48160a-56f6-4aec-85fe-484427a79e36",
+				"permission_mode": "default",
+				"hook_event_name": "PreToolUse",
+				"tool_name": "Skill",
+				"tool_input": {
+					"skill": "pai:infrastructure-proxmox"
+				},
+				"tool_use_id": "toolu_0124tYcTefgGAKVcsaWhoQR8"
+			}
+		},
+		{
+			"klasse": "subagent",
+			"forventet": {
+				"type": "Intern",
+				"prompt": "GYLDEN-SVAR"
+			},
+			"payload": {
+				"session_id": "c756f697-c13f-4bf4-9b78-42048583af00",
+				"transcript_path": "/home/bruker/.claude/projects/-tmp-pai-gylden-proj/c756f697-c13f-4bf4-9b78-42048583af00.jsonl",
+				"cwd": "/tmp/pai-gylden/proj",
+				"prompt_id": "6d48160a-56f6-4aec-85fe-484427a79e36",
+				"permission_mode": "default",
+				"hook_event_name": "PreToolUse",
+				"tool_name": "Agent",
+				"tool_input": {
+					"description": "gylden",
+					"prompt": "Reply with exactly the text GYLDEN-SVAR and nothing else.",
+					"subagent_type": "Intern"
+				},
+				"tool_use_id": "toolu_01QrakBaRSgm3MBQDxA7463j"
+			}
+		}
+	]
+}
