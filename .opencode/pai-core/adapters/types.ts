@@ -67,24 +67,28 @@ export const DANGEROUS_PATTERNS = [
 	/nc\s+-e\s+\/bin\/(ba)?sh/,
 	/python.*socket.*connect/,
 
-	// Remote code execution
-	/curl.*\|\s*(ba)?sh/,
-	/wget.*\|\s*(ba)?sh/,
+	// Remote code execution. `sh` as a word: without `\b` a pipe to
+	// `sha256sum` or `shasum` after a download blocked the checksum check
+	// (job #3).
+	/curl.*\|\s*(ba)?sh\b/,
+	/wget.*\|\s*(ba)?sh\b/,
 
 	// Credential theft. `cat` as a word, not a substring: without `\b` the
 	// rules fired on "certificate", "applications" and
 	// "ClientCertificateCredential" whenever `.env` came later on the line, and
 	// blocked legitimate Graph commands (M-39). The public key (`id_*.pub`) is
 	// shared on purpose, so a path ending in `.pub` passes; a glob or anything
-	// after `.pub` still blocks (#294).
-	/\bcat\b.*\.ssh\/id_(?![^\s;|&"')]*\.pub(?![^\s;|&"')]))/,
-	/\bcat\b.*\.aws\/credentials/,
-	/\bcat\b.*\.env/,
+	// after `.pub` still blocks (#294). The path must be an argument to the
+	// same `cat`: a `;`, `|`, `&` or newline ends the match, so `cat /sys/…;
+	// . ~/.opencode/.env` passes (job #3).
+	/\bcat\b[^;|&\n]*\.ssh\/id_(?![^\s;|&"')]*\.pub(?![^\s;|&"')]))/,
+	/\bcat\b[^;|&\n]*\.aws\/credentials/,
+	/\bcat\b[^;|&\n]*\.env/,
 
 	// === WP-B: Additional modern attack vectors ===
 	// Obfuscated RCE via base64 decode
 	/eval\s*\$\(\s*(echo|printf|cat)\s+.*\|\s*base64\s+-d/,
-	/\$\(curl\s+.*\)\s*\|\s*(ba)?sh/, // command substitution + pipe
+	/\$\(curl\s+.*\)\s*\|\s*(ba)?sh\b/, // command substitution + pipe
 
 	// Environment variable exfiltration
 	/printenv\s*.*\|\s*(curl|wget|nc)/, // env dump + exfiltration
