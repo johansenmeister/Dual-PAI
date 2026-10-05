@@ -139,13 +139,33 @@ describe("shell.env — miljø til tilstandsløse skall", () => {
 	});
 
 	test("passthrough-nøkkel følger med kun når den finnes i process.env", async () => {
-		delete process.env.DA;
-		const uten = await dispatch({ ...base(), type: "shell.env" } as PaiEvent);
-		expect(uten.env?.DA).toBeUndefined();
+		const før = process.env.PAI_OBSERVABILITY_PORT;
+		try {
+			delete process.env.PAI_OBSERVABILITY_PORT;
+			const uten = await dispatch({ ...base(), type: "shell.env" } as PaiEvent);
+			expect(uten.env?.PAI_OBSERVABILITY_PORT).toBeUndefined();
 
-		process.env.DA = "Jeremy";
-		const med = await dispatch({ ...base(), type: "shell.env" } as PaiEvent);
-		expect(med.env?.DA).toBe("Jeremy");
+			process.env.PAI_OBSERVABILITY_PORT = "8889";
+			const med = await dispatch({ ...base(), type: "shell.env" } as PaiEvent);
+			expect(med.env?.PAI_OBSERVABILITY_PORT).toBe("8889");
+		} finally {
+			if (før === undefined) delete process.env.PAI_OBSERVABILITY_PORT;
+			else process.env.PAI_OBSERVABILITY_PORT = før;
+		}
+	});
+
+	test("nøklene uten leser følger ikke med (#186)", async () => {
+		const før = { DA: process.env.DA, TIME_ZONE: process.env.TIME_ZONE, GOOGLE_API_KEY: process.env.GOOGLE_API_KEY };
+		try {
+			Object.assign(process.env, { DA: "x", TIME_ZONE: "x", GOOGLE_API_KEY: "x" });
+			const r = await dispatch({ ...base(), type: "shell.env" } as PaiEvent);
+			expect([r.env?.DA, r.env?.TIME_ZONE, r.env?.GOOGLE_API_KEY]).toEqual([undefined, undefined, undefined]);
+		} finally {
+			for (const [k, v] of Object.entries(før)) {
+				if (v === undefined) delete process.env[k];
+				else process.env[k] = v;
+			}
+		}
 	});
 });
 

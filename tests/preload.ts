@@ -8,6 +8,12 @@
  *      og gjenoppretter denne verdien, så også en skriving som kommer etter
  *      at fila er ferdig, havner her og ikke i det ekte treet.
  *   3. `inference()` stubbet. `bun test` skal aldri gjøre et modellkall.
+ *   4. `fetch` notert. Et kall til en annen vert enn maskinen selv feiler
+ *      suiten til slutt, som MEMORY-vakten (#189: versjonssjekken i
+ *      `session.start` gikk mot GitHub ved hver test gjennom den, og tre
+ *      tester falt når GitHub var tregt). Kallet går fortsatt gjennom, så
+ *      en test som trenger nettet, feiler med navnet på verten, ikke stumt.
+ *      Det dekker testprosessen, ikke underprosessene den starter.
  *
  * Den globale `afterAll` kjører én gang etter alle filene. Har noe i de ekte
  * trærne endret seg, kaster den, og bun teller det som en feilet test med
@@ -38,6 +44,31 @@ mock.module(join(import.meta.dir, "../.opencode/PAI/Tools/Inference.ts"), () => 
 		level: options?.level ?? "standard",
 	}),
 }));
+
+const LOKALE = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+const fremmedeVerter = new Set<string>();
+const ekteFetch = globalThis.fetch;
+globalThis.fetch = Object.assign(
+	(input: RequestInfo | URL, init?: RequestInit) => {
+		const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+		try {
+			const { hostname, host } = new URL(url);
+			if (!LOKALE.has(hostname)) fremmedeVerter.add(host);
+		} catch {
+			// en relativ URL når ingen vert
+		}
+		return ekteFetch(input, init);
+	},
+	ekteFetch
+);
+
+afterAll(() => {
+	if (fremmedeVerter.size > 0) {
+		throw new Error(
+			`bun test gikk på nettet: ${[...fremmedeVerter].join(", ")}. Stubb kallet i testen, eller fjern det fra koden (tests/preload.ts, #189).`
+		);
+	}
+});
 
 afterAll(() => {
 	rmSync(testHjem, { recursive: true, force: true });

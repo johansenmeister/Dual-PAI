@@ -337,7 +337,7 @@ event (`PaiEvent`), which both adapters map from their engine's hooks:
 | AlgorithmTracker.hook.ts | algorithm-tracker.ts | tool.after | ✅ Created |
 | AgentExecutionGuard.hook.ts | agent-execution-guard.ts | tool.before | ✅ Created |
 | SkillGuard.hook.ts | skill-guard.ts | tool.before | ✅ Created |
-| CheckVersion.hook.ts | check-version.ts | session.start | ✅ Created |
+| CheckVersion.hook.ts | ~~check-version.ts~~ | session.start | ❌ Removed (#189): compared against the upstream fork's releases, never shown |
 | IntegrityCheck.hook.ts | integrity-check.ts | session.end | ✅ Created |
 | FormatReminder (update) | format-reminder.ts | user.message | ✅ Updated |
 

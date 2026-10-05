@@ -83,6 +83,9 @@ export async function inference(options: InferenceOptions): Promise<InferenceRes
       '--tools', '',  // Disable tools for faster response
       '--output-format', 'text',
       '--setting-sources', '',  // Disable hooks to prevent recursion
+      // One-shot: no transcript under ~/.claude/projects. The sentiment job ran
+      // after ClaudeSmoke had cleaned up and left one behind each run (#150).
+      '--no-session-persistence',
       '--system-prompt', options.systemPrompt,
     ];
 

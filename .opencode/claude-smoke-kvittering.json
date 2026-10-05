@@ -1,10 +1,7 @@
 {
 	"versjon": "2.1.283",
-	"dato": "2026-10-04",
+	"dato": "2026-10-05",
 	"hooks": 8,
 	"sjekker": 29,
-	"adapter": "4efcfc486ba1a30ea8cc85d446ae552a5902b46944827a4c51bde82768f6f87c",
-	"merknader": [
-		"subagent: ny nøkkel run_in_background (ikke rødt: valgfrie felt; --fixtures tar dem med)"
-	]
+	"adapter": "43e48a33af724a5813ecff08e5834dd29647b77246e8f50644d47cd0bfebffbb"
 }

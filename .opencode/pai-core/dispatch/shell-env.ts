@@ -28,14 +28,11 @@ import type { PaiResult, PaiShellEnvEvent } from "../types";
 /**
  * Eksplisitt videreføring for nøkler PAI-skript kan trenge i Bash, når de er
  * eksportert i skallet `pai` ble startet fra. Fra `.env` kommer de ikke.
+ * `GOOGLE_API_KEY`, `DA` og `TIME_ZONE` sto her uten leser: ingen kode leser
+ * den første, DA-navnet kommer fra `settings.json`s `daidentity`, og ingen skill
+ * leser sonen (#186).
  */
-const PASSTHROUGH_KEYS = [
-	"PAI_OBSERVABILITY_PORT",
-	"PAI_OBSERVABILITY_ENABLED",
-	"GOOGLE_API_KEY", // Used by transcription scripts
-	"DA", // Agent name (Jeremy)
-	"TIME_ZONE", // Timezone for date formatting in scripts
-] as const;
+const PASSTHROUGH_KEYS = ["PAI_OBSERVABILITY_PORT", "PAI_OBSERVABILITY_ENABLED"] as const;
 
 export async function buildShellEnv(event: PaiShellEnvEvent): Promise<PaiResult> {
 	const sessionId = event.sessionId || "unknown";

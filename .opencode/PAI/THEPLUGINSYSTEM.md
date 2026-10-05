@@ -85,7 +85,6 @@ Alle i `pai-core/handlers/`. «Hendelse» er kjernens, ikke motorens.
 | `integrity-check.ts` | `session.end` | Helsesjekk: filer, konfig, MEMORY-kataloger, adapteren |
 | `update-counts.ts` | `session.end` | Tellinger i `settings.json` for banner/statuslinje |
 | `session-cleanup.ts` | `session.end` | Markerer økten `COMPLETED` og rydder tilstand |
-| `check-version.ts` | `session.start` | Ser etter nye PAI-utgivelser |
 | `observability-emitter.ts` | alle | Hendelser til observability-serveren (kun OpenCode) |
 | `roborev-trigger.ts` | verktøy | `code_review` — krever `roborev`, som ikke er installert |
 

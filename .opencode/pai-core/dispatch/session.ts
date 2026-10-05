@@ -73,21 +73,6 @@ export async function onSessionStart(event: PaiSessionStartEvent): Promise<PaiRe
 	// Emit session start (backup emit, primary is in context injection)
 	emitSessionStart({ sessionId: sessionId !== "unknown" ? sessionId : undefined }).catch(() => {});
 
-	// === VERSION CHECK (v3.0) ===
-	try {
-		const { checkForUpdates } = await import("../handlers/check-version");
-		const updateResult = await checkForUpdates();
-		if (updateResult.updateAvailable) {
-			fileLog(
-				`[VersionCheck] Update available: ${updateResult.currentVersion} → ${updateResult.latestVersion}`,
-				"info"
-			);
-			notes.push("update-available");
-		}
-	} catch (error) {
-		fileLogError("[VersionCheck] Check failed (non-blocking)", error);
-	}
-
 	return { notes };
 }
 

@@ -97,6 +97,7 @@ import {
 } from "./lib/roeyktest";
 import { uklassifiserte } from "./lib/verktoyklasser";
 import { lesDaNavn } from "./V2Smoke";
+import { ASSISTENT_MIN_LENGDE } from "../claude-plugin/src/adapter/routes";
 
 const REPO = join(import.meta.dir, "..");
 const PLUGIN = join(REPO, "claude-plugin");
@@ -545,8 +546,15 @@ function kontekstSjekker(o: Oppsett, s: Strøm, kodeord: string, økt: string | 
 			detalj: økt ? (/^status:\s*(\S+)/m.exec(meta)?.[1] ?? "uten status") : "ingen arbeidsøkt",
 		},
 		{
+			// Et svar på høyst ASSISTENT_MIN_LENGDE tegn tar hurtigutgangen i Stop og
+			// skrives ikke i THREAD, med vilje. Jobbens korte DA-navn ga 91 tegn
+			// 2026-10-05, og sjekken ble rød; steg 3 i prompten gjør svaret langt.
 			navn: "THREAD har bruker- og assistentlinja",
 			ok: thread.includes("**User:**") && thread.includes("**Assistant:**"),
+			detalj:
+				s.svar.length <= ASSISTENT_MIN_LENGDE
+					? `svaret var ${s.svar.length} tegn, høyst ${ASSISTENT_MIN_LENGDE} tar hurtigutgangen i Stop`
+					: `${thread.includes("**User:**") ? "" : "uten brukerlinje "}${thread.includes("**Assistant:**") ? "" : "uten assistentlinje"}`.trim(),
 		},
 		{
 			navn: "plugin-MCP: plugin:pai:pai tilkoblet, verktøyene heter mcp__plugin_pai_pai__*",
@@ -835,7 +843,8 @@ async function main(): Promise<void> {
 					"Røyktest av konteksten. Gjør dette i rekkefølge:",
 					"1. Bruk Bash til å kjøre nøyaktig: echo claudesmoke-k",
 					"2. Svar på norsk: Hva heter du? Begynn svaret med navnet ditt.",
-					"3. Skriv til slutt røyktest-kodeordet fra systemprompten, ordrett.",
+					"3. Forklar med to hele setninger hva en røyktest er.",
+					"4. Skriv til slutt røyktest-kodeordet fra systemprompten, ordrett.",
 				].join("\n"),
 				"Bash(echo:*)",
 				kodeord
