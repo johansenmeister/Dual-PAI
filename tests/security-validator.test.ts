@@ -150,6 +150,50 @@ describe("feltnavn-kontrakt", () => {
 	});
 });
 
+describe("destruktive API-kall spør før de kjøres (#222)", () => {
+	// PAI har tokens som kan slette i Gitea, Proxmox og Portainer, og for de
+	// andre mønstrene var et slikt kall en vanlig `curl`. Spør, ikke blokker:
+	// nedtakingen i guide/gitea.md er et slikt kall, med vilje.
+	const spør = [
+		'curl -s -X DELETE -H "Authorization: token $T" "$U/api/v1/repos/lab/pai"',
+		"curl -sXDELETE https://portainer.local/api/endpoints/2/docker/containers/abc",
+		'curl -X "DELETE" https://portainer.local/api/stacks/4',
+		"curl --request DELETE https://git.example.com/api/v1/orgs/lab",
+		"curl --request=delete https://git.example.com/api/v1/orgs/lab",
+		"wget -qO- --method=DELETE https://git.example.com/api/v1/repos/lab/pai",
+		"gh api --method DELETE repos/lab/pai",
+		'pve DELETE "nodes/pve/qemu/290?destroy-unreferenced-disks=1"',
+		"pve POST nodes/pve/qemu/290/status/stop",
+		'curl -k -X POST -H "Authorization: PVEAPIToken=$ID=$S" https://pve:8006/api2/json/nodes/pve/lxc/101/status/reset',
+		// guide/gitea.md, «Taking it down»
+		`bash -c '. guide/gitea/pve.sh && pve_wait "$(pve POST nodes/<node>/qemu/<id>/status/stop | jq -r .data)" && pve_wait "$(pve DELETE "nodes/<node>/qemu/<id>?destroy-unreferenced-disks=1" | jq -r .data)"'`,
+	];
+	for (const command of spør) {
+		test(`spør: ${command.slice(0, 70)}`, async () => {
+			const result = await validateSecurity({ tool: "bash", args: { command } } as never);
+			expect(result.action).toBe("confirm");
+		});
+	}
+
+	const slipper = [
+		'curl -s -H "Authorization: token $T" "$U/api/v1/repos/lab/pai/issues?state=open"',
+		'curl -s -X POST -d @body.json "$U/api/v1/repos/lab/pai/issues"',
+		"curl -X GET https://example.com/api/deleted-items",
+		"curl -X DELETEME https://example.com/",
+		"pve GET nodes/pve/qemu/290/status/current",
+		"pve POST nodes/pve/qemu/290/status/shutdown",
+		"curl -k https://pve:8006/api2/json/nodes/pve/qemu/290/status/current",
+		"tar -czf a.tgz -X delete-list.txt src",
+		"grep -rn DELETE .opencode/skills",
+	];
+	for (const command of slipper) {
+		test(`slipper: ${command.slice(0, 70)}`, async () => {
+			const result = await validateSecurity({ tool: "bash", args: { command } } as never);
+			expect(result.action).toBe("allow");
+		});
+	}
+});
+
 /** En v2-patch med de gitte hodelinjene, i formatet `@opencode/util/patch` leser. */
 function patch(...linjer: string[]): string {
 	return ["*** Begin Patch", ...linjer, "*** End Patch"].join("\n");

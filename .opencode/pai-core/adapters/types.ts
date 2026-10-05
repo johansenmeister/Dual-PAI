@@ -114,4 +114,18 @@ export const WARNING_PATTERNS = [
 	// Docker operations
 	/docker\s+rm/,
 	/docker\s+rmi/,
+
+	// Destructive API calls (#222). PAI holds tokens for Gitea, Proxmox and
+	// Portainer that can delete, and to the patterns above such a call is an
+	// ordinary `curl`. The method flag, not the tool: curl's `-X DELETE`,
+	// `-XDELETE`, `-sX DELETE` and `--request DELETE`, wget's `--method=DELETE`
+	// and `gh api --method DELETE` all take this form. The method ends at a
+	// quote or a space, so `tar -X delete-list.txt` passes.
+	/(?:^|\s)(?:-[A-Za-z]*X\s*|--(?:request|method)(?:\s+|=))["']?(?:DELETE|delete)(?=["'\s]|$)/,
+	// `pve <METHOD> <path>` from guide/gitea/pve.sh
+	/\bpve\s+["']?(?:DELETE|delete)(?=["'\s]|$)/,
+	// A hard stop or reset of a Proxmox guest, through the helper or the API
+	// itself. `shutdown` and `reboot` are graceful and pass.
+	/\bpve\s+["']?POST["']?\s+["']?\S*\/status\/(?:stop|reset)\b/,
+	/\/api2\/json\/\S*\/status\/(?:stop|reset)\b/,
 ] as const;

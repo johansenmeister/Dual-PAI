@@ -1,6 +1,6 @@
 ---
 title: Gitea for PAI
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Gitea for PAI
@@ -203,8 +203,9 @@ Gitea's administrator, so its scope decides what PAI can do on the whole server.
 - *Needs:* nothing more.
 - *Costs:* risk. A leaked token, or a mistake by the model, reaches every
   repository and every user on the server, and could delete them. PAI's security
-  guard stops known dangerous commands, such as `rm -rf /`, but to it an API
-  call that deletes a repository is an ordinary `curl`.
+  guard stops known dangerous commands, such as `rm -rf /`, and asks before an
+  API call with the `DELETE` method, but anything else the token allows, such as
+  changing a user or a branch protection, goes through as an ordinary `curl`.
 - *Change later:* yes, by hand in Gitea's web page (Settings, Applications):
   delete the token and make a narrower one. The assistant cannot delete tokens.
 - *We recommend:* only if you want PAI to look after Gitea itself, and Gitea holds
