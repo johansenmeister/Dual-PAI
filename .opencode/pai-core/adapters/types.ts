@@ -74,8 +74,10 @@ export const DANGEROUS_PATTERNS = [
 	// Credential theft. `cat` as a word, not a substring: without `\b` the
 	// rules fired on "certificate", "applications" and
 	// "ClientCertificateCredential" whenever `.env` came later on the line, and
-	// blocked legitimate Graph commands (M-39).
-	/\bcat\b.*\.ssh\/id_/,
+	// blocked legitimate Graph commands (M-39). The public key (`id_*.pub`) is
+	// shared on purpose, so a path ending in `.pub` passes; a glob or anything
+	// after `.pub` still blocks (#294).
+	/\bcat\b.*\.ssh\/id_(?![^\s;|&"')]*\.pub(?![^\s;|&"')]))/,
 	/\bcat\b.*\.aws\/credentials/,
 	/\bcat\b.*\.env/,
 

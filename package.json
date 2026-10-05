@@ -4,7 +4,7 @@
   "description": "Personal AI Infrastructure for OpenCode (based on PAI v3.0, Algorithm v1.8.0)",
   "type": "module",
   "scripts": {
-    "lint": "bunx @biomejs/biome check --error-on-warnings ."
+    "lint": "bunx @biomejs/biome@2.5.15 check --error-on-warnings ."
   },
   "dependencies": {
     "diff": "^8.0.3",

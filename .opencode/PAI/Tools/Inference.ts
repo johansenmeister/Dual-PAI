@@ -32,6 +32,7 @@
  */
 
 import { spawn } from "node:child_process";
+import { claudeSti } from "./claude-sti";
 
 export type InferenceLevel = 'fast' | 'standard' | 'smart';
 
@@ -88,7 +89,7 @@ export async function inference(options: InferenceOptions): Promise<InferenceRes
     let stdout = '';
     let stderr = '';
 
-    const proc = spawn('claude', args, {
+    const proc = spawn(claudeSti(env), args, {
       env,
       stdio: ['pipe', 'pipe', 'pipe'],
     });

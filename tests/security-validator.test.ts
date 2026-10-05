@@ -117,6 +117,12 @@ describe("feltnavn-kontrakt", () => {
 		'curl -s "https://graph.microsoft.com/beta/applications" -H "Authorization: Bearer $T"; grep -c GRAPH ~/.opencode/.env',
 		'git log --oneline -- .opencode/skills/Utilities/SKILL.md # category .env-regler',
 		"openssl x509 -noout -in certificate.pem; ls -la ~/.ssh/id_ed25519.pub",
+		// #294: den offentlige nøkkelen deles med vilje (runbooks/install.md steg 3)
+		"cat ~/.ssh/id_ed25519.pub",
+		'cat "$HOME/.ssh/id_rsa.pub"',
+		"cat ~/.ssh/id_ed25519.pub | xclip",
+		"cat ~/.ssh/id_ed25519.pub; echo",
+		"cat ~/.ssh/id_*.pub",
 		"aws configure list --profile applications; ls ~/.aws/credentials",
 	];
 	for (const command of ufarligeMedEnv) {
@@ -133,6 +139,12 @@ describe("feltnavn-kontrakt", () => {
 		"sudo cat /etc/app/.env | head",
 		"cat ~/.ssh/id_ed25519",
 		"cat ~/.aws/credentials",
+		// #294: bare en sti som slutter på .pub slipper
+		"cat ~/.ssh/id_rsa",
+		"cat ~/.ssh/id_*",
+		'cat "$HOME/.ssh/id_ed25519"',
+		"cat ~/.ssh/id_ed25519.pub ~/.ssh/id_ed25519",
+		"cat ~/.ssh/id_ed25519.pub.bak",
 	];
 	for (const command of lesingAvHemmeligheter) {
 		test(`farlig, blokkeres: ${command}`, async () => {

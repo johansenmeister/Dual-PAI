@@ -11,7 +11,9 @@ bun run lint                 # Lint — fails on warnings
 ```
 
 `biome` is **not** on PATH and not in `node_modules`; always go through
-`bun run lint`. A bare `biome check .` exits 0 with no output, so it looks
+`bun run lint`, which pins the version (`bunx @biomejs/biome@<x.y.z>`). A bump
+changes that and the `$schema` in `biome.json` together;
+`tests/biome-pinnet.test.ts` holds them in step. A bare `biome check .` exits 0 with no output, so it looks
 green when nothing ran. The formatter is off by design — Biome is a linter
 here — and every remaining fix Biome offers is classed unsafe, so
 `--write` is a no-op. Fix by hand, or suppress with a written reason.
