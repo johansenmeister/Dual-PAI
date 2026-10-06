@@ -1,4 +1,12 @@
+![PAI: one core of skills, agents and memory, shared by OpenCode and Claude Code](assets/hero.svg)
+
 # PAI — a personal AI assistant in your terminal
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![OpenCode](https://img.shields.io/badge/engine-OpenCode-8b5cf6)](https://github.com/anomalyco/opencode)
+[![Claude Code](https://img.shields.io/badge/engine-Claude%20Code-d97757)](https://docs.anthropic.com/en/docs/claude-code)
+[![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1)](https://bun.sh)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20macOS-22d3ee)](#install)
 
 PAI is a set of skills, agents, rules and memory that turn an AI model into a
 personal assistant. It runs inside an agent program in the terminal, and works
@@ -9,10 +17,25 @@ skills, memory and settings, so you can switch between them.
 Everything PAI is lives in one git repository: this one, once you have cloned
 it. Git keeps the history, so every change can be seen and undone.
 
+![How PAI is built: the terminal, two pinned engines, an adapter each, the engine-independent core, and one git repository with skills, agents, memory and settings](assets/architecture.svg)
+
+## The idea
+
+PAI follows Daniel Miessler's view that the scaffolding around a model matters
+more than the model: skills it can call by name, memory that carries over from
+one session to the next, and code wherever code can do the job. Larger tasks run
+through the Algorithm. Before the work starts, the assistant writes down in a PRD
+the criteria that will show the task is done, and the VERIFY phase checks each
+one. What it learns goes to memory.
+
+![The Algorithm's seven phases around the PRD, and six of the principles PAI is built on](assets/algorithm.svg)
+
 ## Install
 
 Linux and WSL2 are supported. macOS works (tested on an Intel Mac with macOS 15
 and Apple's Command Line Tools); Apple Silicon is not tested yet.
+
+![Install, the setup conversation, and every day](assets/journey.svg)
 
 You need no account and no API key to start. In a terminal:
 

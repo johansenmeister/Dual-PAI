@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 580" width="1280" height="580" role="img" aria-labelledby="t d">
+  <title id="t">The Algorithm and the principles behind PAI</title>
+  <desc id="d">The Algorithm runs a task through seven phases, observe, think, plan, build, execute, verify and learn, against Ideal State Criteria written down in a PRD before the work starts; what it learns goes to memory. Beside it, six of PAI's founding principles.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1f"/>
+      <stop offset="1" stop-color="#121c38"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1e2a4a" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="core" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#0a0f1f" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#67e8f9"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#34d399"/>
+    </marker>
+    <style>
+      .sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, "DejaVu Sans", sans-serif; }
+      .arc { fill: none; stroke: #67e8f9; stroke-width: 2.5; marker-end: url(#arr); }
+      .arc.back { stroke: #67e8f9; stroke-dasharray: 6 6; }
+      .ph rect { fill: #0f1830; stroke: #22d3ee; stroke-width: 2; }
+      .ph text { fill: #f1f5f9; font-size: 16px; font-weight: 700; letter-spacing: 1px; text-anchor: middle; }
+      .ph .i { fill: #67e8f9; font-weight: 400; }
+      .ph2 { fill: #f1f5f9; font-size: 20px; font-weight: 700; }
+      .ps { fill: #94a3b8; font-size: 15px; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="580" rx="18" fill="url(#bg)"/>
+  <rect width="1280" height="580" rx="18" fill="url(#grid)" opacity="0.6"/>
+
+  <g class="sans">
+    <text x="48" y="54" fill="#22d3ee" font-size="15" font-weight="700" letter-spacing="4">THE ALGORITHM</text>
+    <text x="48" y="82" fill="#cbd5e1" font-size="19">From current state to ideal state, by criteria.</text>
+    <text x="680" y="54" fill="#22d3ee" font-size="15" font-weight="700" letter-spacing="4">THE PRINCIPLES</text>
+    <text x="680" y="82" fill="#cbd5e1" font-size="19">Six of the sixteen PAI is built on.</text>
+  </g>
+
+  <circle cx="340" cy="318" r="120" fill="url(#core)"/>
+  <circle cx="340" cy="318" r="178" fill="none" stroke="#1e3a5f" stroke-width="1"/>
+  <g>
+    <path class="arc" d="M409.3 154.1 A178 178 0 0 1 444.5 173.9"/>
+    <path class="arc" d="M498.0 236.1 A178 178 0 0 1 517.9 324.1"/>
+    <path class="arc" d="M504.0 387.2 A178 178 0 0 1 464.4 445.3"/>
+    <path class="arc" d="M359.3 494.9 A178 178 0 0 1 336.7 496.0"/>
+    <path class="arc" d="M219.5 449.0 A178 178 0 0 1 177.8 391.3"/>
+    <path class="arc" d="M162.3 328.6 A178 178 0 0 1 180.0 240.1"/>
+    <path class="arc back" d="M230.5 177.7 A178 178 0 0 1 266.6 155.8"/>
+  </g>
+  <g class="sans" text-anchor="middle">
+    <rect x="248" y="268" width="184" height="100" rx="14" fill="#160f2e" stroke="#a78bfa" stroke-width="2"/>
+    <text x="340" y="302" fill="#ede9fe" font-size="22" font-weight="800">PRD</text>
+    <text x="340" y="326" fill="#c4b5fd" font-size="14">Ideal State Criteria,</text>
+    <text x="340" y="346" fill="#c4b5fd" font-size="14">written before the work</text>
+  </g>
+  <g class="sans">
+    <g class="ph"><rect x="280.8" y="121.0" width="118.5" height="38" rx="19"/><text x="340.0" y="145.5"><tspan class="i">1</tspan> OBSERVE</text></g>
+    <g class="ph"><rect x="431.4" y="188.0" width="95.5" height="38" rx="19"/><text x="479.2" y="212.5"><tspan class="i">2</tspan> THINK</text></g>
+    <g class="ph"><rect x="471.5" y="338.6" width="84.0" height="38" rx="19"/><text x="513.5" y="363.1"><tspan class="i">3</tspan> PLAN</text></g>
+    <g class="ph"><rect x="369.5" y="459.4" width="95.5" height="38" rx="19"/><text x="417.2" y="483.9"><tspan class="i">4</tspan> BUILD</text></g>
+    <g class="ph"><rect x="203.5" y="459.4" width="118.5" height="38" rx="19"/><text x="262.8" y="483.9"><tspan class="i">5</tspan> EXECUTE</text></g>
+    <g class="ph"><rect x="113.0" y="338.6" width="107.0" height="38" rx="19"/><text x="166.5" y="363.1"><tspan class="i">6</tspan> VERIFY</text></g>
+    <g class="ph"><rect x="153.1" y="188.0" width="95.5" height="38" rx="19"/><text x="200.8" y="212.5"><tspan class="i">7</tspan> LEARN</text></g>
+  </g>
+
+  <!-- learn goes to memory -->
+  <g class="sans">
+    <path d="M160.8 227.0 C 120 250 70 420 92 470" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrg)"/>
+    <rect x="40" y="476" width="128" height="40" rx="10" fill="#0f2a24" stroke="#059669"/>
+    <text x="104" y="502" text-anchor="middle" fill="#d1fae5" font-size="16" font-weight="700">Memory</text>
+  </g>
+
+  <path d="M640 120 V 520" stroke="#1e2a4a" stroke-width="2"/>
+
+  <g class="sans">
+    <circle cx="716" cy="144" r="5" fill="#22d3ee"/>
+    <text class="ph2" x="736" y="150">Scaffolding &gt; model</text>
+    <text class="ps" x="736" y="174">the system around the model matters more than the model</text>
+    <circle cx="716" cy="210" r="5" fill="#22d3ee"/>
+    <text class="ph2" x="736" y="216">As deterministic as possible</text>
+    <text class="ps" x="736" y="240">same input, same output</text>
+    <circle cx="716" cy="276" r="5" fill="#22d3ee"/>
+    <text class="ph2" x="736" y="282">Code before prompts</text>
+    <text class="ps" x="736" y="306">code does the work; prompts orchestrate the code</text>
+    <circle cx="716" cy="342" r="5" fill="#22d3ee"/>
+    <text class="ph2" x="736" y="348">Spec, test, evals first</text>
+    <text class="ps" x="736" y="372">if you can&#8217;t test it, you can&#8217;t trust it</text>
+    <circle cx="716" cy="408" r="5" fill="#22d3ee"/>
+    <text class="ph2" x="736" y="414">CLI as interface</text>
+    <text class="ps" x="736" y="438">if there&#8217;s no command for it, you can&#8217;t script or test it</text>
+    <circle cx="716" cy="474" r="5" fill="#22d3ee"/>
+    <text class="ph2" x="736" y="480">Permission to fail</text>
+    <text class="ps" x="736" y="504">&#8220;I don&#8217;t know&#8221; beats a made-up answer</text>
+  </g>
+</svg>

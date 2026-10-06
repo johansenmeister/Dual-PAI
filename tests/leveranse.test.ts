@@ -135,6 +135,7 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_ulevert per kopi (#281)", () =
 		commit("runbook", ["runbooks/a.md"]);
 		commit("handoveren", ["docs/dual-harness/handoff.md"]);
 		commit("readme-public", ["docs/kopiene/README.public.md"]);
+		commit("bildene", ["docs/kopiene/bilder/hero.svg"]);
 		commit("readme-privat", ["docs/kopiene/README.privat.md"]);
 		commit("oversettelsen", ["docs/kjoreplan/public-en.tsv"]);
 		commit("koden", ["a.ts"]);
@@ -142,11 +143,11 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_ulevert per kopi (#281)", () =
 	afterAll(() => rmSync(repo, { recursive: true, force: true }));
 
 	test("public: bare det som former public", () => {
-		expect(ulevert("pai-harness-public")).toEqual(["koden", "oversettelsen", "readme-public"]);
+		expect(ulevert("pai-harness-public")).toEqual(["bildene", "koden", "oversettelsen", "readme-public"]);
 	});
 
 	test("den private: alt utenom handoveren, som før", () => {
-		expect(ulevert("pai-harness")).toEqual(["koden", "oversettelsen", "planen", "readme-privat", "readme-public", "runbook"]);
+		expect(ulevert("pai-harness")).toEqual(["bildene", "koden", "oversettelsen", "planen", "readme-privat", "readme-public", "runbook"]);
 	});
 
 	test("uten kopi: som den private", () => {
