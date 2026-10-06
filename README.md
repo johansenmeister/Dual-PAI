@@ -90,17 +90,13 @@ improvements, your own Gitea, engine updates, remote access and your goals
 
 ## Make it yours
 
-PAI works from the first session, but it is not meant to stay the way it ships.
-Nothing is hidden in a binary or behind a service: the instructions, the skills,
-the agents and the Algorithm are Markdown, and the hooks and tools are
-TypeScript, all in this repository. Read them to see how your assistant thinks,
-and change them where it does not think the way you do.
+The setup conversation tells PAI who it is and who you are. This is about what
+comes after: PAI works from the first session, but it is not meant to stay the
+way it ships. Nothing is hidden in a binary or behind a service: the
+instructions, the skills, the agents and the Algorithm are Markdown, and the
+hooks and tools are TypeScript, all in this repository. Read them to see how your
+assistant thinks, and change them where it does not think the way you do.
 
-- **Start with who it is, and who you are.** `.opencode/PAI/USER/` holds your
-  assistant's name and personality (`DAIDENTITY.md`), what it should know about
-  you (`ABOUTME.md`), your machines (`INFRASTRUCTURE.md`), your goals
-  (`TELOS/TELOS.md`) and your own rules (`AISTEERINGRULES.md`). These go into
-  every session.
 - **Read a skill before you lean on it.** Each one is a `SKILL.md` and a few
   workflows in `.opencode/skills/`. Where it works differently from how you work,
   change it, or put a `PREFERENCES.md` in
