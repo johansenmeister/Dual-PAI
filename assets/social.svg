@@ -91,7 +91,7 @@
   </g>
   </g>
   <g class="sans">
-    <text x="64" y="84" fill="#f8fafc" font-size="34" font-weight="800" letter-spacing="1">Dual-PAI</text>
+    <text x="64" y="84" fill="#94a3b8" font-size="34" font-weight="400">johansenmeister/<tspan fill="#f8fafc" font-weight="800" letter-spacing="1">Dual-PAI</tspan></text>
     <text x="1216" y="84" fill="#64748b" font-size="18" text-anchor="end">OpenCode · Claude Code · MIT</text>
     <path d="M64 572 H1216" stroke="#1e2a4a" stroke-width="2"/>
     <text x="64" y="604" fill="#94a3b8" font-size="18">Skills · agents · multi-model research · memory · the Algorithm, in one git repository</text>
