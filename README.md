@@ -1,4 +1,4 @@
-![PAI: one core of skills, agents and memory, shared by OpenCode and Claude Code](assets/hero.svg)
+![johansenmeister/Dual-PAI: one PAI core of skills, agents and memory, shared by OpenCode and Claude Code](assets/social.svg)
 
 # PAI — a personal AI assistant in your terminal
 
