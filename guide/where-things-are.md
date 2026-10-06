@@ -1,6 +1,6 @@
 ---
 title: Where things are
-updated: 2026-10-04
+updated: 2026-10-07
 ---
 
 # Where things are
@@ -51,7 +51,7 @@ your own, or the files under `USER/`.
 | one folder per piece of work, with its plan and checklist (`PRD.md`) | `.opencode/MEMORY/WORK/` |
 | what was learned: ratings, failures, reflections | `.opencode/MEMORY/LEARNING/` |
 | results from research agents | `.opencode/MEMORY/RESEARCH/` |
-| security events: what the guard blocked or asked about | `.opencode/MEMORY/SECURITY/` |
+| the security log: what the guard allowed, blocked or asked about | `.opencode/MEMORY/STATE/` (not in git) |
 | short-lived state for running sessions | `.opencode/MEMORY/STATE/` (not in git) |
 | plans made in plan mode | `.opencode/Plans/` |
 | the hooks' debug log | `/tmp/pai-opencode2-debug.log` (OpenCode), `/tmp/pai-claude-debug.log` (Claude Code) |

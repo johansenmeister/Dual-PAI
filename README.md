@@ -8,7 +8,7 @@
 [![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1)](https://bun.sh)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20macOS-22d3ee)](#install)
 
-**[Install](#install)** · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [Keeping it current](#keeping-it-current) · [For developers](#for-developers)
+**[Install](#install)** · [Make it yours](#make-it-yours) · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [Keeping it current](#keeping-it-current) · [For developers](#for-developers)
 
 PAI is a set of skills, agents, rules and memory that turn an AI model into a
 personal assistant. It runs inside an agent program in the terminal, and works
@@ -18,6 +18,11 @@ skills, memory and settings, so you can switch between them.
 
 Everything PAI is lives in one git repository: this one, once you have cloned
 it. Git keeps the history, so every change can be seen and undone.
+
+> [!TIP]
+> **This is meant to become your AI.** PAI ships with 52 ready-to-use skills and
+> 17 agents, and every one of them is a plain text file you can read. Open them,
+> change them, perfect them, write your own: see [Make it yours](#make-it-yours).
 
 ![How PAI is built: the terminal, two pinned engines, an adapter each, the engine-independent core, and one git repository with skills, agents, memory and settings](assets/architecture.svg)
 
@@ -83,13 +88,47 @@ it.
 improvements, your own Gitea, engine updates, remote access and your goals
 (TELOS). Start with [guide/README.md](guide/README.md).
 
+## Make it yours
+
+PAI works from the first session, but it is not meant to stay the way it ships.
+Nothing is hidden in a binary or behind a service: the instructions, the skills,
+the agents and the Algorithm are Markdown, and the hooks and tools are
+TypeScript, all in this repository. Read them to see how your assistant thinks,
+and change them where it does not think the way you do.
+
+- **Start with who it is, and who you are.** `.opencode/PAI/USER/` holds your
+  assistant's name and personality (`DAIDENTITY.md`), what it should know about
+  you (`ABOUTME.md`), your machines (`INFRASTRUCTURE.md`), your goals
+  (`TELOS/TELOS.md`) and your own rules (`AISTEERINGRULES.md`). These go into
+  every session.
+- **Read a skill before you lean on it.** Each one is a `SKILL.md` and a few
+  workflows in `.opencode/skills/`. Where it works differently from how you work,
+  change it, or put a `PREFERENCES.md` in
+  `.opencode/PAI/USER/SKILLCUSTOMIZATIONS/<Skill>/` to adjust it without touching
+  the skill.
+- **Write your own.** Ask your assistant to "create a skill" for something you do
+  often; `CreateSkill` writes it in the same structure. An agent is one Markdown
+  file in `.opencode/agents/`.
+- **Let it learn, and help it.** Rate answers, and now and then read what it
+  wrote in `.opencode/MEMORY/LEARNING/`. A lesson that keeps coming back belongs
+  in `AISTEERINGRULES.md` or in a skill.
+- **Experiment without fear.** It is all in git: commit before you try something,
+  and any change can be seen and undone. If you change PAI's own files (outside
+  `USER/`) and later `git pull` an update, the two can meet as a merge conflict,
+  so for what you want to keep, prefer a skill of your own or the files under
+  `USER/`. [guide/where-things-are.md](guide/where-things-are.md) shows which
+  files are which.
+
+After you change skills or agents, `pai claude sync` brings them to Claude Code.
+
 ## Skills
 
 ![Skills: a skill folder, how a task loads it, and the 52 skills by category](assets/skills.svg)
 
-A skill is a folder the assistant loads when a task matches it: a `SKILL.md` that
-says when to use it ("USE WHEN …") and what to do, workflows for the steps, and
-tools written as code. There are 52, in `.opencode/skills/`. Two are always
+PAI ships with 52 skills, ready to use from the first session, in
+`.opencode/skills/`. A skill is a folder the assistant loads when a task matches
+it: a `SKILL.md` that says when to use it ("USE WHEN …") and what to do,
+workflows for the steps, and tools written as code. Two are always
 loaded, `PAI` (how the system itself works) and `Research`; the other 50 are
 loaded only when a task calls for them, so they cost no context until then.
 Some of them:
