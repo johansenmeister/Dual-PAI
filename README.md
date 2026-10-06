@@ -60,12 +60,20 @@ section below: [Skills](#skills), [Agents](#agents), [The Algorithm](#the-algori
 
 ## Install
 
-Linux and WSL2 are supported. macOS works (tested on an Intel Mac with macOS 15
-and Apple's Command Line Tools); Apple Silicon is not tested yet.
+PAI runs on Linux, on macOS (tested on an Intel Mac with macOS 15; Apple Silicon
+is not tested yet), and on Windows through WSL2.
+
+**On Windows, get WSL2 first.** WSL2, the Windows Subsystem for Linux, is
+Microsoft's own way to run Linux inside Windows, and it takes a few minutes. Open
+PowerShell as administrator, run `wsl --install`, and restart the computer. Then
+open **Ubuntu** from the Start menu and choose a user name and password. That
+Ubuntu window is where you run the install command below, not PowerShell.
+Microsoft's guide: [Install WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 ![Install, the setup conversation, and every day](assets/journey.svg)
 
-You need no account and no API key to start. In a terminal:
+You need no account and no API key to start. In a terminal (on macOS the
+Terminal app, on Windows the Ubuntu window):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/johansenmeister/dual-pai/main/install.sh | bash
