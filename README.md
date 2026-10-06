@@ -8,13 +8,14 @@
 [![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1)](https://bun.sh)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20macOS-22d3ee)](#install)
 
-**[Install](#install)** · [Make it yours](#make-it-yours) · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [Keeping it current](#keeping-it-current) · [For developers](#for-developers)
+**[Install](#install)** · [Your computer, your data](#your-computer-your-data) · [Make it yours](#make-it-yours) · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [Keeping it current](#keeping-it-current) · [For developers](#for-developers)
 
 **An AI assistant that is truly yours.** It knows your goals and your way of
 working, it remembers what it learned from you, it checks its own work before it
 says it is done, and every instruction it follows is a plain text file you can
-read and change. You talk to it in ordinary language, and you do not need to be a
-programmer to start: one command installs it, and the setup is a conversation.
+read and change. It runs only when you start it, and it cannot see your screen or
+follow what you do. You talk to it in ordinary language, and you do not need to be
+a programmer to start: one command installs it, and the setup is a conversation.
 
 Some of what you can ask it, from the first day:
 
@@ -57,6 +58,40 @@ one session to the next, checks that stop what must not happen, and code whereve
 code can do the job. The six parts around the core in the banner each have a
 section below: [Skills](#skills), [Agents](#agents), [The Algorithm](#the-algorithm),
 [Memory](#memory), [Security](#security) and [Self-test](#self-test).
+
+## Your computer, your data
+
+Many AI apps want to live on your desktop: watch the screen, follow what you do,
+keep running in the background. PAI is built the other way round.
+
+- **It runs only when you start it.** PAI is a command you type in a terminal.
+  When you end the session, it is gone: no background service, no autostart,
+  nothing that keeps running and watching. The one exception is the browser the
+  `Browser` skill uses for web pages, which closes itself 30 minutes after it was
+  last used.
+- **It cannot see your screen.** There is no screen capture, no keylogger, and no
+  access to your clipboard, microphone or camera. When a skill takes a
+  screenshot, it is of a web page in its own browser.
+- **It acts as you, only while you are there.** Inside a session it can read and
+  write files and run commands in your user account; that is what lets it do
+  real work. It never runs as administrator: the installer refuses to run as
+  root, and uses `sudo` only to install git and a few tools. Every command passes
+  the [security guard](#security) first. Claude Code asks you before it acts;
+  OpenCode works without asking, and the guard blocks the dangerous commands and
+  asks you about the risky ones.
+- **You choose who sees what.** What you write, and what the assistant reads to
+  answer you, goes to the model provider you chose, as with any AI assistant. The
+  files that describe you (`.opencode/PAI/USER/`) go along at the start of each
+  session, so keep them short and free of secrets. With the `local` profile and
+  [Ollama](https://ollama.com), the model runs on your own computer and nothing
+  leaves it.
+- **PAI itself reports nothing.** Its own code sends data only to the model
+  provider and to services you set up yourself. OpenCode and Claude Code are
+  programs by their own makers, with their own settings for usage data; PAI turns
+  off their automatic updates, not their telemetry.
+- **Your memory stays with you.** It is plain files in your copy of the
+  repository. Nothing is uploaded unless you set up your own server and push to
+  it.
 
 ## Install
 
