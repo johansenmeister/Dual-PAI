@@ -198,11 +198,23 @@ function loadEnv(): void {
 // here; a new writer shape means one more alias, not a second code path.
 const FIELD_ALIASES = {
 	timestamp: ["timestamp", "ts", "date"],
-	task: ["task_description", "task", "title", "session"],
+	task: ["task_description", "task", "title", "topic", "session"],
 	effort: ["effort_level", "effort"],
-	q1: ["reflection_q1", "q1_self", "q1"],
-	q2: ["reflection_q2", "q2_algorithm", "q2"],
-	q3: ["reflection_q3", "q3_ai", "q3"],
+	q1: ["reflection_q1", "q1_self", "q1", "Q1_self", "q_self"],
+	q2: ["reflection_q2", "q2_algorithm", "q2", "Q2_algorithm", "q_algorithm"],
+	q3: ["reflection_q3", "q3_ai", "q3", "Q3_ai", "q_ai"],
+} as const;
+
+/**
+ * Free-form lessons: no Q-axes, just what happened, the lesson and what to do
+ * next time. Written by hand on the job (#315); 9 of its 23 lines had this
+ * shape, and with the 7 using other spellings of the Q-fields they reached the
+ * report blank and were dropped as contentless.
+ */
+const FREEFORM_FIELDS = {
+	happened: ["observation", "insight"],
+	lesson: ["learning"],
+	action: ["action"],
 } as const;
 
 function pickString(raw: RawEntry, keys: readonly string[]): string {
@@ -221,7 +233,10 @@ function pickNumber(raw: RawEntry, key: string): number | undefined {
 export function detectSchema(raw: RawEntry): string {
 	if (typeof raw.incident === "string") return "incident";
 	if (typeof raw.reflection_q1 === "string") return "canonical";
-	if (typeof raw.q1_self === "string" || typeof raw.q1 === "string") return "short-form";
+	if (FIELD_ALIASES.q1.some((key) => typeof raw[key] === "string")) return "short-form";
+	if (Object.values(FREEFORM_FIELDS).flat().some((key) => typeof raw[key] === "string")) {
+		return "freeform";
+	}
 	return "unrecognized";
 }
 
@@ -266,13 +281,23 @@ function classifySignal(
 	return { signal: bumped, reason: `${reason}; ${boosts.join(", ")} -> boosted` };
 }
 
-function normalizeEntry(raw: RawEntry, id: number): NormalizedEntry {
-	const isIncident = detectSchema(raw) === "incident";
+export function normalizeEntry(raw: RawEntry, id: number): NormalizedEntry {
+	const schema = detectSchema(raw);
+	const isIncident = schema === "incident";
 
 	// Incidents have no q1/q2/q3, but they carry the same three axes under
 	// other names. Map them onto the shared shape: what went wrong, why it
 	// happened plus the lesson, and nothing aspirational.
-	const q1 = isIncident ? String(raw.incident ?? "") : pickString(raw, FIELD_ALIASES.q1);
+	//
+	// Free-form lessons go the same way: what happened is q1, the lesson and
+	// the next action are q2.
+	const lesson = pickString(raw, FREEFORM_FIELDS.lesson);
+	const action = pickString(raw, FREEFORM_FIELDS.action);
+	const q1 = isIncident
+		? String(raw.incident ?? "")
+		: schema === "freeform"
+			? pickString(raw, FREEFORM_FIELDS.happened)
+			: pickString(raw, FIELD_ALIASES.q1);
 	const q2 = isIncident
 		? [
 			  raw.root_cause ? `Root cause: ${raw.root_cause}` : "",
@@ -280,7 +305,9 @@ function normalizeEntry(raw: RawEntry, id: number): NormalizedEntry {
 		  ]
 			  .filter(Boolean)
 			  .join(" ")
-		: pickString(raw, FIELD_ALIASES.q2);
+		: schema === "freeform"
+			? [lesson ? `Lesson: ${lesson}` : "", action ? `Action: ${action}` : ""].filter(Boolean).join(" ")
+			: pickString(raw, FIELD_ALIASES.q2);
 	const q3 = isIncident ? "" : pickString(raw, FIELD_ALIASES.q3);
 
 	const base = {
