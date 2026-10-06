@@ -8,6 +8,8 @@
 [![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1)](https://bun.sh)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20macOS-22d3ee)](#install)
 
+**[Install](#install)** · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [For developers](#for-developers)
+
 PAI is a set of skills, agents, rules and memory that turn an AI model into a
 personal assistant. It runs inside an agent program in the terminal, and works
 with two of them: **OpenCode** (any model provider, including free models) and
@@ -23,50 +25,10 @@ it. Git keeps the history, so every change can be seen and undone.
 
 PAI follows Daniel Miessler's view that the scaffolding around a model matters
 more than the model: skills it can call by name, memory that carries over from
-one session to the next, and code wherever code can do the job. Larger tasks run
-through the Algorithm. Before the work starts, the assistant writes down in a
-[PRD](#the-prd) the criteria that will show the task is done, and the VERIFY
-phase checks each one. What it learns goes to memory.
-
-![The Algorithm's seven phases around the PRD, and six of the principles PAI is built on](assets/algorithm.svg)
-
-### The PRD
-
-PRD stands for Product Requirements Document, a term borrowed from software
-teams. In PAI it is one Markdown file per task, `PRD.md` in the task's folder
-under `.opencode/MEMORY/WORK/`, and it holds the task's state, so the state does
-not live only in the conversation. The assistant writes it; the hooks only read
-it. It has up to four sections:
-
-- **Context:** what was asked for and what was not, the constraints and the risks.
-- **Criteria:** the Ideal State Criteria, as checkboxes. Each one is a single end
-  state that is either true or false: "`bun test` passes with no failures", not
-  "run the tests". Anti-criteria (`ISC-A-`) say what must not happen. Larger
-  tasks need more of them: at least 8 at the standard effort level, 64 at the
-  highest.
-- **Decisions:** the choices that were not obvious, with the reason.
-- **Verification:** the evidence for each criterion, written in the VERIFY phase.
-
-The frontmatter keeps the status, the current phase and the progress. Because it
-is a file, a task outlives the conversation: when the context is compacted, the
-criteria and their status go into the summary, and a follow-up on the same task
-continues the same PRD. An excerpt:
-
-```markdown
----
-id: PRD-20261006-readme-diagrams
-title: "Add diagrams to the public README"
-status: ACTIVE
-effort_level: Standard
-last_phase: EXECUTE
-verification_summary: "2/8"
----
-## Criteria
-- [x] ISC-1: README shows the architecture diagram above the install section
-- [x] ISC-2: The hero image path resolves in the public copy
-- [ ] ISC-3: Diagrams stay readable in GitHub's light and dark themes
-- [ ] ISC-A-1: No upstream image describes features this repository lacks
-```
+one session to the next, checks that stop what must not happen, and code wherever
+code can do the job. The six parts around the core in the banner each have a
+section below: [Skills](#skills), [Agents](#agents), [The Algorithm](#the-algorithm),
+[Memory](#memory), [Security](#security) and [Self-test](#self-test).
 
 ## Install
 
@@ -121,6 +83,32 @@ it.
 improvements, your own Gitea, engine updates, remote access and your goals
 (TELOS). Start with [guide/README.md](guide/README.md).
 
+## Skills
+
+A skill is a folder the assistant loads when a task matches it: a `SKILL.md` that
+says when to use it ("USE WHEN …") and what to do, workflows for the steps, and
+tools written as code. There are 52, in `.opencode/skills/`. Two are always
+loaded, `PAI` (how the system itself works) and `Research`; the other 50 are
+loaded only when a task calls for them, so they cost no context until then.
+Some of them:
+
+| Group | Skills |
+|---|---|
+| **Thinking** | FirstPrinciples, Council (agents debate a question), RedTeam, SystemsThinking, RootCauseAnalysis, Science, BeCreative, IterativeDepth |
+| **Security** | ThreatModel, WebAssessment (with OSINT), PromptInjection, Recon, SECUpdates |
+| **Research and content** | Research, ExtractWisdom, Fabric (over 200 prompt patterns), Parser |
+| **Documents** | Docx, Xlsx, Pptx, Pdf |
+| **Building** | CreateSkill, CreateCLI, CodeReview, Evals, Hardening, Prompting, Browser, Cloudflare |
+| **Infrastructure** | Proxmox, TrueNAS, Technitium, DockerPortainer |
+| **PAI itself** | Agents, Telos (your goals), Delegation, System, HarnessUpdate, ModelUpdate |
+
+`CreateSkill` makes a new one in the same structure; a personal skill is named
+with a leading underscore (`_MYSKILL`) so it stands apart from the shareable
+ones. To change how a built-in skill behaves without editing it, put a
+`PREFERENCES.md` in `.opencode/PAI/USER/SKILLCUSTOMIZATIONS/<Skill>/`; 41 of the
+skills read it. Under Claude Code the same skills appear through a generated
+mirror (`pai claude sync`).
+
 ## Agents
 
 PAI hands parts of a task to agents: specialists with their own instructions,
@@ -153,7 +141,7 @@ Under Claude Code, twelve of them run on Claude models. The five provider
 researchers are OpenCode only: under one subscription they would have no model of
 their own, and DeepResearcher covers the role.
 
-## Multi-research
+### Multi-research
 
 ![Multi-research: a question split into angles, sent in parallel to researchers on different model families, every URL checked, and a synthesis](assets/research.svg)
 
@@ -185,6 +173,125 @@ and PerplexityResearcher run Qwen Max and DeepSeek Flash on Fireworks, which giv
 real model diversity with one key. With a Google or Perplexity key, one line in
 `.opencode/profiles/researchers.yaml` moves each back to its own provider.
 
+## The Algorithm
+
+The Algorithm is how PAI works through a task that needs more than a quick
+answer. It is Daniel Miessler's, and has its own repository:
+[danielmiessler/TheAlgorithm](https://github.com/danielmiessler/TheAlgorithm).
+The version PAI runs is in `.opencode/PAI/Algorithm/`.
+
+It moves a task from the current state to an ideal state that can be checked, in
+seven phases: OBSERVE (what is asked, and the criteria that will show it is
+done), THINK, PLAN, BUILD, EXECUTE, VERIFY (evidence for each criterion) and
+LEARN (a reflection on the run, saved to memory). Five effort levels set the time
+budget and how many criteria a task needs, from Standard (under two minutes) to
+Comprehensive (up to two hours). The criteria and their status are kept in a
+[PRD](#the-prd).
+
+![The Algorithm's seven phases around the PRD, and six of the principles PAI is built on](assets/algorithm.svg)
+
+### The PRD
+
+PRD stands for Product Requirements Document, a term borrowed from software
+teams. In PAI it is one Markdown file per task, `PRD.md` in the task's folder
+under `.opencode/MEMORY/WORK/`, and it holds the task's state, so the state does
+not live only in the conversation. The assistant writes it; the hooks only read
+it. It has up to four sections:
+
+- **Context:** what was asked for and what was not, the constraints and the risks.
+- **Criteria:** the Ideal State Criteria, as checkboxes. Each one is a single end
+  state that is either true or false: "`bun test` passes with no failures", not
+  "run the tests". Anti-criteria (`ISC-A-`) say what must not happen. Larger
+  tasks need more of them: at least 8 at the standard effort level, 64 at the
+  highest.
+- **Decisions:** the choices that were not obvious, with the reason.
+- **Verification:** the evidence for each criterion, written in the VERIFY phase.
+
+The frontmatter keeps the status, the current phase and the progress. Because it
+is a file, a task outlives the conversation: when the context is compacted, the
+criteria and their status go into the summary, and a follow-up on the same task
+continues the same PRD. An excerpt:
+
+```markdown
+---
+id: PRD-20261006-readme-diagrams
+title: "Add diagrams to the public README"
+status: ACTIVE
+effort_level: Standard
+last_phase: EXECUTE
+verification_summary: "2/8"
+---
+## Criteria
+- [x] ISC-1: README shows the architecture diagram above the install section
+- [x] ISC-2: The hero image path resolves in the public copy
+- [ ] ISC-3: Diagrams stay readable in GitHub's light and dark themes
+- [ ] ISC-A-1: No upstream image describes features this repository lacks
+```
+
+## Memory
+
+PAI's memory is plain files in `.opencode/MEMORY/`, so you can read, change or
+delete anything in it. Everything except `STATE/` is in git with the rest of the
+repository, so you can also see how it changed.
+
+| Folder | What is there |
+|---|---|
+| `WORK/` | one folder per task, with its PRD |
+| `LEARNING/` | ratings, the reflection from each Algorithm run, and notes on what went wrong |
+| `WISDOM/` | rules learned per domain (development, architecture, security …), read in OBSERVE and extended in LEARN |
+| `RESEARCH/` | what the researcher agents found |
+| `STATE/` | runtime state and the security log; stays on the machine |
+
+It learns from you in two ways. Send a number from 1 to 10 (`8`, `3/10`, or
+`4 - missed the point`) and it is saved as a rating of the last answer; without
+one, the tone of your messages is read as an implicit rating. A low rating also
+writes a note on what went wrong. `bun .opencode/PAI/Tools/MineReflections.ts
+--dry-run` looks for patterns across the reflections.
+
+## Security
+
+Every tool call passes through the security guard in `pai-core` before it runs,
+under both engines:
+
+- **Prompt injection.** The text in each tool call is checked against patterns
+  in seven categories (instruction override, role hijacking, system
+  prompt extraction, safety bypass, context separators, MCP tool injection and
+  credential leaks). A match is blocked.
+- **Shell commands.** The guard matches what the shell will actually run, not
+  text it only writes to a file. Destructive commands such as `rm -rf /` are
+  blocked; risky ones such as `git push --force` and `git reset --hard` ask you
+  first. The message names the pattern that matched.
+- **Credentials.** Writes to `.env` files, `~/.ssh/`, GnuPG, cloud and cluster
+  credentials, private keys and `/etc/` are blocked outright: those are changed
+  by hand. Your keys live in `~/.opencode/.env`, and the assistant never reads it;
+  `pai keys` shows which are set, never their values.
+- **The log.** Every decision is written to a security log in `STATE/` (see
+  [Memory](#memory)), with secrets redacted.
+
+The `Security` skills go the other way: threat models, web assessments with
+OSINT, recon and prompt-injection testing of your own systems.
+
+## Self-test
+
+Neither engine says so when a hook PAI depends on stops firing, and an engine
+update can change what PAI assumes about it. So PAI checks itself:
+
+- **At every start.** Both engines are pinned to an exact version in
+  `.opencode/package.json`, and each has a smoke test that runs the real engine
+  with PAI and writes a receipt when every hook has fired and the security guard
+  has blocked what it should: `bun Tools/V2Smoke.ts` and `bun Tools/ClaudeSmoke.ts`.
+  `pai` and `pai --claude` check that the installed engine is the pinned one, and
+  that the smoke test passed against it and against the adapter code as it is
+  now. If not, you get one line with the command that fixes it; otherwise
+  nothing.
+- **On demand.** `pai doctor` runs the same checks and the slower ones: the model
+  registry, the MCP servers, handlers that ran without effect, and the database.
+  It changes nothing.
+- **Before an update.** The `HarnessUpdate` skill reads the engines' release notes
+  against its register of what PAI assumes about each engine, and says what must
+  be measured again. It never upgrades anything
+  ([guide/engine-updates.md](guide/engine-updates.md)).
+
 ## For developers
 
 Parts of the code comments and the skills are in Norwegian: they come from the
@@ -208,18 +315,8 @@ bun run lint
 Both installs are needed: the one in the root does not cover `.opencode/`, and
 without it the type check in `bun test` has neither the binary nor the types.
 
-**The self-test.** Both engines are pinned exactly in `.opencode/package.json`
-(`@opencode/cli` and `pai.claudeCode`), and each has a smoke test that writes a
-receipt: `bun Tools/V2Smoke.ts` and `bun Tools/ClaudeSmoke.ts`. Before an
-engine starts, `pai` and `pai --claude` check that the installed version is the
-pinned one and that the smoke test has passed against it and against the
-adapter code as it is now. If something is wrong, you get one line with the
-command that fixes it; otherwise they say nothing. `pai doctor` runs the same
-checks and the slower ones: the model registry, the MCP servers, handlers that
-run without effect, and the database. Neither engine reports a hook that stops
-firing, so a bump is not done until the smoke test is green. The skill
-`HarnessUpdate` reads the engines' release notes against its assumption register
-and says what must be measured again; it never upgrades anything ([guide/engine-updates.md](guide/engine-updates.md)).
+The self-test and the smoke tests are described under [Self-test](#self-test).
+A bump of either engine is not done until its smoke test is green.
 
 **Three things worth knowing before you change anything:**
 
@@ -242,6 +339,11 @@ This repository started as a fork of Steffen's port to OpenCode,
 [pai-opencode](https://github.com/Steffen025/pai-opencode), and has since been
 rebuilt around two engines. [OpenCode](https://github.com/anomalyco/opencode)
 is by Anomaly.
+
+This project grew out of its owner's need for a framework that fits their way of working,
+above all documenting and auditing a homelab: what runs where, what changed, and
+why. It has reached a level of maturity where its owner is confident in sharing
+it with the open-source community.
 
 The repository is a copy of a private one whose history is mostly its owner's
 memory. It starts from a single commit on purpose; later commits are updates
