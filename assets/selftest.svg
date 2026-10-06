@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 560" width="1280" height="560" role="img" aria-labelledby="t d">
+  <title id="t">Self-test</title>
+  <desc id="d">At every start, pai checks that the installed engine is the pinned version and that the smoke receipt is current for this engine and the adapter code; if so the engine starts quietly, otherwise you get one line with the fix. On demand, pai doctor runs the start checks plus the model registry, MCP servers, silent handlers and the database, and changes nothing. Before an update, the HarnessUpdate skill reads the release notes against the assumption register and says what must be measured again; it never upgrades anything.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1f"/>
+      <stop offset="1" stop-color="#121c38"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1e2a4a" stroke-width="1"/>
+    </pattern>
+    <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#67e8f9"/>
+    </marker>
+    <style>
+      .sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, "DejaVu Sans", sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace; }
+      .lbl { fill: #22d3ee; font-size: 15px; font-weight: 700; letter-spacing: 4px; }
+      .sub { fill: #cbd5e1; font-size: 19px; }
+      .h { fill: #f1f5f9; font-size: 19px; font-weight: 700; }
+      .hc { fill: #f1f5f9; font-size: 19px; font-weight: 700; text-anchor: middle; }
+      .s { fill: #94a3b8; font-size: 14px; }
+      .sc { fill: #94a3b8; font-size: 14px; text-anchor: middle; }
+      .t { fill: #e2e8f0; font-size: 15px; }
+      .tc { fill: #e2e8f0; font-size: 15px; text-anchor: middle; }
+      .flow { stroke: #67e8f9; stroke-width: 2.2; fill: none; marker-end: url(#arr); }
+      .soft { stroke: #67e8f9; stroke-opacity: 0.5; stroke-width: 1.8; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="560" rx="18" fill="url(#bg)"/>
+  <rect width="1280" height="560" rx="18" fill="url(#grid)" opacity="0.6"/>
+  <g class="sans">
+    <text class="lbl" x="48" y="54">SELF-TEST</text>
+    <text class="sub" x="48" y="82">Neither engine says when a hook stops firing, so PAI checks for itself.</text>
+  </g>
+  <g class="sans">
+    <text class="s" x="48" y="128" font-weight="700" fill="#fbbf24" letter-spacing="2">AT EVERY START</text>
+    <rect x="48" y="142" width="170" height="70" rx="10" fill="#0f1830" stroke="#fbbf24" stroke-width="1.8"/>
+    <text class="tc mono" x="133.0" y="172.0">pai</text>
+    <text class="sc" x="133.0" y="192.0">pai --claude</text>
+    <path class="flow" d="M220 177 H 256"/>
+    <rect x="260" y="142" width="230" height="70" rx="10" fill="#0f1830" stroke="#22d3ee" stroke-width="1.8"/>
+    <text class="tc" x="375.0" y="172.0" font-weight="700">installed engine</text>
+    <text class="sc" x="375.0" y="192.0">= the pinned version?</text>
+    <path class="flow" d="M492 177 H 528"/>
+    <rect x="532" y="142" width="250" height="70" rx="10" fill="#0f1830" stroke="#22d3ee" stroke-width="1.8"/>
+    <text class="tc" x="657.0" y="172.0" font-weight="700">smoke receipt current?</text>
+    <text class="sc" x="657.0" y="192.0">for this engine and adapter</text>
+    <text class="sc mono" x="657" y="232" font-size="12">bun Tools/V2Smoke.ts · ClaudeSmoke.ts</text>
+    <path class="soft" d="M784 177 C 812 177 812 158 840 158" marker-end="url(#arr)"/>
+    <path class="soft" d="M784 177 C 812 177 812 200 840 200" marker-end="url(#arr)"/>
+    <rect x="844" y="138" width="388" height="38" rx="10" fill="#0d1f1c" stroke="#34d399" stroke-width="1.5"/>
+    <text class="t" x="862" y="163"><tspan fill="#34d399" font-weight="700">yes</tspan>  the engine starts, nothing is said</text>
+    <rect x="844" y="182" width="388" height="38" rx="10" fill="#2a1215" stroke="#f87171" stroke-width="1.5"/>
+    <text class="t" x="862" y="207"><tspan fill="#f87171" font-weight="700">no</tspan>  one line with the command that fixes it</text>
+    <text class="s" x="48" y="284" font-weight="700" fill="#22d3ee" letter-spacing="2">ON DEMAND</text>
+    <rect x="48" y="298" width="170" height="70" rx="10" fill="#0f1830" stroke="#22d3ee" stroke-width="1.8"/>
+    <text class="tc mono" x="133.0" y="338.0">pai doctor</text>
+    <path class="flow" d="M220 333 H 256"/>
+    <rect x="260" y="314" width="161.6" height="38" rx="8" fill="#0f2236" stroke="#0e7490" stroke-width="1.5"/>
+    <text class="tc" x="340.8" y="339" font-size="14">the start checks</text>
+    <rect x="431.6" y="314" width="144.39999999999998" height="38" rx="8" fill="#0f2236" stroke="#0e7490" stroke-width="1.5"/>
+    <text class="tc" x="503.8" y="339" font-size="14">model registry</text>
+    <rect x="586.0" y="314" width="118.6" height="38" rx="8" fill="#0f2236" stroke="#0e7490" stroke-width="1.5"/>
+    <text class="tc" x="645.3" y="339" font-size="14">MCP servers</text>
+    <rect x="714.6" y="314" width="153.0" height="38" rx="8" fill="#0f2236" stroke="#0e7490" stroke-width="1.5"/>
+    <text class="tc" x="791.1" y="339" font-size="14">silent handlers</text>
+    <rect x="877.6" y="314" width="92.8" height="38" rx="8" fill="#0f2236" stroke="#0e7490" stroke-width="1.5"/>
+    <text class="tc" x="924.0" y="339" font-size="14">database</text>
+    <path class="flow" d="M978.4 333 H 1012.4"/>
+    <rect x="1016.4" y="298" width="215.60000000000002" height="70" rx="10" fill="#0d1f1c" stroke="#34d399" stroke-width="1.8"/>
+    <text class="tc" x="1124.2" y="328.0" font-weight="700">a report</text>
+    <text class="sc" x="1124.2" y="348.0">changes nothing</text>
+    <text class="s" x="48" y="440" font-weight="700" fill="#a78bfa" letter-spacing="2">BEFORE AN UPDATE</text>
+    <rect x="48" y="454" width="170" height="70" rx="10" fill="#160f2e" stroke="#a78bfa" stroke-width="1.8"/>
+    <text class="tc" x="133.0" y="484.0" font-weight="700">HarnessUpdate</text>
+    <text class="sc" x="133.0" y="504.0">a skill</text>
+    <path class="flow" d="M220 489 H 256"/>
+    <rect x="260" y="454" width="220" height="70" rx="10" fill="#0f1830" stroke="#a78bfa" stroke-width="1.8"/>
+    <text class="tc" x="370.0" y="484.0" font-weight="700">release notes</text>
+    <text class="sc" x="370.0" y="504.0">of the new version</text>
+    <text class="tc" x="512" y="494" fill="#a78bfa" font-weight="700">vs</text>
+    <rect x="544" y="454" width="250" height="70" rx="10" fill="#0f1830" stroke="#a78bfa" stroke-width="1.8"/>
+    <text class="tc" x="669.0" y="484.0" font-weight="700">assumption register</text>
+    <text class="sc" x="669.0" y="504.0">what PAI relies on</text>
+    <path class="flow" d="M796 489 H 836"/>
+    <rect x="840" y="454" width="392" height="70" rx="10" fill="#0d1f1c" stroke="#34d399" stroke-width="1.8"/>
+    <text class="tc" x="1036.0" y="484.0" font-weight="700">what must be measured again</text>
+    <text class="sc" x="1036.0" y="504.0">it never upgrades anything</text>
+  </g>
+</svg>

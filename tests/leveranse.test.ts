@@ -97,6 +97,39 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_jobb_markorer (#290)", () => {
 	});
 });
 
+describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_kilde", () => {
+	let repo = "";
+	const git = (...a: string[]): void => {
+		const p = Bun.spawnSync(["git", "-C", repo, ...a], {
+			env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" },
+		});
+		if (p.exitCode !== 0) throw new Error(`git ${a.join(" ")}: ${p.stderr}`);
+	};
+	const kilde = (): string =>
+		Bun.spawnSync(["bash", "-c", `. "${LEVERANSE}" && lev_kopi_kilde "$1"`, "_", repo]).stdout.toString().trim();
+
+	beforeAll(() => {
+		repo = mkdtempSync(join(tmpdir(), "pai-leveranse-kilde-"));
+		git("init", "-q");
+	});
+	afterAll(() => rmSync(repo, { recursive: true, force: true }));
+
+	test("uten bygge-commit: ingenting", () => {
+		git("commit", "-q", "--allow-empty", "-m", "start");
+		expect(kilde()).toBe("");
+	});
+
+	test("bygge-commiten øverst: kilden i meldingen", () => {
+		git("commit", "-q", "--allow-empty", "-m", "chore: oppdatert fra PAI abc1234 (1 commit)");
+		expect(kilde()).toBe("abc1234");
+	});
+
+	test("en håndredigering på toppen: fortsatt den nyeste bygge-commitens kilde", () => {
+		git("commit", "-q", "--allow-empty", "-m", "Update README.md");
+		expect(kilde()).toBe("abc1234");
+	});
+});
+
 describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_ulevert per kopi (#281)", () => {
 	let repo = "";
 	let fra = "";

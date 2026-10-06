@@ -85,6 +85,8 @@ improvements, your own Gitea, engine updates, remote access and your goals
 
 ## Skills
 
+![Skills: a skill folder, how a task loads it, and the 52 skills by category](assets/skills.svg)
+
 A skill is a folder the assistant loads when a task matches it: a `SKILL.md` that
 says when to use it ("USE WHEN …") and what to do, workflows for the steps, and
 tools written as code. There are 52, in `.opencode/skills/`. Two are always
@@ -110,6 +112,8 @@ skills read it. Under Claude Code the same skills appear through a generated
 mirror (`pai claude sync`).
 
 ## Agents
+
+![Agents: your session hands work to seventeen agents in four groups; five researchers exist only in OpenCode](assets/agents.svg)
 
 PAI hands parts of a task to agents: specialists with their own instructions,
 which the assistant starts in parallel and whose results it checks. There are
@@ -230,6 +234,8 @@ verification_summary: "2/8"
 
 ## Memory
 
+![Memory: what writes each folder in .opencode/MEMORY/, and what reads it later](assets/memory.svg)
+
 PAI's memory is plain files in `.opencode/MEMORY/`, so you can read, change or
 delete anything in it. Everything except `STATE/` is in git with the rest of the
 repository, so you can also see how it changed.
@@ -249,6 +255,8 @@ writes a note on what went wrong. `bun .opencode/PAI/Tools/MineReflections.ts
 --dry-run` looks for patterns across the reflections.
 
 ## Security
+
+![Security: every tool call passes three checks and is allowed, asks you first, or is blocked](assets/security.svg)
 
 Every tool call passes through the security guard in `pai-core` before it runs,
 under both engines:
@@ -272,6 +280,8 @@ The `Security` skills go the other way: threat models, web assessments with
 OSINT, recon and prompt-injection testing of your own systems.
 
 ## Self-test
+
+![Self-test: checks at every start, pai doctor on demand, and HarnessUpdate before an engine update](assets/selftest.svg)
 
 Neither engine says so when a hook PAI depends on stops firing, and an engine
 update can change what PAI assumes about it. So PAI checks itself:
@@ -340,13 +350,9 @@ This repository started as a fork of Steffen's port to OpenCode,
 rebuilt around two engines. [OpenCode](https://github.com/anomalyco/opencode)
 is by Anomaly.
 
-This project grew out of its owner's need for a framework that fits their way of working,
-above all documenting and auditing a homelab: what runs where, what changed, and
-why. It has reached a level of maturity where its owner is confident in sharing
-it with the open-source community.
-
-The repository is a copy of a private one whose history is mostly its owner's
-memory. It starts from a single commit on purpose; later commits are updates
-from the original, added on top.
+This project grew out of my own need for a framework that fits my own way of
+working, above all documenting and auditing a homelab and work IT environment:
+what runs where, what changed, and why. It has reached a level of maturity where
+I'm confident in sharing it with the open-source community.
 
 MIT License, see [LICENSE](LICENSE).

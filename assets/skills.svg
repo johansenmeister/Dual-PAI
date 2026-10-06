@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 500" width="1280" height="500" role="img" aria-labelledby="t d">
+  <title id="t">Skills</title>
+  <desc id="d">A skill is a folder with SKILL.md, workflows and tools; it loads when a task matches its USE WHEN line. Two skills are always loaded and fifty load on demand. The 52 skills by category: Utilities 23, Thinking 10, Security 7, Infrastructure 5, ContentAnalysis 2, and one each in Agents, MusicLibrary, PAI, Research and Telos.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1f"/>
+      <stop offset="1" stop-color="#121c38"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1e2a4a" stroke-width="1"/>
+    </pattern>
+    <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#67e8f9"/>
+    </marker>
+    <style>
+      .sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, "DejaVu Sans", sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace; }
+      .lbl { fill: #22d3ee; font-size: 15px; font-weight: 700; letter-spacing: 4px; }
+      .sub { fill: #cbd5e1; font-size: 19px; }
+      .h { fill: #f1f5f9; font-size: 19px; font-weight: 700; }
+      .hc { fill: #f1f5f9; font-size: 19px; font-weight: 700; text-anchor: middle; }
+      .s { fill: #94a3b8; font-size: 14px; }
+      .sc { fill: #94a3b8; font-size: 14px; text-anchor: middle; }
+      .t { fill: #e2e8f0; font-size: 15px; }
+      .tc { fill: #e2e8f0; font-size: 15px; text-anchor: middle; }
+      .flow { stroke: #67e8f9; stroke-width: 2.2; fill: none; marker-end: url(#arr); }
+      .soft { stroke: #67e8f9; stroke-opacity: 0.5; stroke-width: 1.8; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="500" rx="18" fill="url(#bg)"/>
+  <rect width="1280" height="500" rx="18" fill="url(#grid)" opacity="0.6"/>
+  <g class="sans">
+    <text class="lbl" x="48" y="54">SKILLS</text>
+    <text class="sub" x="48" y="82">A skill loads when your task matches it, so the other fifty cost nothing until then.</text>
+  </g>
+  <g class="sans">
+    <rect x="48" y="120" width="380" height="300" rx="12" fill="#160f2e" stroke="#a78bfa" stroke-width="2"/>
+    <text class="h mono" x="72" y="156" fill="#ede9fe">MySkill/</text>
+    <path d="M80 170 V 190 H 96" stroke="#6d5bb8" fill="none" stroke-width="1.5"/>
+    <text class="mono" x="104" y="196" fill="#c4b5fd" font-size="16" font-weight="700">SKILL.md</text>
+    <text class="s" x="104" y="218">when to use it (USE WHEN …)</text>
+    <text class="s" x="104" y="236">and what to do</text>
+    <path d="M80 248 V 268 H 96" stroke="#6d5bb8" fill="none" stroke-width="1.5"/>
+    <text class="mono" x="104" y="274" fill="#c4b5fd" font-size="16" font-weight="700">Workflows/</text>
+    <text class="s" x="104" y="296">the steps, one file each</text>
+    <path d="M80 310 V 330 H 96" stroke="#6d5bb8" fill="none" stroke-width="1.5"/>
+    <text class="mono" x="104" y="336" fill="#c4b5fd" font-size="16" font-weight="700">Tools/</text>
+    <text class="s" x="104" y="358">code the skill runs</text>
+    <text class="s" x="72" y="400">Make one: <tspan class="mono" fill="#e2e8f0">CreateSkill</tspan></text>
+    <rect x="470" y="150" width="220" height="64" rx="12" fill="#0f1830" stroke="#fbbf24" stroke-width="2"/>
+    <text class="hc" x="580" y="188">your task</text>
+    <path class="flow" d="M580 216 V 252"/>
+    <rect x="470" y="256" width="220" height="64" rx="12" fill="#0f1830" stroke="#22d3ee" stroke-width="2"/>
+    <text class="hc" x="580" y="285">matches a</text>
+    <text class="sc mono" x="580" y="306">USE WHEN</text>
+    <path class="flow" d="M580 322 V 358"/>
+    <rect x="470" y="362" width="220" height="58" rx="12" fill="#0d1f1c" stroke="#34d399" stroke-width="2"/>
+    <text class="hc" x="580" y="397">the skill loads</text>
+    <text class="sc" x="580" y="452">2 always loaded: PAI, Research</text>
+    <text class="sc" x="580" y="474">50 only when a task needs them</text>
+    <text class="h" x="760" y="140">52 skills in .opencode/skills/</text>
+    <text class="t" x="900" y="183" text-anchor="end">Utilities</text>
+    <rect x="914" y="168" width="299" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="1223" y="183" fill="#cbd5e1">23</text>
+    <text class="t" x="900" y="213" text-anchor="end">Thinking</text>
+    <rect x="914" y="198" width="130" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="1054" y="213" fill="#cbd5e1">10</text>
+    <text class="t" x="900" y="243" text-anchor="end">Security</text>
+    <rect x="914" y="228" width="91" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="1015" y="243" fill="#cbd5e1">7</text>
+    <text class="t" x="900" y="273" text-anchor="end">Infrastructure</text>
+    <rect x="914" y="258" width="65" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="989" y="273" fill="#cbd5e1">5</text>
+    <text class="t" x="900" y="303" text-anchor="end">ContentAnalysis</text>
+    <rect x="914" y="288" width="26" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="950" y="303" fill="#cbd5e1">2</text>
+    <text class="t" x="900" y="333" text-anchor="end">Agents</text>
+    <rect x="914" y="318" width="13" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="937" y="333" fill="#cbd5e1">1</text>
+    <text class="t" x="900" y="363" text-anchor="end">MusicLibrary</text>
+    <rect x="914" y="348" width="13" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="937" y="363" fill="#cbd5e1">1</text>
+    <text class="t" x="900" y="393" text-anchor="end">PAI</text>
+    <rect x="914" y="378" width="13" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="937" y="393" fill="#cbd5e1">1</text>
+    <text class="t" x="900" y="423" text-anchor="end">Research</text>
+    <rect x="914" y="408" width="13" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="937" y="423" fill="#cbd5e1">1</text>
+    <text class="t" x="900" y="453" text-anchor="end">Telos</text>
+    <rect x="914" y="438" width="13" height="20" rx="4" fill="#22d3ee" fill-opacity="0.75"/>
+    <text class="s" x="937" y="453" fill="#cbd5e1">1</text>
+  </g>
+</svg>

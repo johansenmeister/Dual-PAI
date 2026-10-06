@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 540" width="1280" height="540" role="img" aria-labelledby="t d">
+  <title id="t">Memory</title>
+  <desc id="d">Memory is plain files in .opencode/MEMORY/. A task writes WORK, your ratings and the LEARN phase write LEARNING, the LEARN phase also writes WISDOM, the researchers write RESEARCH, and the security guard writes STATE. The next session reads WISDOM in OBSERVE, continues a PRD from WORK, and MineReflections finds patterns in LEARNING. Everything except STATE is in git.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1f"/>
+      <stop offset="1" stop-color="#121c38"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1e2a4a" stroke-width="1"/>
+    </pattern>
+    <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#67e8f9"/>
+    </marker>
+    <style>
+      .sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, "DejaVu Sans", sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace; }
+      .lbl { fill: #22d3ee; font-size: 15px; font-weight: 700; letter-spacing: 4px; }
+      .sub { fill: #cbd5e1; font-size: 19px; }
+      .h { fill: #f1f5f9; font-size: 19px; font-weight: 700; }
+      .hc { fill: #f1f5f9; font-size: 19px; font-weight: 700; text-anchor: middle; }
+      .s { fill: #94a3b8; font-size: 14px; }
+      .sc { fill: #94a3b8; font-size: 14px; text-anchor: middle; }
+      .t { fill: #e2e8f0; font-size: 15px; }
+      .tc { fill: #e2e8f0; font-size: 15px; text-anchor: middle; }
+      .flow { stroke: #67e8f9; stroke-width: 2.2; fill: none; marker-end: url(#arr); }
+      .soft { stroke: #67e8f9; stroke-opacity: 0.5; stroke-width: 1.8; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="540" rx="18" fill="url(#bg)"/>
+  <rect width="1280" height="540" rx="18" fill="url(#grid)" opacity="0.6"/>
+  <g class="sans">
+    <text class="lbl" x="48" y="54">MEMORY</text>
+    <text class="sub" x="48" y="82">What one session learns, the next one starts with.</text>
+  </g>
+  <g class="sans">
+    <rect x="430" y="108" width="420" height="346" rx="14" fill="#0b1a2e" stroke="#22d3ee" stroke-width="2.5"/>
+    <text class="hc mono" x="640" y="138" font-size="17">.opencode/MEMORY/</text>
+    <rect x="450" y="154" width="380" height="54" rx="10" fill="#0f1830" stroke="#fbbf24" stroke-width="1.5"/>
+    <text class="mono" x="470" y="177" fill="#fbbf24" font-size="16" font-weight="700">WORK/</text>
+    <text class="s" x="470" y="197">one folder per task, with its PRD</text>
+    <rect x="450" y="212" width="380" height="54" rx="10" fill="#0f1830" stroke="#a78bfa" stroke-width="1.5"/>
+    <text class="mono" x="470" y="235" fill="#a78bfa" font-size="16" font-weight="700">LEARNING/</text>
+    <text class="s" x="470" y="255">ratings, reflections, what went wrong</text>
+    <rect x="450" y="270" width="380" height="54" rx="10" fill="#0f1830" stroke="#22d3ee" stroke-width="1.5"/>
+    <text class="mono" x="470" y="293" fill="#22d3ee" font-size="16" font-weight="700">WISDOM/</text>
+    <text class="s" x="470" y="313">rules learned per domain</text>
+    <rect x="450" y="328" width="380" height="54" rx="10" fill="#0f1830" stroke="#34d399" stroke-width="1.5"/>
+    <text class="mono" x="470" y="351" fill="#34d399" font-size="16" font-weight="700">RESEARCH/</text>
+    <text class="s" x="470" y="371">what the researchers found</text>
+    <rect x="450" y="386" width="380" height="54" rx="10" fill="#0f1830" stroke="#64748b" stroke-width="1.5"/>
+    <text class="mono" x="470" y="409" fill="#64748b" font-size="16" font-weight="700">STATE/</text>
+    <text class="s" x="470" y="429">runtime state, the security log</text>
+    <text class="s" x="48" y="132" font-weight="700" fill="#cbd5e1">WRITTEN BY</text>
+    <rect x="48" y="150" width="290" height="46" rx="10" fill="#0f1830" stroke="#334155" stroke-width="1.5"/>
+    <text class="t" x="66" y="179">a task</text>
+    <path class="soft" d="M340 173 C 395 173 395 181 446 181" marker-end="url(#arr)"/>
+    <rect x="48" y="208" width="290" height="46" rx="10" fill="#0f1830" stroke="#334155" stroke-width="1.5"/>
+    <text class="t" x="66" y="237">your rating: 8, 3/10, or tone</text>
+    <path class="soft" d="M340 231 C 395 231 395 239 446 239" marker-end="url(#arr)"/>
+    <rect x="48" y="266" width="290" height="46" rx="10" fill="#0f1830" stroke="#334155" stroke-width="1.5"/>
+    <text class="t" x="66" y="295">the LEARN phase</text>
+    <path class="soft" d="M340 289 C 395 289 395 239 446 239" marker-end="url(#arr)"/>
+    <path class="soft" d="M340 289 C 395 289 395 297 446 297" marker-end="url(#arr)"/>
+    <rect x="48" y="324" width="290" height="46" rx="10" fill="#0f1830" stroke="#334155" stroke-width="1.5"/>
+    <text class="t" x="66" y="353">the researchers</text>
+    <path class="soft" d="M340 347 C 395 347 395 355 446 355" marker-end="url(#arr)"/>
+    <rect x="48" y="382" width="290" height="46" rx="10" fill="#0f1830" stroke="#334155" stroke-width="1.5"/>
+    <text class="t" x="66" y="411">the security guard</text>
+    <path class="soft" d="M340 405 C 395 405 395 413 446 413" marker-end="url(#arr)"/>
+    <text class="s" x="942" y="132" font-weight="700" fill="#cbd5e1">READ LATER BY</text>
+    <path class="soft" d="M834 181 C 888 181 888 181 938 181" marker-end="url(#arr)"/>
+    <rect x="942" y="158" width="290" height="46" rx="10" fill="#0f1830" stroke="#334155" stroke-width="1.5"/>
+    <text class="t" x="960" y="187">a follow-up continues the PRD</text>
+    <path class="soft" d="M834 239 C 888 239 888 255 938 255" marker-end="url(#arr)"/>
+    <rect x="942" y="232" width="290" height="46" rx="10" fill="#0f1830" stroke="#334155" stroke-width="1.5"/>
+    <text class="t" x="960" y="261">MineReflections finds patterns</text>
+    <path class="soft" d="M834 297 C 888 297 888 329 938 329" marker-end="url(#arr)"/>
+    <rect x="942" y="306" width="290" height="46" rx="10" fill="#0f1830" stroke="#334155" stroke-width="1.5"/>
+    <text class="t" x="960" y="335">OBSERVE reads the rules</text>
+    <path d="M48 478 H1232" stroke="#1e2a4a" stroke-width="2"/>
+    <text class="t" x="48" y="510"><tspan fill="#34d399" font-weight="700">Plain files in git.</tspan> Read, change or delete anything; everything except STATE/ is versioned with the repository.</text>
+  </g>
+</svg>
