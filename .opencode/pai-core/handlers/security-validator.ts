@@ -22,6 +22,7 @@ import { DANGEROUS_PATTERNS, WARNING_PATTERNS } from "../adapters/types";
 import { fileLog, fileLogError } from "../lib/file-logger";
 import { detectInjections, type InjectionCategory } from "../lib/injection-patterns";
 import { getStateDir } from "../lib/paths";
+import { utenData } from "../lib/skalldata";
 import { lesSkrivebeskyttet, skrivebeskyttetRot } from "../lib/skrivebeskyttet";
 import { INJECTION_SCAN_FIELDS, sanitizeForSecurityCheck } from "../lib/sanitizer";
 import { isShellTool, kanoniskeArgs, skrivemål } from "../lib/tool-names";
@@ -350,8 +351,13 @@ export async function validateSecurity(
 
 		fileLog(`Extracted command: ${command}`, "info");
 
+		// Mønstrene matches mot det skallet kjører, ikke mot tekst det bare
+		// lagrer (#322): en heredoc-kropp til en fil, argumentene til
+		// WriteReflection. Revisjonslinja viser hele kommandoen.
+		const kjøres = isShellTool(input.tool.toLowerCase()) ? utenData(command) : command;
+
 		// Check for dangerous patterns (BLOCK)
-		const dangerousMatch = matchesDangerousPattern(command);
+		const dangerousMatch = matchesDangerousPattern(kjøres);
 		if (dangerousMatch) {
 			fileLog(`BLOCKED: Dangerous pattern matched: ${dangerousMatch}`, "error");
 			logSecurityEvent({
@@ -365,13 +371,14 @@ export async function validateSecurity(
 			return {
 				action: "block",
 				reason: `Dangerous command pattern detected: ${dangerousMatch}`,
-				message:
-					"This command has been blocked for security reasons. It matches a known dangerous pattern.",
+				// Mønsteret står i meldingen, så økten ser hva som slo til
+				// i stedet for å gjette og omformulere (#322).
+				message: `This command has been blocked for security reasons. It matches a known dangerous pattern: ${dangerousMatch}`,
 			};
 		}
 
 		// Check for warning patterns (CONFIRM)
-		const warningMatch = matchesWarningPattern(command);
+		const warningMatch = matchesWarningPattern(kjøres);
 		if (warningMatch) {
 			fileLog(`CONFIRM: Warning pattern matched: ${warningMatch}`, "warn");
 			logSecurityEvent({

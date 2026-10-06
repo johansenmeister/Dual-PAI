@@ -34,6 +34,7 @@ const ASCII_MED_VILJE: Record<string, { linjer: number; grunn: string }> = {
 	"lib/prd-template.ts": { linjer: 1, grunn: "engelske banneord" },
 	"lib/injection-patterns.ts": { linjer: 8, grunn: "engelske injeksjonsfraser og nøkkelformater" },
 	"lib/sanitizer.ts": { linjer: 1, grunn: "base64" },
+	"lib/skalldata.ts": { linjer: 2, grunn: "skallets variabelnavn og heredoc-skilletegn" },
 	"lib/response-format.ts": { linjer: 1, grunn: "`\\w` inne i en klasse med `\\p{L}`" },
 	"handlers/implicit-sentiment.ts": { linjer: 1, grunn: "engelske ord etter en karakter" },
 	"handlers/tab-state.ts": { linjer: 1, grunn: "`\\w` inne i en klasse med `\\p{L}`, som `extractSpokenLine`" },

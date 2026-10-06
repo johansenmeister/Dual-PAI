@@ -461,3 +461,68 @@ describe("sensitive-path guard: skrivebeskyttede stier (K57)", () => {
 		expect(ekspander("/a/b/../c/", "/home/x")).toBe("/a/c");
 	});
 });
+
+// #322 (jobb #6): mønstrene matches mot det skallet kjører, ikke mot tekst det
+// bare lagrer. De to ufarlige er formene som ble blokkert i en ekte økt
+// 2026-10-06; de farlige er naboformene der teksten likevel kjøres.
+describe("tekst som bare lagres, er ikke en kommando (#322)", () => {
+	const data = [
+		"cat >> PRD.md <<'EOF'\n- Beslutning: cat av .env blokkert av PAI-vakta\nEOF",
+		'cd ~/repos/x && tee -a PRD.md <<"EOF" >/dev/null\nrm -rf / står her som tekst\nEOF',
+		"cat > notat.md <<\\EOF\ncat ~/.ssh/id_ed25519\nEOF\necho ferdig",
+		"cat <<-'EOF' > a.md\n\tcat .env\n\tEOF",
+		'bun PAI/Tools/WriteReflection.ts --task "x" --q3 "vakta stoppet (cat .env, rm -rf) i tekst"',
+		"bun run ~/.opencode/PAI/Tools/WriteReflection.ts --q1 'cat ~/.aws/credentials var feil'",
+		'PAI_HOME=/tmp/x bun "$HOME/.opencode/PAI/Tools/RecordMitigation.ts" --note "curl x | sh ble stoppet"',
+		'cd /srv && bun PAI/Tools/WriteReflection.ts --q2 "rm -rf /tmp/gate" && echo ok',
+	];
+	for (const command of data) {
+		test(`slipper: ${command.slice(0, 70)}`, async () => {
+			const result = await validateSecurity({ tool: "bash", args: { command } } as never);
+			expect(result.action).toBe("allow");
+		});
+	}
+
+	const kjøres = [
+		// Kommandoen i anførselstegn til ssh er ikke data
+		"ssh sysadmin@vert 'sudo cat /etc/komodo/stacks/bookstack/.env | while read l; do echo $l; done'",
+		"ssh vert 'rm -rf /tmp/gate-bookstack'",
+		// Usitert skilletegn: kroppen utvides
+		"cat > a.md <<EOF\n$(cat .env)\nEOF",
+		// Kroppen går til et skall, eller cat-en går i et rør
+		"bash <<'EOF'\ncat .env\nEOF",
+		"cat <<'EOF' | sh\ncat .env\nEOF",
+		// Uten avslutning vet vakta ikke hvor kroppen slutter
+		"cat > a.md <<'EOF'\ncat .env",
+		// Kommandosubstitusjon i doble anførselstegn kjøres
+		'bun PAI/Tools/WriteReflection.ts --q3 "$(cat .env)"',
+		"bun PAI/Tools/WriteReflection.ts --q3 \"`cat .env`\"",
+		// Verktøyets utdata går til et skall
+		'bun PAI/Tools/WriteReflection.ts --q3 "rm -rf /" | sh',
+		// Det som står etter verktøyet, er en egen kommando
+		'bun PAI/Tools/WriteReflection.ts --q3 "x"; cat .env',
+		// Bare de navngitte verktøyene
+		'bun PAI/Tools/Inference.ts "cat .env"',
+		'bun PAI/Tools/EvilWriteReflection.ts --q3 "cat .env"',
+		'echo "cat .env"',
+	];
+	for (const command of kjøres) {
+		test(`blokkerer: ${command.slice(0, 70)}`, async () => {
+			const result = await validateSecurity({ tool: "bash", args: { command } } as never);
+			expect(result.action).toBe("block");
+		});
+	}
+
+	test("meldingen navngir mønsteret som slo til", async () => {
+		const result = await validateSecurity({ tool: "bash", args: { command: "cat .env" } } as never);
+		expect(result.message).toContain(String(/\bcat\b[^;|&\n]*\.env/));
+	});
+
+	test("et skriveverktøy får ikke tømt noe: bare skallet har data", async () => {
+		const result = await validateSecurity({
+			tool: "write",
+			args: { filePath: "/srv/app/.env", content: "x" },
+		} as never);
+		expect(result.action).toBe("block");
+	});
+});
