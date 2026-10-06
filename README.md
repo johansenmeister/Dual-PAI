@@ -1,6 +1,6 @@
 ![johansenmeister/Dual-PAI: one PAI core of skills, agents and memory, shared by OpenCode and Claude Code](assets/social.svg)
 
-# PAI — a personal AI assistant in your terminal
+# Dual-PAI — a personal AI assistant in your terminal
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![OpenCode](https://img.shields.io/badge/engine-OpenCode-8b5cf6)](https://github.com/anomalyco/opencode)
@@ -10,11 +10,11 @@
 
 **[Install](#install)** · [Make it yours](#make-it-yours) · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [Keeping it current](#keeping-it-current) · [For developers](#for-developers)
 
-PAI is a set of skills, agents, rules and memory that turn an AI model into a
-personal assistant. It runs inside an agent program in the terminal, and works
-with two of them: **OpenCode** (any model provider, including free models) and
-**Claude Code** (Anthropic's, with a Claude subscription). Both share the same
-skills, memory and settings, so you can switch between them.
+PAI (Personal AI Infrastructure) is a set of skills, agents, rules and memory
+that turn an AI model into a personal assistant. Dual-PAI runs it in two agent
+programs in the terminal, and you can switch between them: **OpenCode** (any
+model provider, including free models) and **Claude Code** (Anthropic's, with a
+Claude subscription). Both share the same skills, memory and settings.
 
 Everything PAI is lives in one git repository: this one, once you have cloned
 it. Git keeps the history, so every change can be seen and undone.
@@ -72,8 +72,8 @@ text on what it is, what it needs, what it costs and whether you can change it
 later. You can skip steps and come back.
 
 The free model is only for the setup; you choose your own in step 5. Your keys
-go in `~/.opencode/.env`, which you fill in yourself: the assistant never reads
-it.
+go in `~/.opencode/.env`, which you fill in yourself: the assistant is told never
+to read it.
 
 ## Every day
 
@@ -85,8 +85,8 @@ it.
 | `pai doctor` | checks the installation and says what to fix; changes nothing |
 
 `guide/` has short guides for you: where things are, API keys, faults and
-improvements, your own Gitea, engine updates, remote access and your goals
-(TELOS). Start with [guide/README.md](guide/README.md).
+improvements, your own Gitea, engine and model updates, remote access and your
+goals (TELOS). Start with [guide/README.md](guide/README.md).
 
 ## Make it yours
 
@@ -101,10 +101,11 @@ assistant thinks, and change them where it does not think the way you do.
   workflows in `.opencode/skills/`. Where it works differently from how you work,
   change it, or put a `PREFERENCES.md` in
   `.opencode/PAI/USER/SKILLCUSTOMIZATIONS/<Skill>/` to adjust it without touching
-  the skill.
+  the skill (41 of the skills read it).
 - **Write your own.** Ask your assistant to "create a skill" for something you do
-  often; `CreateSkill` writes it in the same structure. An agent is one Markdown
-  file in `.opencode/agents/`.
+  often; `CreateSkill` writes it in the same structure. A personal skill gets a
+  leading underscore (`_MYSKILL`), so it stands apart from the ones PAI ships. An
+  agent is one Markdown file in `.opencode/agents/`.
 - **Let it learn, and help it.** Rate answers, and now and then read what it
   wrote in `.opencode/MEMORY/LEARNING/`. A lesson that keeps coming back belongs
   in `AISTEERINGRULES.md` or in a skill.
@@ -139,12 +140,9 @@ Some of them:
 | **Infrastructure** | Proxmox, TrueNAS, Technitium, DockerPortainer |
 | **PAI itself** | Agents, Telos (your goals), Delegation, System, HarnessUpdate, ModelUpdate |
 
-`CreateSkill` makes a new one in the same structure; a personal skill is named
-with a leading underscore (`_MYSKILL`) so it stands apart from the shareable
-ones. To change how a built-in skill behaves without editing it, put a
-`PREFERENCES.md` in `.opencode/PAI/USER/SKILLCUSTOMIZATIONS/<Skill>/`; 41 of the
-skills read it. Under Claude Code the same skills appear through a generated
-mirror (`pai claude sync`).
+Under Claude Code the same skills appear through a generated mirror
+(`pai claude sync`). To change one or write your own, see
+[Make it yours](#make-it-yours).
 
 ## Agents
 
@@ -262,7 +260,7 @@ verification_summary: "2/8"
 ---
 ## Criteria
 - [x] ISC-1: README shows the architecture diagram above the install section
-- [x] ISC-2: The hero image path resolves in the public copy
+- [x] ISC-2: The banner image path resolves in the public copy
 - [ ] ISC-3: Diagrams stay readable in GitHub's light and dark themes
 - [ ] ISC-A-1: No upstream image describes features this repository lacks
 ```
@@ -306,8 +304,9 @@ under both engines:
   first. The message names the pattern that matched.
 - **Credentials.** Writes to `.env` files, `~/.ssh/`, GnuPG, cloud and cluster
   credentials, private keys and `/etc/` are blocked outright: those are changed
-  by hand. Your keys live in `~/.opencode/.env`, and the assistant never reads it;
-  `pai keys` shows which are set, never their values.
+  by hand. Your keys live in `~/.opencode/.env`: the assistant is told never to
+  read it, the guard blocks `cat` on it, and `pai keys` shows which keys are set,
+  never their values.
 - **The log.** Every decision is written to a security log in `STATE/` (see
   [Memory](#memory)), with secrets redacted.
 
@@ -332,10 +331,8 @@ update can change what PAI assumes about it. So PAI checks itself:
 - **On demand.** `pai doctor` runs the same checks and the slower ones: the model
   registry, the MCP servers, handlers that ran without effect, and the database.
   It changes nothing.
-- **Before an update.** The `HarnessUpdate` skill reads the engines' release notes
-  against its register of what PAI assumes about each engine, and says what must
-  be measured again. It never upgrades anything
-  ([guide/engine-updates.md](guide/engine-updates.md)).
+- **Before an update.** The `HarnessUpdate` skill checks a new engine version
+  before it comes in: see [Keeping it current](#keeping-it-current).
 
 ## Keeping it current
 
@@ -366,7 +363,7 @@ repository PAI is copied from.
 | **`.opencode/pai-core/`** | The engine-independent core. Never imports an engine SDK |
 | **`.opencode/pai-adapters/opencode-v2/`** | The OpenCode side, with OpenCode pinned exactly in `.opencode/package.json` |
 | **`claude-plugin/`** | The Claude Code side: hooks, MCP server, a generated mirror of the skills and agents |
-| **`.opencode/skills/`** | About 50 skills, including `Infrastructure/` |
+| **`.opencode/skills/`** | The 52 skills, including `Infrastructure/` |
 | **`.opencode/skills/Utilities/HarnessUpdate/AssumptionRegister.md`** | What PAI assumes about each engine, and what the smoke tests guard |
 
 ```bash
