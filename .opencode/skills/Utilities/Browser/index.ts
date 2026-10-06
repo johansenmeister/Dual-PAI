@@ -98,7 +98,8 @@ export class PlaywrightBrowser {
     const launcher = browserType === 'firefox' ? firefox : browserType === 'webkit' ? webkit : chromium
 
     this.browser = await launcher.launch({
-      headless: options?.headless ?? false
+      // Headless unless asked for (#356): a visible window is a choice, not a default
+      headless: options?.headless ?? true
     })
 
     this.context = await this.browser.newContext({

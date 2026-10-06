@@ -18,8 +18,8 @@
  */
 
 import { PlaywrightBrowser } from '../index.ts'
+import { authHeaders, HOSTNAME, newToken, readState, removeState, type SessionState } from './session-auth.ts'
 
-const STATE_FILE = '/tmp/browser-session.json'
 const DEFAULT_PORT = 9222
 const SESSION_TIMEOUT = 5000 // 5s to wait for session start
 const SETTINGS_PATH = `${process.env.HOME}/.opencode/settings.json`
@@ -55,15 +55,6 @@ async function getBrowser(): Promise<string> {
 // ============================================
 // TYPES
 // ============================================
-
-interface SessionState {
-  pid: number
-  port: number
-  sessionId: string
-  startedAt: string
-  headless: boolean
-  url: string
-}
 
 interface Diagnostics {
   errors: Array<{ type: string; text: string; timestamp: number }>
@@ -106,16 +97,7 @@ function truncate(str: string, maxLen: number): string {
 // ============================================
 
 async function getSessionState(): Promise<SessionState | null> {
-  try {
-    const file = Bun.file(STATE_FILE)
-    if (await file.exists()) {
-      const content = await file.text()
-      if (content.trim()) {
-        return JSON.parse(content)
-      }
-    }
-  } catch {}
-  return null
+  return readState()
 }
 
 async function isSessionRunning(): Promise<boolean> {
@@ -123,46 +105,47 @@ async function isSessionRunning(): Promise<boolean> {
   if (!state) return false
 
   try {
-    const res = await fetch(`http://localhost:${state.port}/health`, {
+    const res = await fetch(`http://${HOSTNAME}:${state.port}/health`, {
+      headers: authHeaders(state.token),
       signal: AbortSignal.timeout(1000)
     })
     return res.ok
   } catch {
     // Server not responding - clean up orphan state
-    try {
-      const fs = await import('fs/promises')
-      await fs.unlink(STATE_FILE)
-    } catch {}
+    removeState()
     return false
   }
 }
 
-async function ensureSession(): Promise<number> {
+async function ensureSession(): Promise<{ port: number; token: string }> {
   // Check if already running
   const state = await getSessionState()
-  if (state) {
+  if (state?.token) {
     try {
-      const res = await fetch(`http://localhost:${state.port}/health`, {
+      const res = await fetch(`http://${HOSTNAME}:${state.port}/health`, {
+        headers: authHeaders(state.token),
         signal: AbortSignal.timeout(1000)
       })
       if (res.ok) {
-        return state.port
+        return { port: state.port, token: state.token }
       }
     } catch {}
   }
 
   // Need to start session
   const port = DEFAULT_PORT
+  const token = newToken()
 
-  // Check port availability
+  // A server already on the port without our token: an older session, or
+  // something else. Do not talk to it, and do not start a second one.
   try {
-    const res = await fetch(`http://localhost:${port}/health`, {
+    await fetch(`http://${HOSTNAME}:${port}/health`, {
       signal: AbortSignal.timeout(500)
     })
-    if (res.ok) {
-      return port // Already running on this port
-    }
-  } catch {}
+    throw new Error(`Port ${port} is already in use (an older browser session closes itself after 30 minutes idle)`)
+  } catch (err: any) {
+    if (err?.message?.startsWith('Port ')) throw err
+  }
 
   // Start server in background
   const { spawn } = await import('child_process')
@@ -171,7 +154,8 @@ async function ensureSession(): Promise<number> {
   const env: Record<string, string> = {
     ...process.env as Record<string, string>,
     BROWSER_PORT: String(port),
-    BROWSER_HEADLESS: 'true'
+    BROWSER_HEADLESS: 'true',
+    BROWSER_TOKEN: token
   }
 
   const child = spawn('bun', ['run', serverPath], {
@@ -185,11 +169,12 @@ async function ensureSession(): Promise<number> {
   for (let i = 0; i < 30; i++) {
     await Bun.sleep(200)
     try {
-      const res = await fetch(`http://localhost:${port}/health`, {
+      const res = await fetch(`http://${HOSTNAME}:${port}/health`, {
+        headers: authHeaders(token),
         signal: AbortSignal.timeout(1000)
       })
       if (res.ok) {
-        return port
+        return { port, token }
       }
     } catch {}
   }
@@ -202,21 +187,22 @@ async function sessionCommand(
   body?: any,
   method = 'POST'
 ): Promise<any> {
-  const port = await ensureSession()
+  const { port, token } = await ensureSession()
 
   const options: RequestInit = {
     method,
+    headers: authHeaders(token),
     signal: AbortSignal.timeout(60000) // 60s for long operations
   }
 
   if (body && method !== 'GET') {
-    options.headers = { 'Content-Type': 'application/json' }
+    options.headers = { ...authHeaders(token), 'Content-Type': 'application/json' }
     options.body = JSON.stringify(body)
   }
 
   const url = method === 'GET' && body
-    ? `http://localhost:${port}/${endpoint}?${new URLSearchParams(body)}`
-    : `http://localhost:${port}/${endpoint}`
+    ? `http://${HOSTNAME}:${port}/${endpoint}?${new URLSearchParams(body)}`
+    : `http://${HOSTNAME}:${port}/${endpoint}`
 
   const res = await fetch(url, options)
   const data = await res.json() as { success: boolean; data?: any; error?: string }
@@ -467,8 +453,9 @@ async function restart(): Promise<void> {
   try {
     const state = await getSessionState()
     if (state) {
-      await fetch(`http://localhost:${state.port}/stop`, {
+      await fetch(`http://${HOSTNAME}:${state.port}/stop`, {
         method: 'POST',
+        headers: authHeaders(state.token),
         signal: AbortSignal.timeout(2000)
       })
       await Bun.sleep(500)
@@ -476,10 +463,7 @@ async function restart(): Promise<void> {
   } catch {}
 
   // Clean up state file
-  try {
-    const fs = await import('fs/promises')
-    await fs.unlink(STATE_FILE)
-  } catch {}
+  removeState()
 
   // Start fresh
   await ensureSession()
@@ -494,8 +478,9 @@ async function stop(): Promise<void> {
   }
 
   try {
-    await fetch(`http://localhost:${state.port}/stop`, {
+    await fetch(`http://${HOSTNAME}:${state.port}/stop`, {
       method: 'POST',
+      headers: authHeaders(state.token),
       signal: AbortSignal.timeout(2000)
     })
     console.log('Session stopped')

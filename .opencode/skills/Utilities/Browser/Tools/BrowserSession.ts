@@ -27,15 +27,17 @@
  */
 
 import { PlaywrightBrowser } from '../index.ts'
+import { HOSTNAME, newToken, reject, removeState, stateFile, writeState } from './session-auth.ts'
 
 const CONFIG = {
   port: parseInt(process.env.BROWSER_PORT || '9222'),
-  headless: process.env.BROWSER_HEADLESS === 'true',
+  // Headless unless asked otherwise (#356): a visible window is a choice, not a default
+  headless: process.env.BROWSER_HEADLESS !== 'false',
   viewport: {
     width: parseInt(process.env.BROWSER_WIDTH || '1920'),
     height: parseInt(process.env.BROWSER_HEIGHT || '1080')
   },
-  stateFile: '/tmp/browser-session.json',
+  token: process.env.BROWSER_TOKEN || newToken(),
   idleTimeout: 30 * 60 * 1000 // 30 minutes
 }
 
@@ -50,15 +52,15 @@ let lastActivity = Date.now()
 
 async function saveState(): Promise<void> {
   try {
-    const state = {
+    writeState({
       pid: process.pid,
       port: CONFIG.port,
+      token: CONFIG.token,
       sessionId,
       startedAt,
       headless: CONFIG.headless,
       url: browser.getUrl()
-    }
-    await Bun.write(CONFIG.stateFile, JSON.stringify(state, null, 2))
+    })
   } catch (error) {
     console.error('Failed to save state:', error)
   }
@@ -69,14 +71,7 @@ async function cleanup(): Promise<void> {
   try {
     await browser.close()
   } catch {}
-  try {
-    const file = Bun.file(CONFIG.stateFile)
-    if (await file.exists()) {
-      await Bun.write(CONFIG.stateFile, '')
-      const fs = await import('fs/promises')
-      await fs.unlink(CONFIG.stateFile)
-    }
-  } catch {}
+  removeState()
   console.log('Session closed.')
   process.exit(0)
 }
@@ -103,12 +98,7 @@ setInterval(checkIdleTimeout, 60 * 1000)
 function json(data: any, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
+    headers: { 'Content-Type': 'application/json' }
   })
 }
 
@@ -139,26 +129,21 @@ await browser.launch({
 // HTTP SERVER
 // ============================================
 
+// Loopback only, and every request carries the session token (#356). No CORS:
+// nothing in a web page has any business here.
 const server = Bun.serve({
+  hostname: HOSTNAME,
   port: CONFIG.port,
 
   async fetch(req) {
+    const denied = reject(req, CONFIG.token)
+    if (denied) return denied
+
     const url = new URL(req.url)
     const method = req.method
 
-    // Update activity timestamp on every request
+    // Update activity timestamp on every accepted request
     lastActivity = Date.now()
-
-    // CORS preflight
-    if (method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        }
-      })
-    }
 
     try {
       // ========================================
@@ -431,8 +416,7 @@ const server = Bun.serve({
 await saveState()
 console.log(`\nBrowser session started!`)
 console.log(`  Session ID: ${sessionId}`)
-console.log(`  URL: http://localhost:${CONFIG.port}`)
-console.log(`  Diagnostics: http://localhost:${CONFIG.port}/diagnostics`)
+console.log(`  URL: http://${HOSTNAME}:${CONFIG.port} (token in ${stateFile()})`)
 console.log(`\nSession will auto-close after ${CONFIG.idleTimeout / 60000} minutes of inactivity.`)
 console.log(`Press Ctrl+C to stop manually.`)
 

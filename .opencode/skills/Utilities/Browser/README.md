@@ -111,7 +111,7 @@ const browser = new PlaywrightBrowser()
 ```typescript
 await browser.launch({
   browser: 'chromium', // 'chromium' | 'firefox' | 'webkit'
-  headless: true,      // false to see browser
+  headless: true,      // the default; false to see the browser
   viewport: { width: 1280, height: 720 },
   userAgent: 'Custom UA'
 })

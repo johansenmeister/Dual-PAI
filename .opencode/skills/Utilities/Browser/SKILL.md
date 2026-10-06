@@ -170,6 +170,25 @@ Session auto-closes after 30 minutes of inactivity:
 - No manual cleanup needed
 - Restarts automatically on next command
 
+### Access: this machine only, with a session token
+
+The session server controls a real browser, so it is locked down (#356):
+
+- **Loopback only.** It listens on `127.0.0.1`; nothing on the network can reach it.
+- **A token per session.** `Browse.ts` creates a random token when it starts the
+  server and sends it with every request. A request without it gets `401`.
+- **No web pages.** A request with an `Origin` header (what a browser sends) gets
+  `403`, even with the token, and there are no CORS headers. A web page open in
+  the user's own browser cannot drive the session.
+- **The token stays private.** It is kept in a state file only the user can read
+  (mode `600`), in `$XDG_RUNTIME_DIR` (or the temp folder) as
+  `pai-browser-session-<uid>.json`, and removed when the session stops.
+
+So always go through `Browse.ts`. Do not `curl` the port: without the token it
+answers `401`, by design. If port 9222 is taken by a server without the token
+(an older session), `Browse.ts` says so and does not start a second one; that
+session closes itself after 30 minutes idle.
+
 ---
 
 ## Comparison to v1.x
@@ -213,6 +232,9 @@ Session auto-closes after 30 minutes of inactivity:
 ### Server Endpoints
 
 **Location:** `~/.opencode/skills/Utilities/Browser/Tools/BrowserSession.ts`
+
+Reachable only from this machine, and every request needs the session token
+(see "Access" above). Use `Browse.ts`, which handles both.
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
