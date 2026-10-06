@@ -8,7 +8,7 @@
 [![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1)](https://bun.sh)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20macOS-22d3ee)](#install)
 
-**[Install](#install)** · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [For developers](#for-developers)
+**[Install](#install)** · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [Keeping it current](#keeping-it-current) · [For developers](#for-developers)
 
 PAI is a set of skills, agents, rules and memory that turn an AI model into a
 personal assistant. It runs inside an agent program in the terminal, and works
@@ -301,6 +301,25 @@ update can change what PAI assumes about it. So PAI checks itself:
   against its register of what PAI assumes about each engine, and says what must
   be measured again. It never upgrades anything
   ([guide/engine-updates.md](guide/engine-updates.md)).
+
+## Keeping it current
+
+The engines are pinned on purpose. PAI hooks into each engine's events, tool
+names and data, and a new version can change one of them without any error:
+nothing crashes, PAI just stops guarding or remembering something. That has
+happened: one Claude Code version cut the context PAI gives every session to its
+first 2 KB, and nothing said so. So a new engine version comes in only after it
+has been checked, and `claude update`, `opencode upgrade` and the engines' own
+update prompts are never used: they move past the pin without the check.
+`pai version` shows the pinned and the installed version of each.
+
+Two skills keep PAI current. Run them yourself now and then; neither runs on a
+timer, and neither changes anything without you:
+
+| Say | Skill | What it does |
+|---|---|---|
+| "check the engines for updates" | `HarnessUpdate` | reads what changed in a new engine version against what PAI depends on, and sorts each change into "may break", "fixes something" or "harmless". It never upgrades; if you go ahead, the smoke test decides. [guide/engine-updates.md](guide/engine-updates.md) |
+| "update models" | `ModelUpdate` | checks every model ID in the OpenCode profiles against OpenCode's model registry, so a retired model is replaced before an agent fails, and weighs new models per role. The change is a branch you merge. [guide/model-updates.md](guide/model-updates.md) |
 
 ## For developers
 

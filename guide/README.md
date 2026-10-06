@@ -1,6 +1,6 @@
 ---
 title: PAI guides
-updated: 2026-10-04
+updated: 2026-10-07
 ---
 
 # PAI guides
@@ -16,5 +16,6 @@ them.
 | [Faults and improvements](issue-tracking.md) | something in PAI goes wrong, or you have an idea for it |
 | [Gitea for PAI](gitea.md) | you want PAI on your own Gitea: synced between machines, with an issue list |
 | [Engine updates](engine-updates.md) | you wonder why the engines don't update themselves, or want a newer one |
+| [Model updates](model-updates.md) | an OpenCode agent stops answering, or a provider has new models |
 | [Reaching PAI from another computer](remote-access.md) | PAI runs on a server or another machine |
 | [Your goals (TELOS)](telos.md) | you want PAI to weigh advice against what matters to you |
