@@ -10,6 +10,29 @@
 
 **[Install](#install)** · [Make it yours](#make-it-yours) · [Skills](#skills) · [Agents](#agents) · [The Algorithm](#the-algorithm) · [Memory](#memory) · [Security](#security) · [Self-test](#self-test) · [Keeping it current](#keeping-it-current) · [For developers](#for-developers)
 
+**An AI assistant that is truly yours.** It knows your goals and your way of
+working, it remembers what it learned from you, it checks its own work before it
+says it is done, and every instruction it follows is a plain text file you can
+read and change. You talk to it in ordinary language, and you do not need to be a
+programmer to start: one command installs it, and the setup is a conversation.
+
+Some of what you can ask it, from the first day:
+
+- **"Research this for me."** It sends several researchers out at once, checks
+  every link they bring back, and tells you where the sources agree and where
+  they do not.
+- **"Help me think this through."** Take a decision apart from first principles,
+  let a council of agents debate it, or have one attack your plan before reality
+  does.
+- **"Turn this into a document."** Notes become a Word document, a spreadsheet,
+  a presentation or a PDF.
+- **"How is my home lab doing?"** Once it has their keys, ask what runs on your
+  Proxmox, TrueNAS or Docker hosts, and how they are doing.
+- **"Does this fit what I want?"** Tell it your goals once, and it weighs advice
+  against them.
+- **"3 - you missed the point."** Rate an answer, and it notes what went wrong,
+  so the next one is better.
+
 PAI (Personal AI Infrastructure) is a set of skills, agents, rules and memory
 that turn an AI model into a personal assistant. Dual-PAI runs it in two agent
 programs in the terminal, and you can switch between them: **OpenCode** (any
