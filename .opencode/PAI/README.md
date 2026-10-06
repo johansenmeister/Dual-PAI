@@ -69,10 +69,11 @@ Personal data directory. See `USER/README.md` for full index:
 
 ## Startup & Context Loading
 
-At session start, three things happen:
+At session start, two things happen:
 1. **AGENTS.md** loads natively (identity, algorithm, routing table)
-2. **`loadAtStartup` files** from `settings.json` are force-loaded by `LoadContext.hook.ts`
-3. **Dynamic context** injected by `LoadContext.hook.ts`: relationship context, learning readback, active work summary (each toggleable in `settings.json → dynamicContext`)
+2. **`loadUserSystemContext()`** (`pai-core/dispatch/context.ts`) injects `PAI/SKILL.md`, the system and user steering rules, the `USER/` identity files, and an index of the hand-written learnings in `MEMORY/LEARNING/` (title and path, newest first). Under Claude the launcher passes it as a system prompt; under v2 it comes from `context.build`.
+
+Each prompt also gets the work session's directory and, while a session with a PRD has no reflection, a reminder to write one (`pai-core/dispatch/arbeidsokt.ts`).
 
 All other documentation loads on-demand based on the routing table in AGENTS.md.
 

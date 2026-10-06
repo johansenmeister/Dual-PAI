@@ -220,6 +220,7 @@ More ISC = finer verification = better hill-climbing. When in doubt, more criter
 
 - Reflection: Q1 Self (What would you have done differently?), Q2 Algorithm (What would a smarter algorithm have done differently?), Q3 AI (What would a smarter AI have done differently?).
 - Standard+ effort: append the reflection with `bun ~/.opencode/PAI/Tools/WriteReflection.ts --task "…" --effort <level> --sentiment <1-10> --q1 "…" --q2 "…" --q3 "…"`, never a hand-built JSON line. It owns the schema of `MEMORY/LEARNING/REFLECTIONS/algorithm-reflections.jsonl`. A session that starts in FULL and continues in ITERATION still writes one when the work is done.
+- A lesson that should hold for every task, not just this one (like "redact API output before printing it"): propose it to the user as a line in `PAI/USER/AISTEERINGRULES.md`, which every session loads. A learning file under `MEMORY/LEARNING/` only reaches later sessions as a title in an index.
 - PRD: append session entry, update status. Wisdom Frame if genuine insight.
 
 `🗣️ {DAIDENTITY.NAME}: [12-24 word spoken summary]`

@@ -46,6 +46,69 @@ async function readFileSafe(filePath: string): Promise<string | null> {
 	}
 }
 
+/** Så mange læringer står i indeksen; resten er eldre og finnes med `ls`. */
+const LÆRINGSINDEKS_MAKS = 30;
+
+/**
+ * Læringskatalogen, løst som `PAI_DIR` over: `PAI_HOME` når den er satt
+ * (testene, Claude-hooken), ellers treet koden ble lastet fra. `getLearningDir()`
+ * prøver cwd først, og launcheren setter ikke `PAI_HOME`.
+ */
+function læringskatalog(): string {
+	const hjem = process.env.PAI_HOME?.trim() || path.join(PAI_DIR, "..");
+	return path.join(hjem, "MEMORY", "LEARNING");
+}
+
+/**
+ * Indeks over de håndskrevne læringene (#315)
+ *
+ * En læring i `MEMORY/LEARNING/` nådde aldri en ny økt: ingenting i
+ * konteksten leste katalogen, og README-ens «learning readback» fantes ikke
+ * etter porten. På jobb gjentok en økt en feil som en læring fra 2026-09-15
+ * beskrev. Indeksen gir én linje per læring, nyeste først, med tittelen og
+ * stien, så modellen kan åpne dem som angår oppgaven.
+ *
+ * Bare filene rett i katalogen: det er dem modellen skriver selv. Under-
+ * katalogene (`ALGORITHM/`, `SYSTEM/` …) fylles av fangsten automatisk, er
+ * mange og sier lite hver.
+ */
+export function læringsindeks(katalog: string = læringskatalog()): string | null {
+	let navn: string[];
+	try {
+		navn = fs.readdirSync(katalog).filter((n) => n.endsWith(".md"));
+	} catch {
+		return null;
+	}
+	const rader = navn
+		.map((n) => {
+			const fil = path.join(katalog, n);
+			let tekst = "";
+			let mtime = 0;
+			try {
+				const stat = fs.statSync(fil);
+				if (!stat.isFile()) return null;
+				mtime = stat.mtimeMs;
+				tekst = fs.readFileSync(fil, "utf-8").slice(0, 1024);
+			} catch {
+				return null;
+			}
+			const dato = n.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? new Date(mtime).toISOString().slice(0, 10);
+			const tittel = tekst.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? n.replace(/\.md$/, "");
+			return { dato, n, linje: `- ${dato} ${tittel} (${fil})` };
+		})
+		.filter((r): r is { dato: string; n: string; linje: string } => r !== null)
+		.sort((a, b) => b.dato.localeCompare(a.dato) || b.n.localeCompare(a.n));
+	if (rader.length === 0) return null;
+	const viste = rader.slice(0, LÆRINGSINDEKS_MAKS).map((r) => r.linje);
+	if (rader.length > LÆRINGSINDEKS_MAKS) {
+		viste.push(`- … ${rader.length - LÆRINGSINDEKS_MAKS} older in ${katalog}`);
+	}
+	return [
+		"Lessons written in earlier sessions, newest first. Before acting on a task, open those whose title touches it, or the kind of step you are about to take: they record mistakes that must not repeat.",
+		...viste,
+	].join("\n");
+}
+
 export interface UserContextResult {
 	context: string;
 	filesLoaded: number;
@@ -60,6 +123,7 @@ export interface UserContextResult {
  *
  * 1. System AISTEERINGRULES.md (behavioral governance)
  * 2. User Identity files (ABOUTME, TELOS, DAIDENTITY) if they exist
+ * 3. An index of the hand-written learnings in MEMORY/LEARNING/
  */
 export async function loadUserSystemContext(): Promise<UserContextResult | null> {
 	try {
@@ -102,6 +166,13 @@ export async function loadUserSystemContext(): Promise<UserContextResult | null>
 				contextParts.push(`--- ${label} ---\n${content}`);
 				fileLog(`Loaded PAI/USER/${file}`);
 			}
+		}
+
+		// 3. Indeks over læringene fra tidligere økter (#315)
+		const indeks = læringsindeks();
+		if (indeks) {
+			contextParts.push(`--- Learnings from earlier sessions ---\n${indeks}`);
+			fileLog("Loaded the learning index from MEMORY/LEARNING");
 		}
 
 		if (contextParts.length === 0) {
