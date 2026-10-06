@@ -83,6 +83,70 @@ it.
 improvements, your own Gitea, engine updates, remote access and your goals
 (TELOS). Start with [guide/README.md](guide/README.md).
 
+## Agents
+
+PAI hands parts of a task to agents: specialists with their own instructions,
+which the assistant starts in parallel and whose results it checks. There are
+17. In OpenCode each one has its own model, set by a profile in
+`.opencode/profiles/` (`zen`, `fireworks`, `anthropic`, `openai`, `local` and
+more), so a coding agent can run on a coding model and a quick lookup on a cheap,
+fast one: `bun .opencode/tools/switch-provider.ts <profile>`.
+
+| | Agent | What it does |
+|---|---|---|
+| **Build** | Architect | system design, specs and implementation plans |
+| | Engineer | implementation, test first |
+| | Designer | UX and UI design |
+| | Artist | images: the prompt and the image model |
+| | Writer | documentation and technical writing |
+| **Check** | QATester | checks that it actually works before anything is called done |
+| | UIReviewer | runs user stories in a browser, with screenshots, and reports pass or fail |
+| | Pentester | security assessments, for the `WebAssessment` skill |
+| **General** | Algorithm | writes and sharpens the Algorithm's Ideal State Criteria |
+| | Intern | a high-agency generalist for broad problems |
+| | BrowserAgent | headless browser work in parallel: scraping, forms, screenshots |
+| **Research** | DeepResearcher | thorough investigations, on the main profile's model |
+| | ClaudeResearcher, GrokResearcher, CodexResearcher, GeminiResearcher, PerplexityResearcher | one model family each, see [Multi-research](#multi-research) |
+
+The `Agents` skill composes new agents from traits, and `Council` in the
+`Thinking` skill lets agents debate a question.
+
+Under Claude Code, twelve of them run on Claude models. The five provider
+researchers are OpenCode only: under one subscription they would have no model of
+their own, and DeepResearcher covers the role.
+
+## Multi-research
+
+![Multi-research: a question split into angles, sent in parallel to researchers on different model families, every URL checked, and a synthesis](assets/research.svg)
+
+The researcher agents exist for one reason: to look at the same question through
+different model families. Five researchers on one model is one opinion five
+times. The `Research` skill splits a question into angles and sends them out in
+parallel. Every URL the researchers return is fetched before it is used, since
+research agents invent links. The answer is a synthesis: where the sources agree,
+where they differ, and where each claim comes from.
+
+| Mode | Say | Researchers |
+|---|---|---|
+| Quick | "research X" | one |
+| Standard | "standard research", "research X from multiple angles" | three in parallel |
+| Extensive | "extensive research" | four to five model families, several angles each; asks before it starts |
+
+Without extra keys, every researcher runs on the main profile's model. Connect
+the providers with `/connect`, or put `ANTHROPIC_API_KEY`, `XAI_API_KEY` and
+`FIREWORKS_API_KEY` in `~/.opencode/.env`, and switch with `--multi-research`:
+
+```bash
+bun .opencode/tools/switch-provider.ts fireworks --multi-research
+bun .opencode/tools/switch-provider.ts --researchers   # which model each researcher runs
+```
+
+A researcher whose provider has no key falls back to the main profile, and
+`--researchers` shows it. The names are older than the routing: GeminiResearcher
+and PerplexityResearcher run Qwen Max and DeepSeek Flash on Fireworks, which gives
+real model diversity with one key. With a Google or Perplexity key, one line in
+`.opencode/profiles/researchers.yaml` moves each back to its own provider.
+
 ## For developers
 
 Parts of the code comments and the skills are in Norwegian: they come from the

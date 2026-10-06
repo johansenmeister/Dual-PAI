@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 560" width="1280" height="560" role="img" aria-labelledby="t d">
+  <title id="t">Multi-research</title>
+  <desc id="d">The Research skill splits a question into angles and sends them in parallel to researcher agents on different model families: the main profile's model, Claude, Grok, Kimi, Qwen Max and DeepSeek Flash. Every URL they return is fetched and checked, and the answer is a synthesis of where they agree and where they differ.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1f"/>
+      <stop offset="1" stop-color="#121c38"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1e2a4a" stroke-width="1"/>
+    </pattern>
+    <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#67e8f9"/>
+    </marker>
+    <style>
+      .sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, "DejaVu Sans", sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace; }
+      .n { fill: #f1f5f9; font-size: 17px; font-weight: 700; }
+      .m { fill: #94a3b8; font-size: 13px; }
+      .h { fill: #f1f5f9; font-size: 19px; font-weight: 700; text-anchor: middle; }
+      .s { fill: #94a3b8; font-size: 14px; text-anchor: middle; }
+      .fan { stroke: #67e8f9; stroke-opacity: 0.55; stroke-width: 1.8; fill: none; }
+      .flow { stroke: #67e8f9; stroke-width: 2.2; fill: none; marker-end: url(#arr); }
+    </style>
+  </defs>
+
+  <rect width="1280" height="560" rx="18" fill="url(#bg)"/>
+  <rect width="1280" height="560" rx="18" fill="url(#grid)" opacity="0.6"/>
+
+  <g class="sans">
+    <text x="48" y="54" fill="#22d3ee" font-size="15" font-weight="700" letter-spacing="4">MULTI-RESEARCH</text>
+    <text x="48" y="82" fill="#cbd5e1" font-size="19">One question, several model families at once. Five researchers on one model would be one opinion five times.</text>
+  </g>
+
+  <g class="sans">
+    <rect x="48" y="246" width="200" height="88" rx="12" fill="#0f1830" stroke="#fbbf24" stroke-width="2"/>
+    <text class="h" x="148" y="282">Your question</text>
+    <text class="s" x="148" y="306">&#8220;research X&#8221;</text>
+    <path class="flow" d="M252 290 H 288"/>
+    <rect x="294" y="246" width="150" height="88" rx="12" fill="#160f2e" stroke="#a78bfa" stroke-width="2"/>
+    <text class="h" x="369" y="282">Research</text>
+    <text class="s" x="369" y="306">splits into angles</text>
+  </g>
+
+  <g>
+    <path class="fan" d="M444 290 C 480 290 480 142.0 516 142.0"/>
+    <path class="fan" d="M444 290 C 480 290 480 204.0 516 204.0"/>
+    <path class="fan" d="M444 290 C 480 290 480 266.0 516 266.0"/>
+    <path class="fan" d="M444 290 C 480 290 480 328.0 516 328.0"/>
+    <path class="fan" d="M444 290 C 480 290 480 390.0 516 390.0"/>
+    <path class="fan" d="M444 290 C 480 290 480 452.0 516 452.0"/>
+    <path class="fan" d="M864 142.0 C 892 142.0 892 290 916 290"/>
+    <path class="fan" d="M864 204.0 C 892 204.0 892 290 916 290"/>
+    <path class="fan" d="M864 266.0 C 892 266.0 892 290 916 290"/>
+    <path class="fan" d="M864 328.0 C 892 328.0 892 290 916 290"/>
+    <path class="fan" d="M864 390.0 C 892 390.0 892 290 916 290"/>
+    <path class="fan" d="M864 452.0 C 892 452.0 892 290 916 290"/>
+  </g>
+  <g class="sans">
+    <rect x="520" y="118" width="340" height="48" rx="10" fill="#0f1830" stroke="#22d3ee" stroke-width="1.8"/>
+    <circle cx="544" cy="142.0" r="6" fill="#22d3ee"/>
+    <text class="n" x="562" y="139.0">DeepResearcher</text>
+    <text class="m" x="562" y="157.0">main profile's model</text>
+    <rect x="520" y="180" width="340" height="48" rx="10" fill="#0f1830" stroke="#d97757" stroke-width="1.8"/>
+    <circle cx="544" cy="204.0" r="6" fill="#d97757"/>
+    <text class="n" x="562" y="201.0">ClaudeResearcher</text>
+    <text class="m" x="562" y="219.0">Claude · Anthropic key</text>
+    <rect x="520" y="242" width="340" height="48" rx="10" fill="#0f1830" stroke="#e2e8f0" stroke-width="1.8"/>
+    <circle cx="544" cy="266.0" r="6" fill="#e2e8f0"/>
+    <text class="n" x="562" y="263.0">GrokResearcher</text>
+    <text class="m" x="562" y="281.0">Grok · xAI key</text>
+    <rect x="520" y="304" width="340" height="48" rx="10" fill="#0f1830" stroke="#a78bfa" stroke-width="1.8"/>
+    <circle cx="544" cy="328.0" r="6" fill="#a78bfa"/>
+    <text class="n" x="562" y="325.0">CodexResearcher</text>
+    <text class="m" x="562" y="343.0">Kimi · Fireworks key</text>
+    <rect x="520" y="366" width="340" height="48" rx="10" fill="#0f1830" stroke="#60a5fa" stroke-width="1.8"/>
+    <circle cx="544" cy="390.0" r="6" fill="#60a5fa"/>
+    <text class="n" x="562" y="387.0">GeminiResearcher</text>
+    <text class="m" x="562" y="405.0">Qwen Max · Fireworks key</text>
+    <rect x="520" y="428" width="340" height="48" rx="10" fill="#0f1830" stroke="#34d399" stroke-width="1.8"/>
+    <circle cx="544" cy="452.0" r="6" fill="#34d399"/>
+    <text class="n" x="562" y="449.0">PerplexityResearcher</text>
+    <text class="m" x="562" y="467.0">DeepSeek Flash · Fireworks key</text>
+  </g>
+
+  <g class="sans">
+    <rect x="920" y="246" width="150" height="88" rx="12" fill="#0f1830" stroke="#22d3ee" stroke-width="2"/>
+    <text class="h" x="995" y="282">URL check</text>
+    <text class="s" x="995" y="306">every link fetched</text>
+    <path class="flow" d="M1074 290 H 1102"/>
+    <rect x="1108" y="246" width="132" height="88" rx="12" fill="#0d1f1c" stroke="#34d399" stroke-width="2"/>
+    <text class="h" x="1174" y="282">Synthesis</text>
+    <text class="s" x="1174" y="304">agree, differ,</text>
+    <text class="s" x="1174" y="322">sources</text>
+  </g>
+
+  <g class="sans" font-size="15">
+    <text x="48" y="524" fill="#94a3b8"><tspan fill="#fcd34d" font-weight="700">Quick</tspan> one researcher<tspan dx="28" fill="#fcd34d" font-weight="700">Standard</tspan> three in parallel<tspan dx="28" fill="#fcd34d" font-weight="700">Extensive</tspan> four to five families, several angles each, asks first</text>
+  </g>
+</svg>
