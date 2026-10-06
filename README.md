@@ -24,11 +24,49 @@ it. Git keeps the history, so every change can be seen and undone.
 PAI follows Daniel Miessler's view that the scaffolding around a model matters
 more than the model: skills it can call by name, memory that carries over from
 one session to the next, and code wherever code can do the job. Larger tasks run
-through the Algorithm. Before the work starts, the assistant writes down in a PRD
-the criteria that will show the task is done, and the VERIFY phase checks each
-one. What it learns goes to memory.
+through the Algorithm. Before the work starts, the assistant writes down in a
+[PRD](#the-prd) the criteria that will show the task is done, and the VERIFY
+phase checks each one. What it learns goes to memory.
 
 ![The Algorithm's seven phases around the PRD, and six of the principles PAI is built on](assets/algorithm.svg)
+
+### The PRD
+
+PRD stands for Product Requirements Document, a term borrowed from software
+teams. In PAI it is one Markdown file per task, `PRD.md` in the task's folder
+under `.opencode/MEMORY/WORK/`, and it holds the task's state, so the state does
+not live only in the conversation. The assistant writes it; the hooks only read
+it. It has up to four sections:
+
+- **Context:** what was asked for and what was not, the constraints and the risks.
+- **Criteria:** the Ideal State Criteria, as checkboxes. Each one is a single end
+  state that is either true or false: "`bun test` passes with no failures", not
+  "run the tests". Anti-criteria (`ISC-A-`) say what must not happen. Larger
+  tasks need more of them: at least 8 at the standard effort level, 64 at the
+  highest.
+- **Decisions:** the choices that were not obvious, with the reason.
+- **Verification:** the evidence for each criterion, written in the VERIFY phase.
+
+The frontmatter keeps the status, the current phase and the progress. Because it
+is a file, a task outlives the conversation: when the context is compacted, the
+criteria and their status go into the summary, and a follow-up on the same task
+continues the same PRD. An excerpt:
+
+```markdown
+---
+id: PRD-20261006-readme-diagrams
+title: "Add diagrams to the public README"
+status: ACTIVE
+effort_level: Standard
+last_phase: EXECUTE
+verification_summary: "2/8"
+---
+## Criteria
+- [x] ISC-1: README shows the architecture diagram above the install section
+- [x] ISC-2: The hero image path resolves in the public copy
+- [ ] ISC-3: Diagrams stay readable in GitHub's light and dark themes
+- [ ] ISC-A-1: No upstream image describes features this repository lacks
+```
 
 ## Install
 
