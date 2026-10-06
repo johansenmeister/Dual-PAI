@@ -67,8 +67,9 @@ keep running in the background. PAI is built the other way round.
 - **It runs only when you start it.** PAI is a command you type in a terminal.
   When you end the session, it is gone: no background service, no autostart,
   nothing that keeps running and watching. The one exception is the browser the
-  `Browser` skill uses for web pages, which closes itself 30 minutes after it was
-  last used.
+  `Browser` skill uses for web pages. It can only be reached from your own
+  computer, with a key that changes every session, and it closes itself 30
+  minutes after it was last used.
 - **It cannot see your screen.** There is no screen capture, no keylogger, and no
   access to your clipboard, microphone or camera. When a skill takes a
   screenshot, it is of a web page in its own browser.
