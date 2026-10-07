@@ -13,8 +13,9 @@
  * sporede filer). Plassholdere (`<…>`, `*`, `$`, `{`) hoppes over. Det som først
  * lages av installasjonen eller brukeren, står i `LAGES_SENERE` med grunnen.
  *
- * Bildene i public-README-en står i `docs/kopiene/bilder/` i kilden og i `assets/` i
- * public, der `bygg.sh` legger dem; i kopienes README-er leses `assets/` som kildens sti.
+ * The public README's images are in `docs/kopiene/bilder/` in the source and in
+ * `assets/` in public, where `bygg.sh` puts them; in the copies' READMEs, `assets/`
+ * is read as the source path.
  *
  * `SETUP.md` og `guide/` følger ikke med jobben, så testen hoppes over der.
  *
@@ -68,9 +69,9 @@ describe.skipIf(!existsSync(SETUP))("stiene i SETUP.md, guide/ og README-ene fin
 
 	for (const dok of dokumenter) {
 		test(dok, () => {
-			const kilde = (s: string) => (dok.startsWith("docs/kopiene/") ? s.replace(/^assets\//, "docs/kopiene/bilder/") : s);
+			const inSource = (s: string) => (dok.startsWith("docs/kopiene/") ? s.replace(/^assets\//, "docs/kopiene/bilder/") : s);
 			const døde = stierI(readFileSync(join(REPO, dok), "utf-8")).filter(
-				(s) => !finnes(kilde(s), sporet) && !(s in LAGES_SENERE)
+				(s) => !finnes(inSource(s), sporet) && !(s in LAGES_SENERE)
 			);
 			expect(døde).toEqual([]);
 		});

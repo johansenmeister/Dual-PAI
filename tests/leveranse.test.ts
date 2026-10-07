@@ -132,7 +132,7 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_kilde", () => {
 		});
 		if (p.exitCode !== 0) throw new Error(`git ${a.join(" ")}: ${p.stderr}`);
 	};
-	const kilde = (): string =>
+	const source = (): string =>
 		Bun.spawnSync(["bash", "-c", `. "${LEVERANSE}" && lev_kopi_kilde "$1"`, "_", repo]).stdout.toString().trim();
 
 	beforeAll(() => {
@@ -141,19 +141,19 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_kilde", () => {
 	});
 	afterAll(() => rmSync(repo, { recursive: true, force: true }));
 
-	test("uten bygge-commit: ingenting", () => {
+	test("no build commit: nothing", () => {
 		git("commit", "-q", "--allow-empty", "-m", "start");
-		expect(kilde()).toBe("");
+		expect(source()).toBe("");
 	});
 
-	test("bygge-commiten øverst: kilden i meldingen", () => {
+	test("build commit on top: the source in its message", () => {
 		git("commit", "-q", "--allow-empty", "-m", "chore: oppdatert fra PAI abc1234 (1 commit)");
-		expect(kilde()).toBe("abc1234");
+		expect(source()).toBe("abc1234");
 	});
 
-	test("en håndredigering på toppen: fortsatt den nyeste bygge-commitens kilde", () => {
+	test("a hand edit on top: still the newest build commit's source", () => {
 		git("commit", "-q", "--allow-empty", "-m", "Update README.md");
-		expect(kilde()).toBe("abc1234");
+		expect(source()).toBe("abc1234");
 	});
 });
 
