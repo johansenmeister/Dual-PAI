@@ -97,6 +97,33 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_jobb_markorer (#290)", () => {
 	});
 });
 
+describe.skipIf(!existsSync(LEVERANSE))("lev_testtall (#328)", () => {
+	let dir = "";
+	beforeAll(() => {
+		dir = mkdtempSync(join(tmpdir(), "pai-leveranse-testtall-"));
+	});
+	afterAll(() => rmSync(dir, { recursive: true, force: true }));
+	const counts = (log: string): string => {
+		const file = join(dir, "test.log");
+		writeFileSync(file, log);
+		return Bun.spawnSync(["bash", "-c", `. "${LEVERANSE}" && lev_testtall "$1"`, "_", file]).stdout.toString().trim();
+	};
+	const esc = String.fromCharCode(27);
+
+	test("without colour: the counts as before", () => {
+		expect(counts("some output\n 12 pass\n 0 fail\n 30 expect() calls\n")).toBe("12 pass\n 0 fail");
+	});
+
+	test("with colour (FORCE_COLOR): the same counts", () => {
+		const log = `${esc}[0m${esc}[32m 12 pass${esc}[0m\n${esc}[0m${esc}[2m 0 fail${esc}[0m\n${esc}[31m 1 error${esc}[0m\n`;
+		expect(counts(log)).toBe("12 pass\n 0 fail\n 1 error");
+	});
+
+	test("no log: empty, not an error", () => {
+		expect(Bun.spawnSync(["bash", "-c", `. "${LEVERANSE}" && lev_testtall /does/not/exist`]).stdout.toString()).toBe("");
+	});
+});
+
 describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_kilde", () => {
 	let repo = "";
 	const git = (...a: string[]): void => {
@@ -127,6 +154,49 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_kilde", () => {
 	test("en håndredigering på toppen: fortsatt den nyeste bygge-commitens kilde", () => {
 		git("commit", "-q", "--allow-empty", "-m", "Update README.md");
 		expect(kilde()).toBe("abc1234");
+	});
+});
+
+describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_kilde and lev_kopi_upushet against origin/main (#330)", () => {
+	let dir = "";
+	let clone = "";
+	const git = (cwd: string, ...a: string[]): string => {
+		const p = Bun.spawnSync(["git", "-C", cwd, ...a], {
+			env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" },
+		});
+		if (p.exitCode !== 0) throw new Error(`git ${a.join(" ")}: ${p.stderr}`);
+		return p.stdout.toString().trim();
+	};
+	const lev = (fn: string): string =>
+		Bun.spawnSync(["bash", "-c", `. "${LEVERANSE}" && ${fn} "$1"`, "_", clone]).stdout.toString().trim();
+
+	beforeAll(() => {
+		dir = mkdtempSync(join(tmpdir(), "pai-leveranse-upushet-"));
+		git(dir, "init", "-q", "--bare", "-b", "main", "remote.git");
+		git(dir, "clone", "-q", join(dir, "remote.git"), "clone");
+		clone = join(dir, "clone");
+		git(clone, "commit", "-q", "--allow-empty", "-m", "chore: oppdatert fra PAI aaa1111 (1 commit)");
+		git(clone, "push", "-q", "origin", "HEAD:main");
+	});
+	afterAll(() => rmSync(dir, { recursive: true, force: true }));
+
+	test("all pushed: the source from origin/main, nothing unpushed", () => {
+		expect(lev("lev_kopi_kilde")).toBe("aaa1111");
+		expect(lev("lev_kopi_upushet")).toBe("");
+	});
+
+	test("a build commit that was never pushed does not count as delivered", () => {
+		git(clone, "commit", "-q", "--allow-empty", "-m", "chore: oppdatert fra PAI bbb2222 (1 commit)");
+		expect(lev("lev_kopi_kilde")).toBe("aaa1111");
+		const unpushed = lev("lev_kopi_upushet").split("\n");
+		expect(unpushed).toHaveLength(1);
+		expect(unpushed[0].slice(41)).toBe("chore: oppdatert fra PAI bbb2222 (1 commit)");
+	});
+
+	test("after the push it is delivered", () => {
+		git(clone, "push", "-q", "origin", "HEAD:main");
+		expect(lev("lev_kopi_kilde")).toBe("bbb2222");
+		expect(lev("lev_kopi_upushet")).toBe("");
 	});
 });
 

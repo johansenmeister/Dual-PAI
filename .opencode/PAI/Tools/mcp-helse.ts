@@ -26,6 +26,7 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { stripVTControlCharacters } from "node:util";
 
 export interface McpServer {
 	navn: string;
@@ -128,9 +129,13 @@ export async function prøvOppstart(s: McpServer, cwd: string, ms = OPPSTART_MS)
  * Linja som sier hva som gikk galt. En bun-stacktrace begynner med kildekoden
  * rundt feilen, så første linje er verdiløs (MÅLT: `81 |   private readonly …`
  * for Pureservice uten nøkler); feillinja er `PureserviceError: … is not set`.
+ *
+ * Colour codes are stripped first (#328): with `FORCE_COLOR` set, bun colours
+ * its error output even without a terminal, and the line reached `pai doctor`
+ * wrapped in `\x1b[31m`.
  */
 export function feillinje(stderr: string): string {
-	const linjer = stderr
+	const linjer = stripVTControlCharacters(stderr)
 		.split("\n")
 		.map((l) => l.trim())
 		.filter(Boolean);

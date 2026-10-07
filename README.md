@@ -87,9 +87,14 @@ keep running in the background. PAI is built the other way round.
   [Ollama](https://ollama.com), the model runs on your own computer and nothing
   leaves it.
 - **PAI itself reports nothing.** Its own code sends data only to the model
-  provider and to services you set up yourself. OpenCode and Claude Code are
-  programs by their own makers, with their own settings for usage data; PAI turns
-  off their automatic updates, not their telemetry.
+  provider and to services you set up yourself. The engines are programs by their
+  own makers. Claude Code sends Anthropic usage metrics and crash reports by
+  default; by Anthropic's account they never include your code, prompts or file
+  paths. You can turn them off with `DISABLE_TELEMETRY=1` and
+  `DISABLE_ERROR_REPORTING=1`, in your shell or under `env` in
+  `~/.claude/settings.json`; the first also turns off Claude Code's Remote Control
+  ([Anthropic's page on data usage](https://code.claude.com/docs/en/data-usage)).
+  OpenCode has no such setting, and we found no usage reporting in it.
 - **Your memory stays with you.** It is plain files in your copy of the
   repository. Nothing is uploaded unless you set up your own server and push to
   it.

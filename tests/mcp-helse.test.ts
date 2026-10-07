@@ -86,6 +86,23 @@ describe("K32: oppstarten", () => {
 		expect(feillinje(u.stderr)).toBe("Error: API_URL is not set");
 	});
 
+	test("with FORCE_COLOR set, the error line has no colour codes (#328)", async () => {
+		const before = process.env.FORCE_COLOR;
+		process.env.FORCE_COLOR = "3";
+		try {
+			const u = await prøvOppstart({ navn: "d", type: "local", kommando: [process.execPath, DØR] }, tmp);
+			expect(feillinje(u.stderr)).toBe("Error: API_URL is not set");
+		} finally {
+			if (before === undefined) delete process.env.FORCE_COLOR;
+			else process.env.FORCE_COLOR = before;
+		}
+	});
+
+	test("feillinje strips colour codes in the middle of the line too (#328)", () => {
+		const esc = String.fromCharCode(27);
+		expect(feillinje(`${esc}[31m${esc}[1mError${esc}[0m: API_URL is not set${esc}[0m`)).toBe("Error: API_URL is not set");
+	});
+
 	test("EOF på stdin og exit 0 er friskt", async () => {
 		const u = await prøvOppstart({ navn: "e", type: "local", kommando: [process.execPath, EOF] }, tmp);
 		expect(u).toMatchObject({ død: false, kode: 0 });
