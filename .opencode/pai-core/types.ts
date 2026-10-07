@@ -83,6 +83,22 @@ export interface PaiToolAfterEvent extends PaiEventBase {
 }
 
 /**
+ * A tool's output, before the model sees it (#367).
+ *
+ * The core masks secrets in it and answers with `output` when something was
+ * masked; the adapter hands the model that instead. Both engines allow it:
+ * Claude Code via PostToolUse `updatedToolOutput`, OpenCode v2 by replacing
+ * `result` in `execute.after` (MEASURED 2026-10-07 on 2.1.283 and 2.0.22).
+ * `output` is the engine's own structure, masked string by string.
+ */
+export interface PaiToolOutputEvent extends PaiEventBase {
+	type: "tool.output";
+	tool: string;
+	output: unknown;
+	callId?: string;
+}
+
+/**
  * Motoren spør om tillatelse.
  *
  * `tool` og `args` er valgfrie med vilje: OpenCodes `Permission`-type har
@@ -306,6 +322,7 @@ export type PaiEvent =
 	| PaiAssistantMessageEvent
 	| PaiToolBeforeEvent
 	| PaiToolAfterEvent
+	| PaiToolOutputEvent
 	| PaiToolFailedEvent
 	| PaiAgentStartEvent
 	| PaiAgentStopEvent
@@ -372,6 +389,11 @@ export interface PaiResult {
 	 * agentene det de alltid har hett.
 	 */
 	updatedArgs?: Record<string, unknown>;
+	/**
+	 * Tool output to give the model instead of the original, and a note saying
+	 * what was masked. Only `tool.output` (#367).
+	 */
+	output?: { value: unknown; notice: string };
 	/** Miljøvariabler skallet skal få. Kun `shell.env`. */
 	env?: Record<string, string>;
 	/** Diagnostikk. Aldri styrende — kun for logg og tester. */

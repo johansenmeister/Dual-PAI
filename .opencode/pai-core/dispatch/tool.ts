@@ -9,6 +9,7 @@
  * @module pai-core/dispatch/tool
  */
 
+import { maskDeep } from "../lib/secrets";
 import { fileLog, fileLogError } from "../lib/file-logger";
 import { erSkriveverktøy, målsti, skrivemål } from "../lib/tool-names";
 import type { PaiResult, PaiToolAfterEvent, PaiToolFailedEvent } from "../types";
@@ -42,8 +43,10 @@ export async function onToolAfter(event: PaiToolAfterEvent): Promise<PaiResult> 
 	fileLog(`Tool after: ${event.tool}`, "debug");
 
 	const notes: string[] = [];
-	const args = event.args ?? {};
-	const toolResult = event.result;
+	// Masked before any handler sees them (#367): the captures below store
+	// arguments and output, and `tool.output` may arrive after this event.
+	const args = maskDeep(event.args ?? {}).value;
+	const toolResult = maskDeep(event.result).value;
 	const resultLength = toolResult ? JSON.stringify(toolResult).length : 0;
 	const sessionId = event.sessionId || "unknown";
 

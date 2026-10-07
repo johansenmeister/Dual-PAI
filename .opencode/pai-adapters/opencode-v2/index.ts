@@ -115,6 +115,19 @@ function meldFyrt(navn: V2HookNavn): void {
 export type HookUtfall = { blokk: string } | undefined;
 
 /**
+ * The masked result with a note for the model added as a last text part.
+ * A result without text content gets no note; the `[MASKED:…]` marks in the
+ * text still say what happened.
+ */
+export function withMaskNotice(result: unknown, notice: string): unknown {
+	if (!result || typeof result !== "object") return result;
+	const r = result as Record<string, unknown>;
+	if (Array.isArray(r.content)) return { ...r, content: [...r.content, { type: "text", text: `\n${notice}` }] };
+	if (typeof r.content === "string") return { ...r, content: `${r.content}\n${notice}` };
+	return r;
+}
+
+/**
  * Pakk inn en hook: meld fyring, og la aldri en feil i PAI nå motoren.
  *
  * Samme kontrakt som de andre adapterne («dispatch kaster aldri»). Kaster en
@@ -355,6 +368,23 @@ export default Plugin.define({
 		await ctx.tool.hook(
 			"execute.after",
 			vakt("tool.execute.after", async (e): Promise<HookUtfall> => {
+				// Secrets in tool output are masked before the model sees them
+				// (#367): v2 hands the model `result` as it stands after this
+				// hook (MEASURED 2026-10-07 on 2.0.22 with shell and read). First,
+				// so the core below only ever sees the masked text.
+				if (e.status === "completed" && e.result) {
+					const masked = await dispatch({
+						...base(e.sessionID),
+						type: "tool.output",
+						tool: e.tool,
+						output: e.result,
+						callId: somTekst(e.id) || undefined,
+					});
+					if (masked.output) {
+						e.result = withMaskNotice(masked.output.value, masked.output.notice) as typeof e.result;
+						fileLog(`[v2] Masked secrets in ${e.tool} output: ${(masked.notes ?? []).join(", ")}`, "warn");
+					}
+				}
 				const felles = {
 					...base(e.sessionID),
 					...verktøyhendelse(e),

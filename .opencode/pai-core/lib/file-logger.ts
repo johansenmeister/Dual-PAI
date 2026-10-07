@@ -11,6 +11,7 @@
 
 import { appendFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { forStorage } from "./secrets";
 
 const DEFAULT_LOG_PATH = "/tmp/pai-opencode-debug.log";
 
@@ -62,7 +63,8 @@ export function fileLog(
 	try {
 		const timestamp = new Date().toISOString();
 		const levelPrefix = level.toUpperCase().padEnd(5);
-		const logLine = `[${timestamp}] [${levelPrefix}] ${message}\n`;
+		// Masked: the log sits in /tmp and has held commands with tokens in them.
+		const logLine = `[${timestamp}] [${levelPrefix}] ${forStorage(message)}\n`;
 
 		const logPath = getLogFilePath();
 		const dir = dirname(logPath);

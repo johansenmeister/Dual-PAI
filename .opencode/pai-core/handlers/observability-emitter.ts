@@ -15,6 +15,7 @@
  * @module observability-emitter
  */
 
+import { maskDeep } from "../lib/secrets";
 import { randomUUID } from "node:crypto";
 import { fileLog } from "../lib/file-logger";
 import { capabilitiesFor, currentHarness } from "../runtime";
@@ -103,7 +104,8 @@ export async function emitEvent(
 		timestamp: new Date().toISOString(),
 		session_id: currentSessionId,
 		event_type: eventType,
-		data,
+		// Masked: events carry tool arguments, and the server may store them (#367).
+		data: maskDeep(data).value,
 	};
 
 	try {

@@ -85,6 +85,7 @@ export function slåSammen(resultater: PaiResult[]): PaiResult {
 		// hendelser kan rette hvert sitt felt, og et helt objekt som
 		// overskriver ville stilletiende kastet den andres rettelse.
 		if (r.updatedArgs) samlet.updatedArgs = { ...samlet.updatedArgs, ...r.updatedArgs };
+		if (r.output) samlet.output = r.output;
 	}
 
 	if (kontekst.length > 0) samlet.additionalContext = kontekst;
@@ -186,6 +187,19 @@ export function tilHookUtdata(hendelsesnavn: string, result: PaiResult): string 
 			// Ellers ren observasjon: PAI har ingenting å si tilbake.
 			return "{}";
 		}
+
+		case "PostToolUse":
+			// The masked output replaces what the model sees, for built-in
+			// tools too (MEASURED 2026-10-07 on 2.1.283 with Bash, Read and
+			// Grep), and the note says what was masked (#367).
+			if (!result.output) return "{}";
+			return JSON.stringify({
+				hookSpecificOutput: {
+					hookEventName: "PostToolUse",
+					updatedToolOutput: result.output.value,
+					additionalContext: result.output.notice,
+				},
+			});
 
 		default:
 			// Alt annet er observasjon. `PostToolUse`, `PostToolUseFailure`,

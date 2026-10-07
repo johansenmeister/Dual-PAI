@@ -26,19 +26,22 @@ import { utenData } from "../lib/skalldata";
 import { lesSkrivebeskyttet, skrivebeskyttetRot } from "../lib/skrivebeskyttet";
 import { INJECTION_SCAN_FIELDS, sanitizeForSecurityCheck } from "../lib/sanitizer";
 import { isShellTool, kanoniskeArgs, skrivemål } from "../lib/tool-names";
+import { forStorage } from "../lib/secrets";
 import { currentHarness } from "../runtime";
 
 /**
  * Security audit log entry
  */
-interface SecurityAuditEntry {
+export interface SecurityAuditEntry {
 	timestamp: string;
 	tool: string;
-	action: "blocked" | "confirmed" | "allowed";
+	action: "blocked" | "confirmed" | "allowed" | "masked";
 	reason: string;
 	pattern?: string;
 	category?: InjectionCategory;
 	commandPreview?: string; // First 100 chars, sanitized
+	/** For `masked`: what was masked, as kinds and names, never values. */
+	masked?: string[];
 }
 
 /**
@@ -52,7 +55,7 @@ interface SecurityAuditEntry {
  *
  * @param entry - The audit entry to log
  */
-function logSecurityEvent(entry: SecurityAuditEntry): void {
+export function logSecurityEvent(entry: SecurityAuditEntry): void {
 	try {
 		const stateDir = getStateDir();
 		fs.mkdirSync(stateDir, { recursive: true });
@@ -65,36 +68,17 @@ function logSecurityEvent(entry: SecurityAuditEntry): void {
 }
 
 /**
- * Redact sensitive values from command text
- * Masks API keys, tokens, and credentials
+ * Redact sensitive values from command text before it is logged.
+ *
+ * The shared secrets module (`lib/secrets.ts`): known values from `.env` and
+ * the token shapes. The old local list also masked every 40+ character word,
+ * which hid commit hashes in the audit log; that heuristic is gone.
  *
  * @param command - The command to redact
  * @returns Redacted command
  */
 function redactSecrets(command: string): string {
-	// API Keys and tokens
-	const redacted = command
-		// Anthropic API keys
-		.replace(/sk-ant-[A-Za-z0-9\-_]{20,}/g, "sk-ant-[REDACTED]")
-		// OpenAI API keys
-		.replace(/sk-[a-zA-Z0-9]{32,}/g, "sk-[REDACTED]")
-		// GitHub PATs
-		.replace(/gh[pousr]_[a-zA-Z0-9]{36,}/g, "gh[REDACTED]")
-		// AWS Access Keys
-		.replace(/\b(AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16}\b/g, "$1[REDACTED]")
-		// Groq API keys
-		.replace(/gsk_[a-zA-Z0-9]{52}/g, "gsk-[REDACTED]")
-		// HuggingFace tokens
-		.replace(/hf_[a-zA-Z0-9]{34,}/g, "hf-[REDACTED]")
-		// PEM private keys (redact content between headers)
-		.replace(
-			/(-----BEGIN\s+(?:[A-Z0-9]+\s+)?PRIVATE\s+KEY-----)[\s\S]*?(-----END\s+(?:[A-Z0-9]+\s+)?PRIVATE\s+KEY-----)/g,
-			"$1\n[REDACTED]\n$2"
-		)
-		// Generic high-entropy tokens ( heuristic: 40+ alphanumeric chars)
-		.replace(/\b[a-zA-Z0-9_-]{40,}\b/g, "[REDACTED]");
-
-	return redacted;
+	return forStorage(command);
 }
 
 /**

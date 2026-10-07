@@ -254,6 +254,15 @@ export function tilKjernehendelser(payload: ClaudeHookPayload): PaiEvent[] {
 
 		case "PostToolUse":
 			return [
+				// First: the core masks secrets in the output, and the answer
+				// becomes `updatedToolOutput` (#367).
+				{
+					...b,
+					type: "tool.output",
+					tool: tekst(payload, "tool_name"),
+					output: payload.tool_response,
+					callId: tekst(payload, "tool_use_id") || undefined,
+				},
 				{
 					...b,
 					type: "tool.after",

@@ -51,49 +51,6 @@ export const HÅNDTERTE_HENDELSER = new Set([
 export const ASSISTENT_MIN_LENGDE = 100;
 
 /**
- * Verktøyene `onToolAfter` faktisk gjør noe med.
- *
- * Hver linje speiler en sjekk i kjernen, og alle fire må stemme — en
- * uteglemt gren her er en handler som stille slutter å kjøre:
- *
- *   `algorithm-tracker`  bash, todo, subagent-verktøyet
- *   `prd-sync`           `isWriteTool`: navn som inneholder write eller edit,
- *                        og hvert navn i `SKRIVEVERKTØY` (K58)
- *   `question-tracking`  kun `AskUserQuestion` (hviteliste, ikke substring)
- *   `agent-capture`      subagent-verktøyet — men KUN når `subagentEvents`
- *                        er av, og den er PÅ under Claude Code. Navnet står
- *                        likevel her, fordi algoritmesporingen teller
- *                        spawnen og agent-vakten leser argumentene.
- *
- * `agent` OG `task` står begge i lista, og det er ikke belter og bukseseler:
- * Claude Codes subagent-verktøy heter **`Agent`** (målt 2026-09-22,
- * ende-til-ende), OpenCodes heter `mcp_task`. Kjernen kjenner begge via
- * `lib/tool-names.ts`, og hurtigutgangen må kjenne nøyaktig de samme — ellers
- * forkastes kallet her før kjernen ser det.
- *
- * TESTEN som låser dette leser kjernens kildekode og sammenligner. Uten den
- * ville lista råtnet ved første handler som får en ny verktøytype.
- */
-const ETTERBEHANDLEDE_VERKTØY = [
-	"bash",
-	"todo",
-	"task",
-	"agent",
-	"write",
-	"edit",
-	// v2s skriveverktøy. Claude har det ikke i dag; står her fordi kjernen
-	// etterbehandler hvert navn i `SKRIVEVERKTØY` (K58), og testen låser det.
-	"patch",
-	"askuserquestion",
-];
-
-/** Matcher kjernens egen form: substring på småbokstaver, ikke eksakt navn. */
-function berørerEtterbehandling(toolName: string): boolean {
-	const lower = toolName.toLowerCase();
-	return ETTERBEHANDLEDE_VERKTØY.some((navn) => lower.includes(navn));
-}
-
-/**
  * Skal denne payloaden behandles i det hele tatt?
  *
  * @returns `null` når hendelsen skal behandles, ellers en kort grunn til at
@@ -132,19 +89,13 @@ export function hurtigutgang(payload: Record<string, unknown>): string | null {
 			return null;
 		}
 
-		case "PostToolUse": {
-			// DEN DYRESTE HENDELSEN etter PreToolUse, og den eneste her hvor
-			// filtrering gir reell gevinst: `onToolAfter` gjør INGENTING for et
-			// `Read`- eller `Grep`-kall, og de er flertallet i en økt.
-			//
-			// Speilingen er mot kjernens egne navnetester, ikke mot en liste
-			// noen mente var fornuftig. Testen låser de to sammen.
-			const verktøy = payload.tool_name;
-			if (typeof verktøy !== "string" || !berørerEtterbehandling(verktøy)) {
-				return `uinteressant-verktøy:${String(verktøy)}`;
-			}
+		case "PostToolUse":
+			// NO shortcut (#367). It used to skip Read, Grep and every tool no
+			// handler looked at, but the core now masks secrets in the output
+			// of EVERY tool before the model sees it, and Read and Grep are how
+			// `.git/config` and `.env` get printed. A shortcut here would be a
+			// hole in that guard, like one on PreToolUse.
 			return null;
-		}
 
 		case "PostToolUseFailure": {
 			// Et AVBRUDD er ikke en feil — brukeren trykket ESC. `onToolFailed`

@@ -1,6 +1,6 @@
 ---
 title: API keys
-updated: 2026-10-04
+updated: 2026-10-07
 ---
 
 # API keys
@@ -56,6 +56,18 @@ and the models".
 
 **Claude Code.** Run `claude`, type `/login`, and choose your subscription or an
 API key. A Claude subscription works only in Claude Code, not in OpenCode.
+
+## When a key shows up in a session
+
+PAI masks secrets in what tools print before the assistant sees them: the keys in
+`~/.opencode/.env`, and anything shaped like a key, a password in a URL or an
+`Authorization` header. The assistant sees `[MASKED:GITEA_TOKEN]` instead, and
+PAI's own logs and memory files get the same treatment. Each masking is a line
+in the security log, with the key's name and never its value.
+
+So a key that a command prints is no longer a leak by itself. It still is when
+you paste it into a prompt (that goes to the model before anything can mask
+it), or when it is not in `.env` and has no recognisable shape. Rotate it then.
 
 ## Rotating a key
 

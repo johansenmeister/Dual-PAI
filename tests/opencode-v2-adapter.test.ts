@@ -402,3 +402,34 @@ describe("V2Smoke leser run-utdataen riktig", () => {
 		expect(lesDaNavn(mal)).toBe("Juno");
 	});
 });
+
+describe("execute.after masks secrets before the model sees them (#367)", () => {
+	const secret = `secret${"v".repeat(12)}`;
+	const result = () => ({
+		output: { exit: 0, output: `url = https://svc:${secret}@git.example.com/x.git\n`, status: "completed" },
+		content: [{ type: "text", text: `url = https://svc:${secret}@git.example.com/x.git\n` }],
+		metadata: { status: "complete" },
+	});
+
+	test("a credential in shell output is replaced in result, with a note for the model", async () => {
+		const f = falskKontekst();
+		// biome-ignore lint/suspicious/noExplicitAny: fake context with only the domains the adapter uses
+		spor(await adapter.setup(f.ctx as any));
+		const e = { tool: "shell", sessionID: "mask-test", id: "call-1", input: { command: "grep -n svc .git/config" }, status: "completed", result: result() };
+		await f.registrert.get("tool.execute.after")?.(e);
+		const after = JSON.stringify(e.result);
+		expect(after).not.toContain(secret);
+		expect(after).toContain("svc:[MASKED:url-credential]@");
+		expect(e.result.content.at(-1)?.text).toContain("[PAI Security] Secrets in this output were masked");
+	});
+
+	test("clean output is left exactly as it was", async () => {
+		const f = falskKontekst();
+		// biome-ignore lint/suspicious/noExplicitAny: fake context with only the domains the adapter uses
+		spor(await adapter.setup(f.ctx as any));
+		const clean = { content: [{ type: "text", text: "nothing to hide" }] };
+		const e = { tool: "shell", sessionID: "mask-test", id: "call-2", input: {}, status: "completed", result: clean };
+		await f.registrert.get("tool.execute.after")?.(e);
+		expect(e.result).toBe(clean);
+	});
+});

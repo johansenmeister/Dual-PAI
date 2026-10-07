@@ -379,8 +379,15 @@ under both engines:
   by hand. Your keys live in `~/.opencode/.env`: the assistant is told never to
   read it, the guard blocks `cat` on it, and `pai keys` shows which keys are set,
   never their values.
+- **Secrets in output.** Whatever a tool prints is checked before the assistant
+  sees it, under both engines. A key from your `~/.opencode/.env`, a password in a
+  URL, an `Authorization` header, a private key or a known token format is
+  replaced with a mark like `[MASKED:GITEA_TOKEN]`: the model knows something was
+  there, but never sees it. PAI's own logs and memory files are masked the same
+  way. A key you paste into a prompt yourself still reaches the model, so rotate
+  it then.
 - **The log.** Every decision is written to a security log in `STATE/` (see
-  [Memory](#memory)), with secrets redacted.
+  [Memory](#memory)), with secrets redacted, including each masking.
 
 The `Security` skills go the other way: threat models, web assessments with
 OSINT, recon and prompt-injection testing of your own systems.

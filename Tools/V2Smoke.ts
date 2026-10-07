@@ -103,7 +103,7 @@
  * @module Tools/V2Smoke
  */
 
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adapterHash, skrivKvittering, v2AdapterFiler } from "../.opencode/PAI/Tools/selvtest";
@@ -357,6 +357,10 @@ export const KALLKRAV = {
 		{ tool: "execute", inneholder: "session_registry", navn: "execute med verktøykoden" },
 	],
 	plan: [{ tool: "write", navn: "write" }],
+	secret: [
+		{ tool: "read", inneholder: "remote.txt", navn: "read remote.txt" },
+		{ tool: "shell", inneholder: "remote.txt", navn: "shell cat remote.txt" },
+	],
 } satisfies Record<string, Kallkrav[]>;
 
 /** Kravene modellen ikke gjorde et kall for, i `run --format json`-utdataen. */
@@ -447,6 +451,52 @@ export function skallBareForSluppne(
  * faktisk gjorde kallet: et kall som aldri ble gjort, er ikke et bevis på at
  * vakten virker, og skal feile framfor å bestå stille.
  */
+/** Fake credentials for step h, built at runtime so no token-shaped literal is in the repo. */
+const SMOKE_KNOWN = `${"5".repeat(20)}${"c".repeat(20)}`;
+const SMOKE_URL_SECRET = `smokesecret${"x".repeat(10)}`;
+
+/** Step h (#367): neither fake value reached the model, and the masking was audited. */
+function secretChecks(o: Oppsett, rh: Kjøring): Sjekk[] {
+	const calls = verktøykall(rh.stdout);
+	const leaks = (t: string) => t.includes(SMOKE_KNOWN) || t.includes(SMOKE_URL_SECRET);
+	const read = calls.find((k) => k.tool === "read" && k.input.includes("remote.txt"));
+	const shell = calls.find((k) => k.tool === "shell" && k.input.includes("remote.txt"));
+	const texts = rh.stdout
+		.split("\n")
+		.map((l) => {
+			try {
+				const j = JSON.parse(l) as { type?: string; part?: { text?: unknown } };
+				return j.type === "text" && typeof j.part?.text === "string" ? j.part.text : "";
+			} catch {
+				return "";
+			}
+		})
+		.filter(Boolean);
+	const audit = lesRevisjon(o.w).filter((l) => l.harness === "opencode2" && l.action === "masked");
+	return [
+		{
+			navn: "secrets: read output masked before the model saw it",
+			ok: !!read && !leaks(read.utfall) && read.utfall.includes("[MASKED:"),
+			detalj: read ? read.utfall.slice(0, 120) : "the model did not read remote.txt",
+		},
+		{
+			navn: "secrets: shell output masked before the model saw it",
+			ok: !!shell && !leaks(shell.utfall) && shell.utfall.includes("[MASKED:"),
+			detalj: shell ? shell.utfall.slice(0, 120) : "the model did not cat remote.txt",
+		},
+		{
+			navn: "secrets: nothing the model wrote contains a value",
+			ok: texts.length > 0 && !texts.some(leaks),
+			detalj: sisteTekst(rh.stdout).slice(0, 120),
+		},
+		{
+			navn: "secrets: the masking is in the audit log, without the value",
+			ok: audit.length > 0 && !audit.some((l) => leaks(JSON.stringify(l))),
+			detalj: `${audit.length} masked lines`,
+		},
+	];
+}
+
 function vaktSjekker(o: Oppsett, ra: Kjøring, rv: Kjøring): Sjekk[] {
 	const kall = verktøykall(rv.stdout);
 	const revisjon = lesRevisjon(o.w).filter((l) => l.harness === "opencode2");
@@ -1148,6 +1198,31 @@ async function main(): Promise<void> {
 	);
 	sjekkSteg(o, "steg v", rv);
 
+	ut.log("  step h: secrets in tool output are masked (#367)");
+	writeFileSync(join(o.w, "pai-home", ".env"), `GITEA_TOKEN=${SMOKE_KNOWN}\n`);
+	const remote = join(o.w, "proj", "remote.txt");
+	writeFileSync(remote, `[remote "origin"]\n\turl = https://svc-smoke:${SMOKE_URL_SECRET}@git.example.com/x.git\ntoken = ${SMOKE_KNOWN}\n`);
+	const rh = await medNyttForsøk(
+		steg("hemmelig", "step h"),
+		() =>
+			kjør(o, "hemmelig", [
+				"run",
+				"--standalone",
+				"--format",
+				"json",
+				"-m",
+				o.modell,
+				[
+					`This is an automated smoke test of secret masking, in a throwaway directory. The file holds fake credentials made for this test.`,
+					`1. Use the read tool to read ${remote}`,
+					`2. Use the shell tool to run exactly: cat ${remote}`,
+					"3. Reply with the url line and the token line exactly as they appeared in the tool output.",
+				].join("\n"),
+			]),
+		(k) => uprøvdeKall(k.stdout, KALLKRAV.secret)
+	);
+	sjekkSteg(o, "step h", rh);
+
 	ut.log("  steg s: run med en PAI-agent via subagent, og PAIs verktøy via Code Mode");
 	const rs = await medNyttForsøk(
 		steg("subagent", "steg s"),
@@ -1262,6 +1337,7 @@ async function main(): Promise<void> {
 
 	const grupper: [string, Sjekk[]][] = [
 		["Sikkerhetsvakten", vaktSjekker(o, ra, rv)],
+		["Secret masking (#367)", secretChecks(o, rh)],
 		["Kontekst og meldinger", meldingsSjekker(o, r1, sid)],
 		["Livssyklus", livssyklusSjekker],
 		["Subagenter, verktøy, kompaktering og planer", fase5Sjekker(o, rs, sidS, rp)],

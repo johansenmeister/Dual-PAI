@@ -77,6 +77,16 @@ async function rute(event: PaiEvent): Promise<PaiResult> {
 				return await onToolAfter(event);
 			}
 
+			case "tool.output": {
+				const { maskToolResult } = await import("./handlers/secret-masking");
+				const masked = maskToolResult(event.tool, event.output);
+				if (!masked.notice) return {};
+				return {
+					output: { value: masked.result, notice: masked.notice },
+					notes: masked.hits.map((h) => `masked:${h.label}`),
+				};
+			}
+
 			case "tool.failed": {
 				const { onToolFailed } = await import("./dispatch/tool");
 				return await onToolFailed(event);

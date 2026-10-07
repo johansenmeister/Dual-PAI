@@ -591,9 +591,13 @@ describe("batch 7: feltnavn, med speilvendingen som faktisk fanger feil", () => 
 		// H-16 om igjen i ny motor: koden leste `output.result` i månedsvis
 		// mens resultatet lå i `output.output`, og ingenting feilet — hele
 		// fanouten kjørte bare på `undefined`.
-		const [hendelse] = tilKjernehendelser(POST_TOOL_USE) as [
-			{ type: string; tool: string; args: Record<string, unknown>; result: unknown },
-		];
+		const hendelser = tilKjernehendelser(POST_TOOL_USE) as Array<
+			{ type: string; tool: string; args: Record<string, unknown>; result: unknown; output?: unknown }
+		>;
+		// tool.output first, so the core masks secrets before anything else (#367).
+		expect(hendelser.map((h) => h.type)).toEqual(["tool.output", "tool.after"]);
+		expect(hendelser[0].output).toEqual(POST_TOOL_USE.tool_response);
+		const hendelse = hendelser[1];
 		expect(hendelse.type).toBe("tool.after");
 		expect(hendelse.tool).toBe("Write");
 		expect(hendelse.args.file_path).toBe("/tmp/x/PRD.md");
@@ -604,7 +608,7 @@ describe("batch 7: feltnavn, med speilvendingen som faktisk fanger feil", () => 
 			unknown
 		>;
 		delete feilNavn.tool_response;
-		const [uten] = tilKjernehendelser(feilNavn) as [{ result: unknown }];
+		const [, uten] = tilKjernehendelser(feilNavn) as [unknown, { result: unknown }];
 		expect(uten.result).toBeUndefined();
 	});
 
@@ -705,61 +709,10 @@ describe("observasjonshendelsene gir logglinje og INGEN kjernehendelse", () => {
 	});
 });
 
-describe("hurtigutgangen for PostToolUse speiler kjernens egne verktøytester", () => {
-	test("verktøy kjernen faktisk etterbehandler slipper gjennom", () => {
-		for (const tool of ["Bash", "TodoWrite", "Task", "Write", "Edit", "AskUserQuestion"]) {
-			expect(hurtigutgang({ hook_event_name: "PostToolUse", tool_name: tool })).toBeNull();
-		}
-	});
-
-	test("verktøy ingen handler rører koster ingen modullasting", () => {
-		// Flertallet av kallene i en økt. Uten denne utgangen betaler hvert
-		// `Read` for kjernens modulgraf uten at noe skjer.
-		for (const tool of ["Read", "Grep", "Glob", "WebFetch"]) {
-			expect(hurtigutgang({ hook_event_name: "PostToolUse", tool_name: tool })).toContain(
-				"uinteressant-verktøy"
-			);
-		}
-	});
-
-	test("listen er den samme som kjernens handlere tester på", () => {
-		// Duplisert med vilje — en import ville dratt inn modulgrafen
-		// hurtigutgangen finnes for å unngå. Derfor låses de her i stedet.
-		// Faller denne, har en handler fått en ny verktøytype uten at
-		// rutetabellen fulgte med, og handleren slutter da stille å kjøre.
-		const tool = utenKommentarer(
-			readFileSync(join(ROT, ".opencode/pai-core/dispatch/tool.ts"), "utf-8")
-		);
-		const tracker = utenKommentarer(
-			readFileSync(join(ROT, ".opencode/pai-core/handlers/algorithm-tracker.ts"), "utf-8")
-		);
-		const spørsmål = utenKommentarer(
-			readFileSync(join(ROT, ".opencode/pai-core/handlers/question-tracking.ts"), "utf-8")
-		);
-		const rutetabell = readFileSync(
-			join(ROT, "claude-plugin/src/adapter/routes.ts"),
-			"utf-8"
-		);
-
-		const navnetabell = utenKommentarer(
-			readFileSync(join(ROT, ".opencode/pai-core/lib/tool-names.ts"), "utf-8")
-		);
-
-		// `isWriteTool` i dispatch/tool.ts
-		expect(tool).toContain('lower.includes("write")');
-		expect(tool).toContain('lower.includes("edit")');
-		// algorithm-tracker
-		expect(tracker).toContain('toLowerCase().includes("bash")');
-		expect(tracker).toContain('toLowerCase().includes("todo")');
-		expect(tracker).toContain("isSubagentTool(toolName)");
-		// subagent-verktøyet heter ULIKE ting i de to motorene
-		expect(navnetabell).toContain('"agent"');
-		expect(navnetabell).toContain('"task"');
-		// question-tracking
-		expect(spørsmål).toContain('"askuserquestion"');
-
-		for (const navn of ["bash", "todo", "task", "agent", "write", "edit", "askuserquestion"]) {
-			expect(rutetabell).toContain(`"${navn}"`);
+describe("PostToolUse is never short-circuited: the core masks every tool's output (#367)", () => {
+	test("Read, Grep, Glob and WebFetch reach the core, like Bash and Write", () => {
+		for (const tool of ["Read", "Grep", "Glob", "WebFetch", "Bash", "Write", "mcp__plugin_pai_pai__x"]) {
+			expect(hurtigutgang({ hook_event_name: "PostToolUse", tool_name: tool }), tool).toBeNull();
 		}
 	});
 

@@ -615,6 +615,55 @@ export function manglendeVaktkall(s: Strøm): string[] {
 	return [k.skall ? "" : "Bash rm -rf", k.skriv ? "" : "Write .ssh/", k.agent ? "" : "Agent Intern"].filter(Boolean);
 }
 
+/** Fake credentials for step S, built at runtime so no token-shaped literal is in the repo. */
+const SMOKE_KNOWN = `${"5".repeat(20)}${"c".repeat(20)}`;
+const SMOKE_URL_SECRET = `smokesecret${"x".repeat(10)}`;
+
+/** The calls step S needs: a Read and a Bash of the file with the fake credentials. */
+function secretCalls(s: Strøm) {
+	return {
+		read: s.kall.find((k) => k.navn === "Read" && String(k.input.file_path ?? "").includes("remote.txt")),
+		bash: s.kall.find((k) => k.navn === "Bash" && String(k.input.command ?? "").includes("remote.txt")),
+	};
+}
+
+/** Which of step S's calls the model did not make. */
+export function missingSecretCalls(s: Strøm): string[] {
+	const k = secretCalls(s);
+	return [k.read ? "" : "Read remote.txt", k.bash ? "" : "Bash cat remote.txt"].filter(Boolean);
+}
+
+/** Step S (#367): neither fake value reached the model, and the masking was audited. */
+function secretChecks(o: Oppsett, s: Strøm): Sjekk[] {
+	const { read, bash } = secretCalls(s);
+	const leaks = (t: string) => t.includes(SMOKE_KNOWN) || t.includes(SMOKE_URL_SECRET);
+	const audit = linjerJson<Revisjonslinje & { masked?: string[] }>(join(o.paiHome, "MEMORY", "STATE", "security-audit.jsonl")).filter(
+		(l) => l.harness === "claude" && l.action === "masked"
+	);
+	return [
+		{
+			navn: "secrets: Read output masked before the model saw it",
+			ok: !!read && !leaks(read.resultat) && read.resultat.includes("[MASKED:"),
+			detalj: read ? read.resultat.slice(0, 120) : "the model did not Read remote.txt",
+		},
+		{
+			navn: "secrets: Bash output masked before the model saw it",
+			ok: !!bash && !leaks(bash.resultat) && bash.resultat.includes("[MASKED:"),
+			detalj: bash ? bash.resultat.slice(0, 120) : "the model did not cat remote.txt",
+		},
+		{
+			navn: "secrets: nothing the model wrote contains a value",
+			ok: s.tekst.length > 0 && !s.tekst.some(leaks),
+			detalj: s.svar.slice(0, 120),
+		},
+		{
+			navn: "secrets: the masking is in the audit log, by name, without the value",
+			ok: audit.some((l) => l.tool === "Read") && audit.some((l) => l.masked?.includes("GITEA_TOKEN")) && !audit.some((l) => leaks(JSON.stringify(l))),
+			detalj: `${audit.length} masked lines`,
+		},
+	];
+}
+
 function vaktSjekker(o: Oppsett, s: Strøm): Sjekk[] {
 	const { skall, skriv, agent } = vaktkall(s);
 	const revisjon = linjerJson<Revisjonslinje>(join(o.paiHome, "MEMORY", "STATE", "security-audit.jsonl")).filter(
@@ -876,6 +925,24 @@ async function main(): Promise<void> {
 	sjekkSteg(o, "steg V", rv);
 	const sv = lesStrøm(rv.stdout);
 
+	ut.log("  step S: secrets in tool output are masked through the launcher (#367)");
+	writeFileSync(join(o.paiHome, ".env"), `GITEA_TOKEN=${SMOKE_KNOWN}\n`);
+	const remote = join(o.proj, "remote.txt");
+	writeFileSync(remote, `[remote "origin"]\n\turl = https://svc-smoke:${SMOKE_URL_SECRET}@git.example.com/x.git\ntoken = ${SMOKE_KNOWN}\n`);
+	const secretPrompt = [
+		`This is an automated smoke test of PAI's secret masking, in a throwaway temporary directory (${o.proj}). The file holds fake credentials made for this test.`,
+		`1. Use the Read tool to read ${remote}`,
+		`2. Use the Bash tool to run exactly: cat ${remote}`,
+		"3. Reply with the url line and the token line exactly as they appeared in the tool output.",
+	].join("\n");
+	const rs = await medNyttForsøk(
+		steg("hemmelig", "steg S"),
+		() => launcherSteg(o, "hemmelig", secretPrompt, "Read Bash(cat:*)"),
+		(k) => missingSecretCalls(lesStrøm(k.stdout))
+	);
+	sjekkSteg(o, "steg S", rs);
+	const ss = lesStrøm(rs.stdout);
+
 	ut.log("  steg T: hook-taket og Stop, uten launcheren");
 	const rt = await kjør(
 		o,
@@ -979,6 +1046,7 @@ async function main(): Promise<void> {
 		["Uten modell", null0.sjekker],
 		["Kontekst (K-10) og livssyklus", kontekstSjekker(o, sk, kodeord, øktK)],
 		["Sikkerhetsvakten og subagenter", vaktSjekker(o, sv)],
+		["Secret masking (#367)", secretChecks(o, ss)],
 		["Hook-taket, exec-formen og Stop", tak.sjekker],
 		["Gyldne payloads (K25)", gyldne],
 	];

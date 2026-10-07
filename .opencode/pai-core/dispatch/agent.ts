@@ -19,6 +19,7 @@
  * @module pai-core/dispatch/agent
  */
 
+import { forStorage } from "../lib/secrets";
 import { fileLog, fileLogError } from "../lib/file-logger";
 import type { PaiAgentStartEvent, PaiAgentStopEvent, PaiResult } from "../types";
 
@@ -59,7 +60,10 @@ export async function onAgentStart(event: PaiAgentStartEvent): Promise<PaiResult
  * dermed OpenCode-veien i samme slengen — en atferdsendring skjult i en
  * utvidelse, som er nøyaktig feilklassen handoveren advarer mot.
  */
-export async function onAgentStop(event: PaiAgentStopEvent): Promise<PaiResult> {
+export async function onAgentStop(rawEvent: PaiAgentStopEvent): Promise<PaiResult> {
+	// The subagent's answer is stored in the registry and the agent capture;
+	// masked first, like a prompt or a reply (#367).
+	const event = { ...rawEvent, output: forStorage(rawEvent.output) };
 	fileLog(
 		`[Subagent] Stopp: ${event.agentType} (${event.agentId}), ${event.output.length} tegn`,
 		"info"

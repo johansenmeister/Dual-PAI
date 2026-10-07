@@ -9,6 +9,7 @@
  * @module pai-core/dispatch/message
  */
 
+import { forStorage } from "../lib/secrets";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileLog, fileLogError } from "../lib/file-logger";
@@ -79,7 +80,9 @@ async function appendEffortToMeta(
  * infrastrukturen.
  */
 export async function onUserMessage(event: PaiUserMessageEvent): Promise<PaiResult> {
-	const content = event.text;
+	// Masked before anything stores it (#367): THREAD.md, the captures and
+	// the learning notes keep the prompt, and a pasted token would live there.
+	const content = forStorage(event.text);
 
 	// Guard: skip empty/whitespace-only content before any further processing
 	if (!content || content.trim().length === 0) return {};
@@ -215,7 +218,8 @@ export async function onUserMessage(event: PaiUserMessageEvent): Promise<PaiResu
  * terminalfanen og observability bruker den.
  */
 export async function onAssistantMessage(event: PaiAssistantMessageEvent): Promise<PaiResult> {
-	const responseText = event.text;
+	// Masked for the same reason as the prompt (#367).
+	const responseText = forStorage(event.text);
 	if (!responseText || responseText.length <= ASSISTANT_MIN_LENGTH) return {};
 
 	const notes: string[] = [];

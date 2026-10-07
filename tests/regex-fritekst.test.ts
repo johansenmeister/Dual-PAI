@@ -34,11 +34,11 @@ const ASCII_MED_VILJE: Record<string, { linjer: number; grunn: string }> = {
 	"lib/prd-template.ts": { linjer: 1, grunn: "engelske banneord" },
 	"lib/injection-patterns.ts": { linjer: 8, grunn: "engelske injeksjonsfraser og nøkkelformater" },
 	"lib/sanitizer.ts": { linjer: 1, grunn: "base64" },
+	"lib/secrets.ts": { linjer: 17, grunn: "token formats and env-style variable names, which are ASCII by definition (#367)" },
 	"lib/skalldata.ts": { linjer: 2, grunn: "skallets variabelnavn og heredoc-skilletegn" },
 	"lib/response-format.ts": { linjer: 1, grunn: "`\\w` inne i en klasse med `\\p{L}`" },
 	"handlers/implicit-sentiment.ts": { linjer: 1, grunn: "engelske ord etter en karakter" },
 	"handlers/tab-state.ts": { linjer: 1, grunn: "`\\w` inne i en klasse med `\\p{L}`, som `extractSpokenLine`" },
-	"handlers/security-validator.ts": { linjer: 8, grunn: "nøkkelformater" },
 	"handlers/response-capture.ts": { linjer: 1, grunn: "`[AGENT:<navn>]`, agentnavnene er ASCII" },
 	"handlers/skill-guard.ts": { linjer: 1, grunn: "plugin-prefikset i skillnavnet" },
 };
