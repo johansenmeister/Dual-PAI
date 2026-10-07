@@ -73,6 +73,8 @@ describe("maskSecrets: shapes", () => {
 		["assignment", `POSTGRES_PASSWORD=${r(12, "p")}`, r(12, "p")],
 		["assignment", `  - GITEA_TOKEN: "${r(16, "t")}"`, r(16, "t")],
 		["assignment", `"api_key": "${r(16, "k")}"`, r(16, "k")],
+		// A run of x's inside a value is not a placeholder: the smoke tests' fake secret (#370).
+		["url-credential", `https://svc-smoke:smokesecret${r(10, "x")}@git.example.com/x.git`, `smokesecret${r(10, "x")}`],
 	];
 	for (const [kind, input, secret] of cases) {
 		test(`${kind}: ${input.slice(0, 40)}`, () => {
@@ -109,6 +111,17 @@ describe("maskSecrets: what must not be masked", () => {
 		"PASSWORD=short",
 		"/home/someone/.opencode/.env",
 		"Authorization: Bearer $TOKEN",
+		// Documentation placeholders (#370): skills and .env.example files are full of them.
+		"ANTHROPIC_API_KEY=your_api_key_here",
+		"OPENAI_API_KEY=sk-proj-your-key-here",
+		"GMAIL_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx",
+		"APIFY_TOKEN=apify_api_xxxxx",
+		"PERPLEXITY_API_KEY=pplx-...",
+		"SHODAN_API_KEY=[YOUR_SHODAN_API_KEY]",
+		"JWT_SECRET=ChangeThisToARandomString",
+		"Authorization: Bearer YOUR_AUTH_TOKEN",
+		"GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,",
+		"https://svc:your-token@git.example.com/x.git",
 	];
 	for (const text of untouched) {
 		test(text.slice(0, 50), () => {

@@ -14,6 +14,7 @@ cd "$REPO"
 # ikke er pushet. Bare nye linjer teller, så et nøkkeleksempel som alt ligger
 # i repoet, gir ikke en alarm i hver økt.
 NOKKELBLOKK='-----BEGIN ([A-Z0-9]+ )*PRIVATE KEY( BLOCK)?-----'
+SKANNER="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/Tools/SecretScan.ts"
 
 pushbase() {
   local upstream
@@ -23,6 +24,12 @@ pushbase() {
   fi
   git rev-parse -q --verify HEAD 2>/dev/null ||
     git hash-object -t tree /dev/null # tomt tre: første commit
+}
+
+# Det som skal pushes, som `-U0`-diff med `b/`-prefiks uansett brukerens config.
+nye_linjer() {
+  git -c core.quotePath=false -c diff.noprefix=false -c diff.mnemonicPrefix=false diff --cached -U0 --no-color --no-ext-diff \
+    --diff-filter=ACMR --dst-prefix=b/ "$1"
 }
 
 # Én linje per funn på stdout: `<sti>\t<grunn>`.
@@ -42,8 +49,7 @@ hemmeligheter() {
     done
   # Nye linjer med en PEM- eller OpenSSH-blokk, uansett filnavn. `+++` er
   # filnavnet bare i hodet, før første `@@`; senere er det en innholdslinje.
-  git -c core.quotePath=false -c diff.noprefix=false -c diff.mnemonicPrefix=false diff --cached -U0 --no-color --no-ext-diff \
-    --diff-filter=ACMR --dst-prefix=b/ "$base" |
+  nye_linjer "$base" |
     awk -v blokk="$NOKKELBLOKK" '
       /^diff --git / { hode = 1; next }
       hode && /^\+\+\+ / { fil = substr($0, 7); next }
@@ -51,6 +57,22 @@ hemmeligheter() {
       !hode && /^\+/ && $0 ~ blokk && !(fil in sett) {
         sett[fil] = 1; printf "%s\tprivate key in the content\n", fil
       }'
+  # #370: tokens i nye linjer (`https://bruker:token@vert`, kjente verdier fra
+  # .env, leverandørformer). Mønstrene er de samme som maskerer verktøyutdata
+  # for modellen (`pai-core/lib/secrets.ts`), så de to driver ikke fra hverandre.
+  # Skanneren hentes ved siden av skriptet, ikke fra repoet som synkes.
+  # Mangler bun, eller feiler skanneren, sier den fra og pusher, som speilet:
+  # filnavnene og nøkkelblokkene over er sjekket uansett.
+  local tokens typer
+  if ! command -v bun >/dev/null; then
+    echo "⚠ Did not check the content for tokens: bun is not on PATH." >&2
+  elif ! tokens=$(nye_linjer "$base" | bun "$SKANNER"); then
+    echo "⚠ The token check failed, so the content was not checked for tokens. Run: git diff --cached -U0 | bun Tools/SecretScan.ts" >&2
+  elif [ -n "$tokens" ]; then
+    while IFS=$'\t' read -r sti typer; do
+      printf '%s\ttoken in the content (%s)\n' "$sti" "$typer"
+    done <<<"$tokens"
+  fi
 }
 
 # K47: skills endres i produksjonsøkter, der ingen kjører testene. Et gammelt
@@ -83,7 +105,11 @@ if [ -n "$funn" ]; then
   while IFS=$'\t' read -r sti grunn; do
     # Ut av indeksen igjen, så en manuell `git commit` ikke tar den med.
     git --literal-pathspecs reset -q -- "$sti" 2>/dev/null || true
-    echo "✗ Not committing $sti: $grunn. Add it to .gitignore, or remove it." >&2
+    case "$grunn" in
+    *"in the content"*) raad="Remove the value from the file." ;;
+    *) raad="Add it to .gitignore, or remove it." ;;
+    esac
+    echo "✗ Not committing $sti: $grunn. $raad" >&2
   done <<<"$funn"
   echo "✗ Nothing was committed or pushed." >&2
   exit 1

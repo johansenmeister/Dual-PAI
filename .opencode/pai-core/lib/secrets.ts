@@ -179,6 +179,14 @@ const SHAPES: Shape[] = [
 const ALREADY = /^\[MASKED:[^\]]+\]$/;
 
 /**
+ * Documentation placeholders: `your_api_key_here`, `xxxx-xxxx`, `sk-ant-...`,
+ * `ChangeMe`, `process.env.X`. Skills and `.env.example` files are full of
+ * them; masking them tells the model a secret was hidden when none was, and
+ * the autosync guard (#370) would refuse every commit that adds one.
+ */
+const PLACEHOLDER = /your|(?:^|[-_.])x{4,}(?:$|[-_.])|\.\.\.|…|change|example|placeholder|^process\.env\./i;
+
+/**
  * Masks every secret in `text`. Known values first, so a token from `.env`
  * is labelled with its name even when it also has a recognisable shape.
  */
@@ -198,7 +206,7 @@ export function maskSecrets(text: string, known: KnownSecret[] = knownSecrets())
 			const groups = args.slice(1, -2) as string[];
 			// The secret part of every shape is its last group, or the whole match.
 			const secret = groups.length ? groups[groups.length - 1] : m;
-			if (ALREADY.test(secret ?? "") || (secret ?? "").startsWith("[MASKED:")) return m;
+			if (ALREADY.test(secret ?? "") || (secret ?? "").startsWith("[MASKED:") || PLACEHOLDER.test(secret ?? "")) return m;
 			if (!hits.some((h) => h.kind === shape.kind)) hits.push({ kind: shape.kind, label: shape.kind });
 			return shape.replace(m, ...groups);
 		});
