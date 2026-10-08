@@ -726,7 +726,7 @@ async function cmdDoctor() {
     nei(`could not read the database: ${e instanceof Error ? e.message : String(e)}`);
   }
 
-  console.log("\nMCP servers (K26: both engines have them, K32: the local ones start)");
+  console.log("\nMCP servers (K26: both engines have them, K32: the local ones start, #375: the health calls answer)");
   try {
     const { mcpHelse } = await import(join(dir, "PAI", "Tools", "mcp-helse.ts"));
     const h = (await mcpHelse(dir)) as { problemer: string[]; varsler: string[] };
