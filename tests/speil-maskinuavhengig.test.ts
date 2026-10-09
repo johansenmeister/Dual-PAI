@@ -114,3 +114,75 @@ describe("generert speil er maskinuavhengig", () => {
 		expect(stier.filter((sti) => !sett.has(sti))).toEqual([]);
 	}, 30_000);
 });
+
+/**
+ * #402 (jobb #16): a new skill that git does not track yet got `SKILL.md` in
+ * the mirror but none of its links, and the freshness test agreed with that
+ * plan, so it stayed green. Built in a temp repo so the real tree is never
+ * touched.
+ */
+describe("a skill git does not track yet makes the mirror check fail (#402)", () => {
+	const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = require("node:fs");
+	const { tmpdir } = require("node:os");
+
+	function lagRepo(): string {
+		const rot = mkdtempSync(join(tmpdir(), "speil-402-"));
+		const skriv = (sti: string, innhold = "x\n") => {
+			mkdirSync(join(rot, sti, ".."), { recursive: true });
+			writeFileSync(join(rot, sti), innhold);
+		};
+		const skill = (navn: string) => `---\nname: ${navn}\ndescription: ${navn}. USE WHEN ${navn}\n---\n# ${navn}\n`;
+		skriv(".opencode/profiles/claude.yaml", "default_model: inherit\n");
+		skriv(".opencode/agents/Tester.md", "---\nname: Tester\ndescription: Tester\n---\n# Tester\n");
+		skriv(".opencode/skills/Infrastructure/SKILL.md", skill("Infrastructure"));
+		skriv(".opencode/skills/Infrastructure/Gammel/SKILL.md", skill("Gammel"));
+		skriv(".opencode/skills/Infrastructure/Gammel/Tools/x.sh");
+		skriv(".gitignore", "Ignorert/\n");
+		git(rot, "init", "-q");
+		git(rot, "add", "-A");
+		// The new skill, untracked. Next to it the two M-28 forms that must
+		// stay out of the mirror without failing anything: an empty directory
+		// and an ignored one.
+		skriv(".opencode/skills/Infrastructure/Probe/SKILL.md", skill("Probe"));
+		skriv(".opencode/skills/Infrastructure/Probe/Tools/x.sh");
+		mkdirSync(join(rot, ".opencode/skills/Infrastructure/Gammel/Tom"), { recursive: true });
+		skriv(".opencode/skills/Infrastructure/Gammel/Ignorert/lokal.txt");
+		return rot;
+	}
+
+	function git(cwd: string, ...args: string[]): void {
+		const r = Bun.spawnSync(["git", ...args], { cwd, stdout: "pipe", stderr: "pipe" });
+		if (r.exitCode !== 0) throw new Error(`git ${args.join(" ")}: ${r.stderr.toString()}`);
+	}
+
+	test("untracked skill: the check names it and the fix; tracked: the check is clean", async () => {
+		const rot = lagRepo();
+		try {
+			const { byggPlan, skrivPlan, finnDrift } = await import("../Tools/BuildClaudePlugin.ts");
+
+			const før = await byggPlan(rot);
+			expect(før.venterPåGit.sort()).toEqual([
+				".opencode/skills/Infrastructure/Probe",
+				".opencode/skills/Infrastructure/Probe/Tools",
+			]);
+			await skrivPlan(rot, før);
+			const avvik = await finnDrift(rot, await byggPlan(rot));
+			expect(avvik).toEqual([
+				"not tracked by git yet: .opencode/skills/Infrastructure/Probe (git add -N it, then regenerate)",
+				"not tracked by git yet: .opencode/skills/Infrastructure/Probe/Tools (git add -N it, then regenerate)",
+			]);
+
+			git(rot, "add", "-N", ".opencode/skills/Infrastructure/Probe");
+			const etter = await byggPlan(rot);
+			expect(etter.venterPåGit).toEqual([]);
+			const lenker = etter.lenker.map((l) => l.sti);
+			expect(lenker).toContain("claude-plugin/skills/infrastructure/Probe");
+			expect(lenker).toContain("claude-plugin/skills/infrastructure-probe/Tools");
+			expect(lenker.filter((l) => /Tom|Ignorert/.test(l))).toEqual([]);
+			await skrivPlan(rot, etter);
+			expect(await finnDrift(rot, etter)).toEqual([]);
+		} finally {
+			rmSync(rot, { recursive: true, force: true });
+		}
+	}, 30_000);
+});

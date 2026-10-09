@@ -120,6 +120,11 @@ export interface Byggeplan {
 	lenker: GenerertLenke[];
 	/** Kataloger generatoren eier i sin helhet, og derfor kan tømme. */
 	eideKataloger: string[];
+	/**
+	 * Source paths left out of the mirror only because git does not track them
+	 * yet, though `git add` would (#402). Repo-relative.
+	 */
+	venterPåGit: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -208,6 +213,28 @@ async function finnSporede(rot: string, underKatalog: string): Promise<Set<strin
 	}
 }
 
+/**
+ * Files under a directory that are untracked but NOT ignored: what `git add`
+ * would pick up. Empty and ignored directories never show up here, so this
+ * tells a new skill (#402) apart from the machine-local cases M-28 is about.
+ *
+ * Fail-open like `finnSporede`: `null` when git does not answer.
+ */
+async function finnUtrackede(rot: string, underKatalog: string): Promise<Set<string> | null> {
+	try {
+		const proc = Bun.spawn(
+			["git", "ls-files", "--others", "--exclude-standard", "-z", "--", underKatalog],
+			{ cwd: rot, stdout: "pipe", stderr: "ignore" }
+		);
+		const ut = await new Response(proc.stdout).text();
+		const kode = await proc.exited;
+		if (kode !== 0) return null;
+		return new Set(ut.split("\0").filter(Boolean));
+	} catch {
+		return null;
+	}
+}
+
 /** Sporer git noe PÅ eller UNDER denne stien? */
 function erSporet(sporede: Set<string>, relativSti: string): boolean {
 	if (sporede.has(relativSti)) return true;
@@ -220,10 +247,16 @@ function erSporet(sporede: Set<string>, relativSti: string): boolean {
 
 async function planleggSkills(
 	rot: string
-): Promise<{ filer: GenerertFil[]; lenker: GenerertLenke[]; kart: Record<string, unknown> }> {
+): Promise<{
+	filer: GenerertFil[];
+	lenker: GenerertLenke[];
+	venterPåGit: string[];
+	kart: Record<string, unknown>;
+}> {
 	const skills = await finnSkills(join(rot, ".opencode/skills"));
 	const filer: GenerertFil[] = [];
 	const lenker: GenerertLenke[] = [];
+	const venterPåGit: string[] = [];
 	const kandidater: Array<GenerertLenke & { kilde: string }> = [];
 	const kart: Record<string, { kilde: string; segmenter: string[]; navn: string }> = {};
 	const aliaser: Record<string, string> = {};
@@ -305,11 +338,20 @@ async function planleggSkills(
 	// Ikke av hva som ligger på disk. Se `finnSporede` for hvorfor
 	// `check-ignore` ikke holdt: en TOM katalog er hverken sporet eller
 	// ignorert, og det var nøyaktig den formen defekten hadde.
+	//
+	// A path left out here that `git add` WOULD track is a new skill, not a
+	// machine-local leftover (#402). It is recorded so `finnDrift` can fail
+	// until it is tracked: otherwise the freshness test agrees with a plan that
+	// is missing the links, and stays green.
 	const sporede = await finnSporede(rot, ".opencode/skills");
+	const utrackede = sporede ? await finnUtrackede(rot, ".opencode/skills") : null;
 	for (const k of kandidater) {
 		if (sporede) {
 			const rel = relative(rot, k.kilde);
-			if (!erSporet(sporede, rel)) continue;
+			if (!erSporet(sporede, rel)) {
+				if (utrackede && erSporet(utrackede, rel)) venterPåGit.push(rel);
+				continue;
+			}
 		}
 		lenker.push({ sti: k.sti, mål: k.mål });
 	}
@@ -321,6 +363,7 @@ async function planleggSkills(
 	return {
 		filer,
 		lenker,
+		venterPåGit,
 		kart: {
 			_kommentar: [
 				"GENERERT av Tools/BuildClaudePlugin.ts — ikke rediger.",
@@ -598,6 +641,7 @@ export async function byggPlan(rot: string): Promise<Byggeplan> {
 		],
 		lenker: skills.lenker,
 		eideKataloger: ["claude-plugin/skills", "claude-plugin/agents"],
+		venterPåGit: skills.venterPåGit,
 	};
 }
 
@@ -625,6 +669,12 @@ export async function skrivPlan(rot: string, plan: Byggeplan): Promise<void> {
  */
 export async function finnDrift(rot: string, plan: Byggeplan): Promise<string[]> {
 	const avvik: string[] = [];
+
+	// The plan itself is incomplete here, so comparing it with disk proves
+	// nothing about these paths. Report them first, with the fix.
+	for (const kilde of plan.venterPåGit) {
+		avvik.push(`not tracked by git yet: ${kilde} (git add -N it, then regenerate)`);
+	}
 
 	for (const fil of plan.filer) {
 		const full = join(rot, fil.sti);
@@ -696,4 +746,14 @@ if (import.meta.main) {
 
 	await skrivPlan(rot, plan);
 	console.log(`✓ Skrev ${plan.filer.length} filer og ${plan.lenker.length} symlinker`);
+	if (plan.venterPåGit.length > 0) {
+		console.error(
+			`\n⚠ ${plan.venterPåGit.length} source path(s) are not tracked by git yet, so their links were left out:`
+		);
+		for (const kilde of plan.venterPåGit) console.error(`  ${kilde}`);
+		console.error(
+			"\nRun: git add -N <the paths above>, then bun Tools/BuildClaudePlugin.ts, then git add -N claude-plugin/"
+		);
+		process.exit(1);
+	}
 }

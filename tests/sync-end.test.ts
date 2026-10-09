@@ -303,6 +303,33 @@ writeFileSync("speil.md", kilde);
 		expect(påRemoteInnhold("speil.md")).toBe("v1");
 	});
 
+	test("a skill created in the session is tracked before the mirror is generated (#402)", () => {
+		// The real generator links only what `git ls-files` knows. This fake
+		// one mirrors exactly that list, so a skill that is still untracked when
+		// it runs ends up missing from the pushed mirror.
+		skriv(
+			"Tools/BuildClaudePlugin.ts",
+			`import { existsSync, readFileSync, writeFileSync } from "node:fs";
+const sporet = Bun.spawnSync(["git", "ls-files", "--", ".opencode/skills"]).stdout.toString();
+const speil = existsSync("speil.md") ? readFileSync("speil.md", "utf8") : null;
+if (process.argv.includes("--sjekk")) process.exit(speil === sporet ? 0 : 1);
+writeFileSync("speil.md", sporet);
+`
+		);
+		skriv(".opencode/skills/Gammel/SKILL.md");
+		skriv("speil.md", ".opencode/skills/Gammel/SKILL.md\n");
+		git(repo, "add", "-A");
+		git(repo, "commit", "-q", "-m", "ekte speilform");
+		git(repo, "push", "-q");
+
+		skriv(".opencode/skills/Ny/SKILL.md");
+		skriv(".opencode/skills/Ny/Tools/x.sh");
+		const r = syncEnd();
+		expect(r.kode).toBe(0);
+		expect(påRemoteInnhold("speil.md")).toContain(".opencode/skills/Ny/Tools/x.sh");
+		expect(påRemote()).toContain(".opencode/skills/Ny/Tools/x.sh");
+	});
+
 	// En PATH med git og uten bun. Ligger de i samme katalog, lar det seg ikke lage.
 	const gitKatalog = dirname(Bun.which("git") ?? "/usr/bin/git");
 	test.skipIf(existsSync(join(gitKatalog, "bun")))("uten bun på PATH sier den fra og pusher", () => {

@@ -85,6 +85,11 @@ speil() {
     echo "⚠ Did not check the Claude mirror: bun is not on PATH." >&2
     return 0
   fi
+  # #402: the generator only links what git tracks, and `git add -A` comes
+  # after this. A skill created in this session would be committed without its
+  # links. Intent-to-add makes it tracked without staging content, and skips
+  # what .gitignore excludes, as `git add -A` would.
+  [ -d .opencode/skills ] && git add -N -- .opencode/skills 2>/dev/null
   bun Tools/BuildClaudePlugin.ts --sjekk >/dev/null 2>&1 && return 0
   if bun Tools/BuildClaudePlugin.ts >/dev/null 2>&1; then
     echo "↻ The Claude mirror was stale and has been regenerated."

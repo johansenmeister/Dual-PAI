@@ -222,10 +222,28 @@ Verify ALL files use TitleCase:
 - [ ] `tools/` directory exists (even if empty)
 - [ ] No `backups/` directory inside skill
 
+### Mirror
+- [ ] Step 9 run in order; `bun test` is green
+
 ### CLI-First Integration (for skills with CLI tools)
 - [ ] CLI tools expose configuration via flags (see CliFirstArchitecture.md)
 - [ ] Workflows that call CLI tools have intent-to-flag mapping tables
 - [ ] Flag mappings cover: mode selection, output options, post-processing (where applicable)
+
+## Step 9: Track, Generate, Test
+
+The Claude mirror (`claude-plugin/skills/`) links only paths git tracks, so the order matters. Run from the repo root:
+
+```bash
+cd "$(git -C ~/.opencode rev-parse --show-toplevel)"
+git add -N .opencode/skills/[Category]/[SkillName]   # 1. track the new files (intent-to-add)
+bun Tools/BuildClaudePlugin.ts                      # 2. generate the mirror
+bun .opencode/PAI/Tools/GenerateSkillIndex.ts       # 3. regenerate skill-index.json
+git add -N claude-plugin/                           # 4. track the generated links
+bun test                                            # 5. test
+```
+
+Skip step 1 and step 2 exits non-zero, naming the untracked paths; the mirror test fails the same way until they are tracked.
 
 ## Done
 
