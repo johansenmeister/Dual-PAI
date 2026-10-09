@@ -16,6 +16,9 @@
  */
 
 import { $ } from "bun";
+import { loadPaiEnv } from "../../../../PAI/Tools/pai-env";
+
+loadPaiEnv();
 
 interface ReconResult {
   domain: string;

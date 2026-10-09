@@ -12,6 +12,10 @@
  *   console.log(info.organization, info.location);
  */
 
+import { loadPaiEnv } from "../../../../PAI/Tools/pai-env";
+
+loadPaiEnv();
+
 export interface IPInfoResponse {
   ip: string;
   hostname?: string;

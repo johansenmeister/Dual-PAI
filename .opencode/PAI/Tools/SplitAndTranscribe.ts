@@ -12,6 +12,9 @@ import { join, extname } from "node:path";
 import OpenAI from "openai";
 import type { AudioResponseFormat } from "openai/resources/audio/audio";
 import { createReadStream } from "node:fs";
+import { loadPaiEnv } from "./pai-env";
+
+loadPaiEnv();
 
 interface ChunkInfo {
   path: string;
@@ -228,7 +231,7 @@ if (import.meta.main) {
   }
 
   if (!process.env.OPENAI_API_KEY) {
-    console.error("Error: OPENAI_API_KEY not set");
+    console.error("Error: OPENAI_API_KEY not set. Add it to ~/.opencode/.env.");
     process.exit(1);
   }
 

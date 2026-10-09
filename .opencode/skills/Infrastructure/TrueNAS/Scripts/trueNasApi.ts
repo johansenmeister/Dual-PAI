@@ -3,7 +3,7 @@
  * TrueNAS API Client — WebSocket JSON-RPC 2.0
  * Usage: bun Scripts/trueNasApi.ts [--pretty] [--compact] method1 [method2 ...]
  *
- * Reads TRUENAS_API_KEY from ~/.opencode/.env
+ * Reads TRUENAS_API_URL and TRUENAS_API_KEY from ~/.opencode/.env (loadPaiEnv)
  * Connects via WebSocket to wss://<host>/api/current, derived from TRUENAS_API_URL
  * Authenticates with auth.login_ex (API_KEY_PLAIN)
  * Calls each method sequentially, outputs JSON to stdout
@@ -20,9 +20,9 @@
  *   bun trueNasApi.ts --raw pool.query | jq '.[] | select(.status != "ONLINE")'
  */
 
-import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { resolve } from "node:path";
+import { loadPaiEnv } from "../../../../PAI/Tools/pai-env";
+
+loadPaiEnv();
 
 // Parse args
 const args = process.argv.slice(2);
@@ -52,19 +52,11 @@ if (methods.length === 0) {
 
 // Read API key
 function loadApiKey(): string {
-  const envPath = resolve(homedir(), ".opencode", ".env");
   try {
-    const content = readFileSync(envPath, "utf-8");
-    for (const line of content.split("\n")) {
-      if (line.startsWith("TRUENAS_API_KEY=")) {
-        const key = line.split("=")[1].trim();
-        if (!key || key === "YOUR_API_KEY_HERE") {
-          throw new Error("TRUENAS_API_KEY is empty or placeholder");
-        }
-        return key;
-      }
-    }
-    throw new Error("TRUENAS_API_KEY not set");
+    const key = process.env.TRUENAS_API_KEY?.trim();
+    if (!key) throw new Error("TRUENAS_API_KEY not set");
+    if (key === "YOUR_API_KEY_HERE") throw new Error("TRUENAS_API_KEY is a placeholder");
+    return key;
   } catch (e: any) {
     console.error("");
     console.error("╔══════════════════════════════════════════════════════════╗");

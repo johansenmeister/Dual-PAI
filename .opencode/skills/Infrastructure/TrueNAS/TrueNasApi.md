@@ -150,7 +150,13 @@ TRUENAS_API_KEY=<din-nøkkel>
 
 ## Generelt Bun-skriptmønster
 
-Se `Workflows/CheckStatus.md` for fullstendig eksempel. Grunnmønster:
+Se `Workflows/CheckStatus.md` for fullstendig eksempel. Kjør skriptet med nøklene lastet fra `~/.opencode/.env`:
+
+```bash
+set -a; . ~/.opencode/.env; set +a
+```
+
+Grunnmønster:
 
 ```typescript
 const ws = new WebSocket("wss://<vert>/api/current");

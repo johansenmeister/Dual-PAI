@@ -28,6 +28,9 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { createHash } from 'crypto';
 import { join } from 'path';
 import { homedir } from 'os';
+import { loadPaiEnv } from '../../../../PAI/Tools/pai-env';
+
+loadPaiEnv();
 
 // Types
 interface Source {

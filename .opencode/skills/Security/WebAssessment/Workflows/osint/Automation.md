@@ -569,8 +569,8 @@ services.tls.certificates.leaf_data.issuer.common_name: "Let's Encrypt"
 **Step 1: Email Discovery**
 
 ```bash
-# Use curl for API calls
-HUNTER_API_KEY="your_api_key"
+# HUNTER_API_KEY from ~/.opencode/.env
+set -a; . ~/.opencode/.env; set +a
 
 # Domain search (find email addresses for domain)
 curl "https://api.hunter.io/v2/domain-search?domain=example.com&api_key=$HUNTER_API_KEY" | jq
@@ -719,6 +719,12 @@ echo "[+] View summary: cat $OUTDIR/reports/summary.md"
 ```
 
 **Step 2: Python Orchestration (Advanced)**
+
+Load the keys first (`HIBP_API_KEY`), and run the script from the same shell:
+
+```bash
+set -a; . ~/.opencode/.env; set +a
+```
 
 ```python
 #!/usr/bin/env python3

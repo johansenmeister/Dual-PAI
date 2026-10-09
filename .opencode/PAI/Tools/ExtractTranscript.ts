@@ -21,6 +21,9 @@ import { existsSync, statSync, readdirSync, mkdirSync, createReadStream } from "
 import { join, basename, extname, dirname, normalize } from "node:path";
 import { writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
+import { loadPaiEnv } from "./pai-env";
+
+loadPaiEnv();
 
 // Supported audio/video formats
 const SUPPORTED_FORMATS = [
@@ -255,11 +258,7 @@ function calculateCost(fileSizeMB: number): string {
 async function main() {
   // Check for API key
   if (!process.env.OPENAI_API_KEY) {
-    console.error("Error: OPENAI_API_KEY environment variable not set");
-    console.log("\nSet your API key:");
-    console.log('  export OPENAI_API_KEY="sk-..."');
-    console.log("\nOr add to ~/.zshrc for persistence:");
-    console.log('  echo \'export OPENAI_API_KEY="sk-..."\' >> ~/.zshrc');
+    console.error("Error: OPENAI_API_KEY not set. Add it to ~/.opencode/.env.");
     process.exit(1);
   }
 

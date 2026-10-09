@@ -29,6 +29,9 @@ import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { homedir } from 'node:os';
+import { loadPaiEnv } from './pai-env';
+
+loadPaiEnv();
 
 const PAI_DIR = process.env.OPENCODE_DIR || join(homedir(), '.opencode');
 

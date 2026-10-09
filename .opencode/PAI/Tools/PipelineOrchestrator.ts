@@ -16,6 +16,9 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
+import { loadPaiEnv } from "./pai-env";
+
+loadPaiEnv();
 
 const ACTIONS_DIR = join(import.meta.dir, "..", "ACTIONS");
 const PIPELINES_DIR = join(import.meta.dir, "..", "PIPELINES");

@@ -5,7 +5,7 @@
  * `process.env["X"]`, `os.environ`/`os.getenv`, a parsed `.env` object named
  * `env`/`ENV` (`env.X`, `ENV["X"]`, `env.get("X")`), and `"X=` in a string, the
  * form the hand-written `.env` parsers match lines with. A write
- * (`process.env.X = …`) is not a read.
+ * (`process.env.X = …`) or a `delete` is not a read.
  *
  * Shell (`.sh`, and the bash/sh fences in markdown): `$X` and `${X}` where X is
  * not assigned in the same file, or in the same skill for markdown, where a
@@ -20,13 +20,15 @@ import { dirname, extname, join, relative, sep } from "node:path";
 
 const NAME = "[A-Z][A-Z0-9]*_[A-Z0-9_]*[A-Z0-9]|[A-Z][A-Z0-9]{2,}";
 const NOT_WRITE = "(?!\\s*=[^=])";
+/** `delete env.X` removes a key from a child's environment; it is not a read. */
+const NOT_DELETE = "(?<!delete\\s+)";
 
 const CODE_READS = [
-	`(?:process\\.env|Bun\\.env|import\\.meta\\.env)\\.(${NAME})\\b${NOT_WRITE}`,
+	`${NOT_DELETE}(?:process\\.env|Bun\\.env|import\\.meta\\.env)\\.(${NAME})\\b${NOT_WRITE}`,
 	`(?:process\\.env|Bun\\.env)\\[\\s*["'\`](${NAME})["'\`]\\s*\\]${NOT_WRITE}`,
 	`os\\.(?:environ\\.get|getenv)\\(\\s*["'](${NAME})["']`,
 	`\\b(?:env|ENV|environ)(?:\\.get)?[[(]\\s*["'](${NAME})["']`,
-	`\\benv\\.(${NAME})\\b${NOT_WRITE}`,
+	`${NOT_DELETE}\\benv\\.(${NAME})\\b${NOT_WRITE}`,
 ];
 /** Only in code files: in a markdown fence, `"NAME=${value}"` is usually a cookie or a header. */
 const ENV_LINE = `["'](${NAME})=`;

@@ -237,7 +237,8 @@ Return ONLY the JSON object above with all entities extracted. No markdown, no e
 # Using llm CLI with Gemini 3 Pro
 llm -m gemini-3-pro-preview "$(cat extraction-prompt.txt)" > raw-entities.json
 
-# Or via API
+# Or via API, with GEMINI_API_KEY from ~/.opencode/.env
+set -a; . ~/.opencode/.env; set +a
 curl https://generativelanguage.googleapis.com/v1/models/gemini-3-pro:generateContent \
   -H "Content-Type: application/json" \
   -H "x-goog-api-key: $GEMINI_API_KEY" \

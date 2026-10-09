@@ -94,7 +94,7 @@ history. Rotate the key; that is what makes the old one harmless.
 
 - Not in `opencode.json`, `settings.json` or any file under `.opencode/PAI/USER/`:
   those go into the repository, and some go into every session's context.
-- Not in shell profiles (`~/.bashrc` and the like) for PAI's sake. Most tools
-  read `~/.opencode/.env` themselves. The few marked "(env)" in `.env.example`
-  read only the environment; their workflows load the file for that one command
-  (`set -a; . ~/.opencode/.env; set +a`), so the keys don't sit in every shell.
+- Not in shell profiles (`~/.bashrc` and the like) for PAI's sake. The tools
+  read `~/.opencode/.env` themselves, and the workflows that call an API from the
+  shell load it for that one command (`set -a; . ~/.opencode/.env; set +a`), so
+  the keys don't sit in every shell.

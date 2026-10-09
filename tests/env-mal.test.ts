@@ -78,7 +78,7 @@ function excepted(name: string): boolean {
 }
 
 describe("the scanner", () => {
-	test("finds the code forms, and not a write", () => {
+	test("finds the code forms, and not a write or a delete", () => {
 		const ts = [
 			"const a = process.env.A_KEY;",
 			"const b = Bun.env.B_KEY;",
@@ -86,6 +86,7 @@ describe("the scanner", () => {
 			"const d = env.D_KEY || process.env.D_KEY;",
 			'if (line.startsWith("E_KEY=")) {}',
 			'process.env.W_KEY = "0";',
+			"delete env.X_KEY;",
 		].join("\n");
 		expect(codeReads(ts).sort()).toEqual(["A_KEY", "B_KEY", "C_KEY", "D_KEY", "E_KEY"]);
 		const py = ['a = os.environ.get("A_KEY")', 'b = os.getenv("B_KEY", "")', 'c = ENV["C_KEY"]', 'd = ENV.get("D_KEY") or "x"'];
