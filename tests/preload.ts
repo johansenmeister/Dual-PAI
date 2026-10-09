@@ -14,6 +14,11 @@
  *      tester falt når GitHub var tregt). Kallet går fortsatt gjennom, så
  *      en test som trenger nettet, feiler med navnet på verten, ikke stumt.
  *      Det dekker testprosessen, ikke underprosessene den starter.
+ *   5. The variables `pai` exports into a session cleared: `PAI_CONTEXT_FILE`,
+ *      `PAI_ENABLED`, `PAI_HARNESS`. Run inside a `pai --claude` session, the
+ *      suite inherited `PAI_CONTEXT_FILE`, and the Claude adapter left out
+ *      `context.build` as it should in a session, so two tests failed on the
+ *      machine and nowhere else (job issue 15, 2026-10-08).
  *
  * Den globale `afterAll` kjører én gang etter alle filene. Har noe i de ekte
  * trærne endret seg, kaster den, og bun teller det som en feilet test med
@@ -34,6 +39,8 @@ const før = taØyeblikksbilde(røtter);
 
 const testHjem = mkdtempSync(join(tmpdir(), "pai-test-hjem-"));
 process.env.PAI_HOME = testHjem;
+
+for (const name of ["PAI_CONTEXT_FILE", "PAI_ENABLED", "PAI_HARNESS"]) delete process.env[name];
 
 mock.module(join(import.meta.dir, "../.opencode/PAI/Tools/Inference.ts"), () => ({
 	inference: async (options: { level?: string }) => ({

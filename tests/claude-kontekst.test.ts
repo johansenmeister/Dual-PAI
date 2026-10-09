@@ -202,3 +202,18 @@ describe("tolkFlaggsjekk — pai claude doctor", () => {
 		expect(tolkFlaggsjekk("Error: Input must be provided either through stdin or as a prompt argument")).toBe("ukjent");
 	});
 });
+
+describe("the suite does not inherit the session it runs in (job issue 15)", () => {
+	test("with PAI_CONTEXT_FILE from a pai --claude session, the adapter tests still pass", () => {
+		// The preload clears it; without that, SessionStart gives no context.build.
+		const r = Bun.spawnSync(["bun", "test", "tests/claude-adapter.test.ts", "-t", "SessionStart er to kjernehendelser"], {
+			cwd: REPO,
+			env: { ...process.env, PAI_CONTEXT_FILE: "/tmp/session-context.md", PAI_HARNESS: "claude", PAI_ENABLED: "1" },
+			stdout: "pipe",
+			stderr: "pipe",
+		});
+		const out = r.stdout.toString() + r.stderr.toString();
+		expect(out).toMatch(/\b2 pass\b/);
+		expect(r.exitCode).toBe(0);
+	});
+});
