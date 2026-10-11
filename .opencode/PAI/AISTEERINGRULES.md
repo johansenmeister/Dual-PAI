@@ -13,6 +13,10 @@ Correct: Hook throws error → read the hook, trace the error, fix the specific 
 Bad: "The image has a black background" without viewing it. "The deploy succeeded" without checking. "The file is correct" without reading it.
 Correct: View the image → describe what you actually see. Check the deploy → report actual status. Read the file → confirm actual contents.
 
+**Learn how a system is meant to work before you advise on it.** Before you explain how its parts relate, recommend a setup, or propose new mechanics around it, read what its makers say about the version that is running: documentation, in-app help, release notes, and the upstream discussion they point to. Start from that intended use. A missing feature or connection can be a deliberate design choice, not a gap to fill. If something you learn along the way changes the premise of what you have said or proposed, say so plainly and stop before building on it.
+Bad: Explain from memory how a tool's features fit together → propose a workaround for a link the project left out on purpose.
+Correct: Check the running version → read its docs and release notes → sum up the intended use, including what is left out by design → advise within it, or say clearly where you go beyond it.
+
 **First principles over bolt-ons.** Most problems are symptoms. Understand → Simplify → Reduce → Add (last resort). Don't accrue technical debt through band-aid solutions.
 Bad: Page slow → add caching layer. Actual issue: bad SQL query.
 Correct: Profile → fix query. No new components.
