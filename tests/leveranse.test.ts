@@ -319,3 +319,41 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_feil_identitet og lev_sett_identite
 		expect(bash('lev_feil_identitet "$1" "$2" "$3"', dev, JOBB)).toBe(dev);
 	});
 });
+
+describe.skipIf(!existsSync(LEVERANSE))("why the job's Gitea does not answer (#190)", () => {
+	// cloud-init rewrites /etc/hosts at boot, so the tunnel can be up while the
+	// name is gone. Before #190 every failed fetch said "is wg-jobb up?".
+	const diagnose = (env: Record<string, string>) => {
+		const p = Bun.spawnSync(["bash", "-c", `. "${LEVERANSE}" && lev_jobb_nett`], { env: { ...process.env, ...env } });
+		return { code: p.exitCode, out: p.stdout.toString().trim() };
+	};
+
+	test("tunnel down: says so, and exits 1", () => {
+		const r = diagnose({ LEV_IP_LINK: "false", LEV_OPPSLAG: "true" });
+		expect(r.code).toBe(1);
+		expect(r.out).toStartWith("wg-jobb er nede");
+	});
+
+	test("tunnel up, name missing: points at /etc/hosts and #190, not the tunnel", () => {
+		const r = diagnose({ LEV_IP_LINK: "true", LEV_OPPSLAG: "false" });
+		expect(r.code).toBe(1);
+		expect(r.out).toContain("wg-jobb er oppe");
+		expect(r.out).toContain("git.work.example.internal mangler i /etc/hosts");
+		expect(r.out).toContain("#190");
+	});
+
+	test("both missing: the tunnel comes first, since PostUp adds the name when it comes up", () => {
+		const r = diagnose({ LEV_IP_LINK: "false", LEV_OPPSLAG: "false" });
+		expect(r.code).toBe(1);
+		expect(r.out).toStartWith("wg-jobb er nede");
+	});
+
+	test("both in place: prints nothing, exits 0", () => {
+		expect(diagnose({ LEV_IP_LINK: "true", LEV_OPPSLAG: "true" })).toEqual({ code: 0, out: "" });
+	});
+
+	test("the name is what the lookup is asked for", () => {
+		const r = diagnose({ LEV_IP_LINK: "true", LEV_OPPSLAG: "test git.work.example.internal =" });
+		expect(r.code).toBe(0);
+	});
+});

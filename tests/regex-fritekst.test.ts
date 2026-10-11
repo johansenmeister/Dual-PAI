@@ -29,7 +29,7 @@ const ASCII_KLASSE = /\\[wWbB]|\[a-z|\[A-Z/;
 
 /** Linjer med ASCII-klasser som er riktige, per fil under `pai-core/`. */
 const ASCII_MED_VILJE: Record<string, { linjer: number; grunn: string }> = {
-	"adapters/types.ts": { linjer: 10, grunn: "skallkommandoer (`cat`, `sh`, `pve`) og HTTP-flagg" },
+	"adapters/types.ts": { linjer: 16, grunn: "skallkommandoer (`cat`, `sh`, `pve`, serververbene fra #411) og flagg (HTTP, `pfctl -d`)" },
 	"lib/file-logger.ts": { linjer: 1, grunn: "motornavnet i loggfilnavnet" },
 	"lib/prd-template.ts": { linjer: 1, grunn: "engelske banneord" },
 	"lib/injection-patterns.ts": { linjer: 8, grunn: "engelske injeksjonsfraser og nøkkelformater" },

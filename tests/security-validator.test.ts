@@ -230,6 +230,88 @@ describe("destruktive API-kall spør før de kjøres (#222)", () => {
 	}
 });
 
+describe("destructive server commands ask, locally and over SSH (#411)", () => {
+	// MEASURED 2026-10-10: every command below in `ask` returned "allow" before,
+	// although the same stop through the Proxmox API asked (#222).
+	const ask = [
+		"ssh root@fw 'pfctl -d'",
+		"ssh root@fw pfctl -d",
+		"ssh fw 'pfctl -Fa'",
+		"ssh fw 'pfctl -F all'",
+		"ssh root@fw 'configctl firmware reboot'",
+		"ssh root@fw reboot",
+		"ssh -o BatchMode=yes -p 22 root@h reboot",
+		"ssh -t pve 'sudo reboot'",
+		"ssh h 'cd /; reboot'",
+		"ssh h sh <<'EOF'\nreboot\nEOF",
+		"reboot",
+		"echo x && reboot",
+		"bash -c 'reboot'",
+		"sudo -u root shutdown -h now",
+		"ssh pve systemctl reboot",
+		"ssh h 'init 6'",
+		"ssh root@fw 'rm /conf/config.xml'",
+		"ssh fw rm -f /conf/backup/x.xml",
+		"ssh root@fw 'cscli decisions delete --all'",
+		"ssh fw cscli bouncers delete cs-firewall-bouncer",
+		"ssh root@pve 'qm stop 1000'",
+		"ssh pve qm destroy 290 --purge",
+		"pct stop 101",
+		"for id in 101 102; do pct stop $id; done",
+		"qm list | awk '{print $1}' | xargs -n1 qm stop",
+		"ssh pbs 'zfs destroy -r tank/x'",
+		"zpool destroy tank",
+		"ssh pve 'pvesh delete /nodes/pve/qemu/290'",
+		"pvesh create /nodes/pve/qemu/290/status/stop",
+		// A script the guard cannot see (the firewall status check did this before #410).
+		`printf '%s\\n' "$REMOTE" | ssh -o BatchMode=yes root@fw /bin/sh 2>err`,
+		"cat s.sh | ssh h bash -s",
+		"ssh h sh < script.sh",
+	];
+	for (const command of ask) {
+		test(`asks: ${command.slice(0, 70)}`, async () => {
+			const result = await validateSecurity({ tool: "bash", args: { command } } as never);
+			expect(result.action).toBe("confirm");
+		});
+	}
+
+	const pass = [
+		"ssh fw 'pfctl -sr'",
+		"ssh fw 'pfctl -t crowdsec_blocklists -T show'",
+		"ssh fw 'pfctl -si | grep -d skip x'",
+		"ssh fw 'configctl firmware status'",
+		"ssh fw 'cscli decisions list'",
+		"ssh pve 'qm list'",
+		"ssh pve qm shutdown 290",
+		"pct start 101",
+		"zfs list -t snapshot",
+		"ssh pve 'systemctl status pve-guests'",
+		"ssh h 'cat /var/log/syslog'",
+		"ssh h sh <<'EOF'\nuptime\nEOF",
+		// The verb as text, a file name or an argument, not as a command.
+		"grep -rn reboot runbooks/",
+		"ls docs/Workflows/RebootTier.md",
+		`curl -s -X POST -d '{"template":"reboot-tier"}' "$U/api/project/1/tasks"`,
+		'echo "reboot needed"',
+		"echo reboot",
+		"git log --oneline --grep shutdown",
+		"journalctl -b -1 | grep -i 'halt'",
+		"bun test tests/security-validator.test.ts -t shutdown",
+		"cat > /tmp/n.md <<'EOF'\nssh fw reboot\nEOF",
+		"rm -f build/conf/x.json",
+		"rm ~/repos/x/conf",
+		// Data piped to a remote command that is not a shell.
+		"cat s.sh | ssh h 'cat > /tmp/s.sh'",
+		"git diff | ssh h 'tee /tmp/p.diff'",
+	];
+	for (const command of pass) {
+		test(`passes: ${command.slice(0, 70)}`, async () => {
+			const result = await validateSecurity({ tool: "bash", args: { command } } as never);
+			expect(result.action).toBe("allow");
+		});
+	}
+});
+
 /** En v2-patch med de gitte hodelinjene, i formatet `@opencode/util/patch` leser. */
 function patch(...linjer: string[]): string {
 	return ["*** Begin Patch", ...linjer, "*** End Patch"].join("\n");

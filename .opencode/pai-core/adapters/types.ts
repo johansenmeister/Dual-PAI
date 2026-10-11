@@ -44,6 +44,29 @@ export interface PermissionInput {
 	permission?: string;
 }
 
+// An option with or without its argument: `-u root`, `-t`, `-o BatchMode=yes`.
+const OPTIONS = String.raw`(?:-\S+\s+(?:[^\s-]\S*\s+)?)*`;
+
+/**
+ * A pattern for `verb` where a command starts: first on the line, after a
+ * separator (`;`, `&`, `|`, `(`, newline, backtick, `$(`), after a prefix that
+ * runs the next word (`sudo`, `xargs`, `do` …), as the remote command of
+ * `ssh [options] <host>`, or inside `sh -c '…'`. A quote directly before the
+ * verb counts only after `ssh <host>` or `sh -c`, so `echo "reboot needed"`
+ * passes.
+ */
+function atCommand(verb: string): RegExp {
+	const start = [
+		"^",
+		String.raw`[;&|(\n\x60]`,
+		String.raw`\$\(`,
+		String.raw`\b(?:sudo|doas|exec|nohup|xargs|do|then|else)\s+${OPTIONS}`,
+		String.raw`\bssh\s+${OPTIONS}[^\s-]\S*\s+["']?`,
+		String.raw`\b(?:ba|z|da)?sh\s+-c\s+["']`,
+	].join("|");
+	return new RegExp(String.raw`(?:${start})\s*(?:${verb})(?=$|[\s;&|)"'\x60])`);
+}
+
 /**
  * Dangerous command patterns for security validation
  *
@@ -134,4 +157,31 @@ export const WARNING_PATTERNS = [
 	// itself. `shutdown` and `reboot` are graceful and pass.
 	/\bpve\s+["']?POST["']?\s+["']?\S*\/status\/(?:stop|reset)\b/,
 	/\/api2\/json\/\S*\/status\/(?:stop|reset)\b/,
+
+	// Destructive server commands, run locally or over SSH (#411). PAI has root
+	// over SSH to hosts, and the same stop that asks through the API above went
+	// through as `ssh <host> 'qm stop …'`. The verb must be where a command
+	// starts (see `atCommand`), so `grep reboot`, `RebootTier.md` and the
+	// Semaphore template `reboot-tier` pass.
+	atCommand("reboot|poweroff|halt|shutdown"),
+	atCommand(String.raw`init\s+[06]`),
+	atCommand(String.raw`systemctl\s+(?:reboot|poweroff|halt|kexec)`),
+	// A graceful `qm shutdown` passes, as `status/shutdown` does through the API.
+	atCommand(String.raw`(?:qm|pct)\s+(?:stop|reset|destroy)`),
+	atCommand(String.raw`pvesh\s+delete`),
+	atCommand(String.raw`pvesh\s+(?:create|set)\s+\S*/status/(?:stop|reset)`),
+	atCommand(String.raw`z(?:fs|pool)\s+destroy`),
+	// pf: -d disables the firewall, -F flushes rules or tables.
+	atCommand(String.raw`pfctl(?:\s+[^\s;&|]+)*?\s+-[A-Za-z]*[dF][A-Za-z]*`),
+	atCommand(String.raw`configctl(?:\s+[^\s;&|]+)*?\s+(?:reboot|halt|poweroff)`),
+	// Removes bans, bouncers or machines: the firewall stops blocking.
+	atCommand(String.raw`cscli\s+\S+\s+delete`),
+	// OPNsense and pfSense keep their whole configuration under /conf.
+	atCommand(String.raw`rm(?:\s+-\S+)*\s+["']?/conf(?:/[^\s;&|"']*)?`),
+
+	// A script fed to a shell on the other side (#411): the guard cannot see
+	// what runs there, so it cannot judge it. A heredoc to `ssh … sh` is
+	// visible and is matched by the patterns above instead.
+	/\|\s*ssh\b[^;&|\n]*\s["']?(?:\S*\/)?(?:ba|z|da|k)?sh["']?(?=\s|$)/,
+	/\bssh\b[^;&|\n]*\s(?:\S*\/)?(?:ba|z|da|k)?sh(?:\s+-s)?\s*<(?!<)/,
 ] as const;

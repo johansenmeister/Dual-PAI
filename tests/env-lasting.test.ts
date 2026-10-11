@@ -156,6 +156,9 @@ function notLoaded(file: string, text: string, keys: string[]): string | null {
 	const ext = extname(file);
 	if ([".ts", ".js", ".mjs"].includes(ext)) {
 		if (file in OWN_LOADER) return null;
+		// A test next to a skill's script sets up its own environment, e.g. a fake
+		// .env the script is pointed at (#414); it does not load the user's.
+		if (file.endsWith(".test.ts")) return null;
 		const call = text.search(/^loadPaiEnv\(\);?$/m);
 		if (call < 0) return "no loadPaiEnv() at the top of the file";
 		const firstRead = Math.min(
