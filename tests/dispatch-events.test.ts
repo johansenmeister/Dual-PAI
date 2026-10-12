@@ -96,7 +96,9 @@ describe("context.build — PAI_ENABLED-porten", () => {
 		process.env.PAI_ENABLED = "1";
 		const result = await dispatch({ ...base(), type: "context.build" } as PaiEvent);
 
-		expect(result.additionalContext).toHaveLength(1);
+		// The context, then the clock line (#429).
+		expect(result.additionalContext).toHaveLength(2);
+		expect(result.additionalContext?.[1]).toStartWith("Clock: ");
 		const kontekst = result.additionalContext?.[0] ?? "";
 		// Innpakningen er kontrakten mot begge motorene. Endres den, endres
 		// hvordan modellen ser konteksten — da skal denne testen falle.

@@ -199,7 +199,12 @@ export async function onUserMessage(event: PaiUserMessageEvent): Promise<PaiResu
 	// `UserPromptSubmit`; v2 får den samme linja fra `context.build`.
 	const { arbeidsøktKontekst } = await import("./arbeidsokt");
 	const arbeidsøkt = await arbeidsøktKontekst(event.sessionId);
-	return arbeidsøkt ? { notes, additionalContext: [arbeidsøkt] } : { notes };
+	// The clock line (#429) records the prompt under both engines; only
+	// Claude takes the line from here, v2 from `context.build`.
+	const { clockContext } = await import("./clock");
+	const klokke = await clockContext(event, true);
+	const linjer = [arbeidsøkt, klokke].filter((l): l is string => !!l);
+	return linjer.length > 0 ? { notes, additionalContext: linjer } : { notes };
 }
 
 /**

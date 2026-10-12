@@ -45,6 +45,59 @@ function bufferFile(sessionKey: string): string {
 }
 
 /**
+ * A gap this long between two prompts is a break, and starts a new sitting
+ * (#429). A session resumed the next morning is a new sitting, not fourteen
+ * hours at the keyboard.
+ */
+export const BREAK_MS = 30 * 60 * 1000;
+
+/** The current sitting: first and latest prompt, ms since epoch. */
+export interface Sitting {
+	start: number;
+	last: number;
+}
+
+export function sittingFile(sessionKey: string): string {
+	return path.join(getStateDir(), `sitting-${sessionKey}.json`);
+}
+
+/** The sitting a prompt at `now` belongs to, given the previous one. */
+export function nextSitting(previous: Sitting | null, now: number): Sitting {
+	if (!previous || now - previous.last >= BREAK_MS) return { start: now, last: now };
+	return { start: previous.start, last: now };
+}
+
+/** The sitting on disk, or null when there is none or it cannot be read. */
+export async function readSitting(sessionKey: string): Promise<Sitting | null> {
+	try {
+		const raw = JSON.parse(await fs.promises.readFile(sittingFile(sessionKey), "utf-8"));
+		if (typeof raw?.start === "number" && typeof raw?.last === "number") {
+			return { start: raw.start, last: raw.last };
+		}
+	} catch {
+		// Missing or unreadable: no sitting yet.
+	}
+	return null;
+}
+
+/**
+ * Record a prompt and return its sitting. Fail-open: a sitting that cannot be
+ * written costs the clock line its duration next time, nothing else. Not
+ * removed at teardown, so a session continued within the break keeps its
+ * count; `pruneStaleState` takes it after a day.
+ */
+export async function recordPrompt(sessionKey: string, now: number): Promise<Sitting> {
+	const sitting = nextSitting(await readSitting(sessionKey), now);
+	try {
+		await ensureDir(getStateDir());
+		await writeAtomic(sittingFile(sessionKey), JSON.stringify(sitting));
+	} catch (error) {
+		fileLogError("[Clock] Could not write the sitting", error);
+	}
+	return sitting;
+}
+
+/**
  * Skriv en fil atomisk.
  *
  * Leseren er en annen prosess enn skriveren. Et halvskrevet JSON-dokument
@@ -190,7 +243,7 @@ export async function pruneStaleState(): Promise<number> {
 		const dir = getStateDir();
 		const now = Date.now();
 		for (const navn of await fs.promises.readdir(dir)) {
-			if (!navn.startsWith("dedupe-") && !navn.startsWith("msgbuf-")) continue;
+			if (!navn.startsWith("dedupe-") && !navn.startsWith("msgbuf-") && !navn.startsWith("sitting-")) continue;
 			const full = path.join(dir, navn);
 			try {
 				const stat = await fs.promises.stat(full);

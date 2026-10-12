@@ -46,6 +46,14 @@ function sone(): string | undefined {
 }
 
 /**
+ * The zone the clock line shows (#429): the configured one, or the machine's own,
+ * by name, so the model can tell which clock it is reading.
+ */
+export function displayTimeZone(): string {
+	return sone() ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+/**
  * Tid i PAIs konfigurerte sone, som ISO-lignende streng uten soneangivelse.
  * Format: 2026-02-02T14:30:00
  *

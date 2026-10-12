@@ -278,7 +278,12 @@ async function buildContext(event: PaiContextBuildEvent): Promise<PaiResult> {
 		}).catch(() => {});
 		const { arbeidsøktKontekst } = await import("./dispatch/arbeidsokt");
 		const arbeidsøkt = await arbeidsøktKontekst(event.sessionId);
-		return { additionalContext: arbeidsøkt ? [userContext, arbeidsøkt] : [userContext] };
+		// Last, so the static context before it stays a cacheable prefix (#429).
+		const { clockContext } = await import("./dispatch/clock");
+		const klokke = await clockContext(event, false);
+		return {
+			additionalContext: [userContext, arbeidsøkt, klokke].filter((l): l is string => !!l),
+		};
 	}
 
 	fileLog("Context injection skipped: empty user context", "warn");

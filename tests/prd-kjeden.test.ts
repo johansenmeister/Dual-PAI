@@ -143,7 +143,8 @@ describe("modellen får vite hvor PRD-en skal", () => {
 		process.env.PAI_ENABLED = "1";
 		await dispatch({ ...base, type: "user.message", text: "Lag en plan for PRD-kjeden i v2" } as PaiEvent);
 		const svar = await dispatch({ ...base, type: "context.build" } as PaiEvent);
-		expect(svar.additionalContext).toHaveLength(2);
+		expect(svar.additionalContext).toHaveLength(3);
 		expect(svar.additionalContext?.[1]).toContain("PAI work session directory");
+		expect(svar.additionalContext?.[2]).toStartWith("Clock: ");
 	});
 });
