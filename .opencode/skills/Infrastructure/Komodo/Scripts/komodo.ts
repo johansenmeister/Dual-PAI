@@ -55,9 +55,19 @@ export const SECRET_STAGE = /compose\s*config/i;
 /** Lines kept from the end of a log stream. Long enough for an error. */
 export const LOG_TAIL = 40;
 
+/**
+ * Komodo formats some log output for its UI (`<span style=…>hash:</span>`, MÅLT on
+ * 2.3.3). Only the span tags go: other angle brackets in a log, such as `<TOKEN>`
+ * where Komodo masked a token, are text.
+ */
+export function plain(text: string): string {
+	return text.replace(/<\/?span\b[^>]*>/gi, "");
+}
+
 function tail(text: unknown): string | undefined {
-	const s = str(text);
-	if (!s) return undefined;
+	const raw = str(text);
+	if (!raw) return undefined;
+	const s = plain(raw);
 	const lines = s.trimEnd().split("\n");
 	return lines.length > LOG_TAIL ? [`… (${lines.length - LOG_TAIL} lines cut)`, ...lines.slice(-LOG_TAIL)].join("\n") : lines.join("\n");
 }
@@ -91,7 +101,8 @@ export function projectStacks(raw: unknown) {
 			id: str(s.id),
 			name: str(s.name),
 			tags: list(s.tags).filter((t) => typeof t === "string"),
-			server: str(info.server_name) ?? str(info.server_id),
+			// `||`, not `??`: a stack without a server has `server_name: ""` (MÅLT on 2.3.3).
+			server: str(info.server_name) || str(info.server_id) || undefined,
 			state: str(info.state),
 			status: str(info.status),
 			repo: str(info.repo),

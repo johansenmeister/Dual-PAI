@@ -11,7 +11,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type Env, type Fetch, loadEnv, parseDotenv, read, run } from "./komodo";
+import { type Env, type Fetch, loadEnv, parseDotenv, plain, read, run } from "./komodo";
 
 const SECRET = "s3cr3t-must-not-leak";
 const ENV: Env = { host: "https://komodo.example", key: "K", secret: "S" };
@@ -86,6 +86,15 @@ const UPDATE = {
 	logs: [
 		{ stage: "Compose Config", command: "docker compose config", stdout: `PW: ${SECRET}`, stderr: SECRET, success: true, start_ts: 1, end_ts: 2 },
 		{ stage: "compose config", command: "x", stdout: SECRET, stderr: "", success: true, start_ts: 1, end_ts: 2 },
+		{
+			stage: "Latest Commit",
+			command: "git rev-parse --short HEAD",
+			stdout: '<span style="color: var(--mantine-color-dimmed)">hash:</span> <span style="font-weight: bolder">abc</span>',
+			stderr: "",
+			success: true,
+			start_ts: 1,
+			end_ts: 2,
+		},
 		{ stage: "Compose Up", command: "docker compose up -d", stdout: "", stderr: "pull access denied for app", success: false, start_ts: 3, end_ts: 4 },
 	],
 };
@@ -137,6 +146,20 @@ describe("no secret leaves the tool", () => {
 });
 
 describe("what it does print", () => {
+	test("stacks: a stack without a server name falls back to the id, an empty one to nothing", async () => {
+		const saved = RESPONSES.ListStacks;
+		RESPONSES.ListStacks = [
+			{ name: "a", info: { server_name: "", server_id: "srv9" } },
+			{ name: "b", info: { server_name: "", server_id: "" } },
+		];
+		try {
+			const out = (await run(["stacks"], ENV, fake().fetchFn)) as Record<string, unknown>[];
+			expect(out.map((s) => s.server)).toEqual(["srv9", undefined]);
+		} finally {
+			RESPONSES.ListStacks = saved;
+		}
+	});
+
 	test("stacks: state and update flags", async () => {
 		const [stack] = (await run(["stacks"], ENV, fake().fetchFn)) as Record<string, unknown>[];
 		expect(stack).toMatchObject({ name: "web", server: "docker", state: "running", latest_hash: "def" });
@@ -153,10 +176,16 @@ describe("what it does print", () => {
 
 	test("update: the failing stage's error, and every Compose Config stage withheld", async () => {
 		const out = (await run(["update", "up1"], ENV, fake().fetchFn)) as { logs: Record<string, unknown>[] };
-		expect(out.logs.map((l) => l.stage)).toEqual(["Compose Config", "compose config", "Compose Up"]);
+		expect(out.logs.map((l) => l.stage)).toEqual(["Compose Config", "compose config", "Latest Commit", "Compose Up"]);
 		expect(out.logs[0]).not.toHaveProperty("stdout");
 		expect(out.logs[1]).not.toHaveProperty("stdout");
-		expect(out.logs[2]).toMatchObject({ success: false, stderr: "pull access denied for app" });
+		expect(out.logs[3]).toMatchObject({ success: false, stderr: "pull access denied for app" });
+	});
+
+	test("update: the UI's span tags are gone, other angle brackets stay", async () => {
+		const out = (await run(["update", "up1"], ENV, fake().fetchFn)) as { logs: Record<string, unknown>[] };
+		expect(out.logs[2].stdout).toBe("hash: abc");
+		expect(plain("token:<TOKEN>@host <b>x</b>")).toBe("token:<TOKEN>@host <b>x</b>");
 	});
 
 	test("update: a long stream keeps its tail", async () => {
