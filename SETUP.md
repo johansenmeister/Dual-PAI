@@ -280,7 +280,7 @@ Ask what the user wants PAI for: **operations** (running and looking after
 machines and services), **development** (writing and reviewing code), or
 **both**. Then ask what their lab consists of, whatever the answer: a
 developer has machines too. For example: this computer only; other Linux
-machines over SSH; a Proxmox host; a Docker host with Portainer; a NAS; a
+machines over SSH; a Proxmox host; a Docker host managed by Komodo; a NAS; a
 firewall; DNS.
 
 For each machine or service, ask for a name, the address, how it is reached

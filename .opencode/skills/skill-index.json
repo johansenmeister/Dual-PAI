@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-04T22:55:26.194Z",
+  "generated": "2026-10-12T09:17:59.949Z",
   "totalSkills": 52,
   "categories": 5,
   "flatSkills": 10,
@@ -238,46 +238,6 @@
       "tier": "deferred",
       "isHierarchical": true
     },
-    "dockerportainer": {
-      "name": "DockerPortainer",
-      "path": "Infrastructure/DockerPortainer/SKILL.md",
-      "category": "Infrastructure",
-      "fullDescription": "Docker-vert og Portainer-stack administrasjon — inspect, oppgrader, migrer bind-mounts, roter secrets. USE WHEN portainer, docker stack, oppgrader stack, bump image, hvilken versjon kjører docker, stack status, migrer bind-mount, flytt bind-mount til volum, rydd root-disk, roter secret, bytt jwt_secret, secrets i compose, docker node.",
-      "triggers": [
-        "portainer",
-        "docker",
-        "stack",
-        "oppgrader",
-        "bump",
-        "image",
-        "hvilken",
-        "versjon",
-        "kjører",
-        "status",
-        "migrer",
-        "bind-mount",
-        "flytt",
-        "til",
-        "volum",
-        "rydd",
-        "root-disk",
-        "roter",
-        "secret",
-        "bytt",
-        "jwt_secret",
-        "secrets",
-        "compose",
-        "node"
-      ],
-      "workflows": [
-        "InspectStack",
-        "UpgradeStack",
-        "MigrateBindMount",
-        "RotateSecret"
-      ],
-      "tier": "deferred",
-      "isHierarchical": true
-    },
     "documents": {
       "name": "Documents",
       "path": "Utilities/Documents/SKILL.md",
@@ -476,9 +436,9 @@
       "name": "Infrastructure",
       "path": "Infrastructure/SKILL.md",
       "category": null,
-      "fullDescription": "Drift av homelaben. USE WHEN portainer, docker stack, proxmox, pve, VM status, technitium, dns status, truenas, NAS status.",
+      "fullDescription": "Drift av homelaben. USE WHEN komodo, docker stack, proxmox, pve, VM status, technitium, dns status, truenas, NAS status.",
       "triggers": [
-        "portainer",
+        "komodo",
         "docker",
         "stack",
         "proxmox",
@@ -523,6 +483,43 @@
       ],
       "workflows": [
         "Explore"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
+    "komodo": {
+      "name": "Komodo",
+      "path": "Infrastructure/Komodo/SKILL.md",
+      "category": "Infrastructure",
+      "fullDescription": "Komodo (Docker-stacker, servere, deploy-historikk og resource syncs) — lesing og kontroll, ingen endringer. USE WHEN komodo, stack status, docker stack, hvilke stacker kjører, oppdatering tilgjengelig, update available, deploy-logg, feilet deploy, resource sync, sync-diff, periphery, hvilken versjon kjører, sjekk stacken.",
+      "triggers": [
+        "komodo",
+        "stack",
+        "status",
+        "docker",
+        "hvilke",
+        "stacker",
+        "kjører",
+        "oppdatering",
+        "tilgjengelig",
+        "update",
+        "available",
+        "deploy-logg",
+        "feilet",
+        "deploy",
+        "resource",
+        "sync",
+        "sync-diff",
+        "periphery",
+        "hvilken",
+        "versjon",
+        "sjekk",
+        "stacken"
+      ],
+      "workflows": [
+        "Status",
+        "InspectStack",
+        "ReviewChange"
       ],
       "tier": "deferred",
       "isHierarchical": true
@@ -1377,7 +1374,7 @@
       "ExtractWisdom"
     ],
     "Infrastructure": [
-      "DockerPortainer",
+      "Komodo",
       "Proxmox",
       "Technitium",
       "TrueNAS"

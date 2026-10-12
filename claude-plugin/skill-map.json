@@ -43,13 +43,13 @@
       ],
       "navn": "Infrastructure"
     },
-    "infrastructure-docker-portainer": {
-      "kilde": ".opencode/skills/Infrastructure/DockerPortainer",
+    "infrastructure-komodo": {
+      "kilde": ".opencode/skills/Infrastructure/Komodo",
       "segmenter": [
         "Infrastructure",
-        "DockerPortainer"
+        "Komodo"
       ],
-      "navn": "DockerPortainer"
+      "navn": "Komodo"
     },
     "infrastructure-proxmox": {
       "kilde": ".opencode/skills/Infrastructure/Proxmox",
@@ -418,8 +418,7 @@
     "contentanalysis": "content-analysis",
     "extractwisdom": "content-analysis-extract-wisdom",
     "extract-wisdom": "content-analysis-extract-wisdom",
-    "dockerportainer": "infrastructure-docker-portainer",
-    "docker-portainer": "infrastructure-docker-portainer",
+    "komodo": "infrastructure-komodo",
     "proxmox": "infrastructure-proxmox",
     "technitium": "infrastructure-technitium",
     "truenas": "infrastructure-true-nas",

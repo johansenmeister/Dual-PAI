@@ -209,7 +209,7 @@ Some of them:
 | **Research and content** | Research, ExtractWisdom, Fabric (over 200 prompt patterns), Parser |
 | **Documents** | Docx, Xlsx, Pptx, Pdf |
 | **Building** | CreateSkill, CreateCLI, CodeReview, Evals, Hardening, Prompting, Browser, Cloudflare |
-| **Infrastructure** | Proxmox, TrueNAS, Technitium, DockerPortainer |
+| **Infrastructure** | Proxmox, TrueNAS, Technitium, Komodo |
 | **PAI itself** | Agents, Telos (your goals), Delegation, System, HarnessUpdate, ModelUpdate |
 
 Under Claude Code the same skills appear through a generated mirror

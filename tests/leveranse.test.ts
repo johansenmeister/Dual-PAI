@@ -97,6 +97,84 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_jobb_markorer (#290)", () => {
 	});
 });
 
+describe.skipIf(!existsSync(LEVERANSE))("lev_jobb_utelat: Infrastructure skills the job gets (#380)", () => {
+	let repo = "";
+	const git = (...a: string[]): string => {
+		const p = Bun.spawnSync(["git", "-C", repo, ...a], {
+			env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" },
+		});
+		if (p.exitCode !== 0) throw new Error(`git ${a.join(" ")}: ${p.stderr}`);
+		return p.stdout.toString().trim();
+	};
+	const commit = (files: Record<string, string>, remove: string[] = []): string => {
+		for (const [f, content] of Object.entries(files)) {
+			mkdirSync(dirname(join(repo, f)), { recursive: true });
+			writeFileSync(join(repo, f), content);
+		}
+		for (const f of remove) git("rm", "-rq", f);
+		git("add", "-A");
+		git("commit", "-qm", "c");
+		return git("rev-parse", "HEAD");
+	};
+	const bash = (script: string, ...args: string[]): string[] => {
+		const p = Bun.spawnSync(["bash", "-c", `. "${LEVERANSE}" && ${script}`, "_", ...args]);
+		if (p.exitCode !== 0) throw new Error(`${script}: ${p.stderr}`);
+		return p.stdout.toString().split("\n").filter(Boolean);
+	};
+	const INFRA = ".opencode/skills/Infrastructure";
+
+	beforeAll(() => {
+		repo = mkdtempSync(join(tmpdir(), "pai-leveranse-infra-"));
+		git("init", "-q");
+		commit({
+			[`${INFRA}/SKILL.md`]: "category\n",
+			[`${INFRA}/Komodo/SKILL.md`]: "komodo\n",
+			[`${INFRA}/Homelab/SKILL.md`]: "home\n",
+			[`${INFRA}/Gone/SKILL.md`]: "old\n",
+		});
+		commit({}, [`${INFRA}/Gone`]);
+	});
+	afterAll(() => rmSync(repo, { recursive: true, force: true }));
+
+	const infraExcludes = () => bash(`lev_jobb_utelat "$1"`, repo).filter((p) => p.startsWith(INFRA) || p.includes("skill-map"));
+
+	test("every child of Infrastructure is excluded except the listed skills, a deleted one too", () => {
+		expect(infraExcludes()).toEqual([
+			`${INFRA}/Gone`,
+			`${INFRA}/Homelab`,
+			`${INFRA}/SKILL.md`,
+			"claude-plugin/skill-map.json",
+		]);
+	});
+
+	test("a new home skill is excluded until it is listed", () => {
+		commit({ [`${INFRA}/Fresh/SKILL.md`]: "new\n" });
+		expect(infraExcludes()).toContain(`${INFRA}/Fresh`);
+		expect(infraExcludes()).not.toContain(`${INFRA}/Komodo`);
+	});
+
+	test("a marker in Komodo counts, one in a home skill does not", () => {
+		const from = git("rev-parse", "HEAD");
+		const to = commit({
+			[`${INFRA}/Komodo/SKILL.md`]: `komodo\n${markør()}\n`,
+			[`${INFRA}/Homelab/SKILL.md`]: `home\n${markør()}\n`,
+		});
+		expect(bash(`lev_jobb_markorer "$1" "$2" "$3"`, repo, from, to)).toEqual([`${INFRA}/Komodo/SKILL.md: ${markør()}`]);
+	});
+
+	test("git apply with Leveranse.sh's excludes keeps Komodo and drops the rest", () => {
+		const to = commit({
+			[`${INFRA}/Komodo/Workflows/Status.md`]: "deep\n",
+			[`${INFRA}/Homelab/Workflows/Deep.md`]: "deep\n",
+			"claude-plugin/skill-map.json": "{}\n",
+		});
+		const excludes = bash(`lev_jobb_utelat "$1"`, repo).flatMap((p) => [`--exclude=${p}`, `--exclude=${p}/*`]);
+		const p = Bun.spawnSync(["bash", "-c", 'r=$1 h=$2; shift 2; git -C "$r" format-patch -1 --stdout "$h" | git apply --numstat "$@"', "_", repo, to, ...excludes]);
+		const files = p.stdout.toString().split("\n").filter(Boolean).map((l) => l.split("\t")[2]);
+		expect(files).toEqual([`${INFRA}/Komodo/Workflows/Status.md`]);
+	});
+});
+
 describe.skipIf(!existsSync(LEVERANSE))("lev_testtall (#328)", () => {
 	let dir = "";
 	beforeAll(() => {
