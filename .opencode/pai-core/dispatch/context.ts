@@ -12,6 +12,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { fileLog, fileLogError } from "../lib/file-logger";
+import { oppstartsvarsler } from "../lib/oppstartsvarsel";
 
 /**
  * PAI-katalogen, løst modul-relativt — ikke via `getPaiHome()`.
@@ -173,6 +174,17 @@ export async function loadUserSystemContext(): Promise<UserContextResult | null>
 		if (indeks) {
 			contextParts.push(`--- Learnings from earlier sessions ---\n${indeks}`);
 			fileLog("Loaded the learning index from MEMORY/LEARNING");
+		}
+
+		// 4. Oppstartsvarsler fra de lokale speilene (#14 steg 2). Claude-hooken
+		// viser de samme linjene til brukeren som `systemMessage`; v2 har ingen
+		// slik kanal, så der er det modellen som sier det.
+		const varsler = oppstartsvarsler(process.env.PAI_HOME?.trim() || path.join(PAI_DIR, ".."));
+		if (varsler.length > 0) {
+			contextParts.push(
+				`--- Startup notices ---\nTell the user these in one line each at the start of your first reply in this session:\n${varsler.map((v) => `- ${v}`).join("\n")}`
+			);
+			fileLog(`Loaded ${varsler.length} startup notice(s)`);
 		}
 
 		if (contextParts.length === 0) {

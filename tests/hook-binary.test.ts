@@ -318,4 +318,48 @@ describe("stale-varselet er KOBLET OPP i SessionStart", () => {
 			rmSync(repoRot, { recursive: true, force: true });
 		}
 	});
+
+	/** Et speil med én løst sak, og konfigen som peker på det. */
+	function riggVarsel(repoRot: string, paiHome: string): void {
+		const speil = join(repoRot, "speil");
+		mkdirSync(join(speil, "problems"), { recursive: true });
+		writeFileSync(join(speil, "problems", "1.md"), "---\nstatus: løst\n---\n");
+		mkdirSync(join(paiHome, "PAI", "USER"), { recursive: true });
+		writeFileSync(
+			join(paiHome, "PAI", "USER", "OPPSTARTSVARSEL.json"),
+			JSON.stringify({ varsler: [{ katalog: speil, linje: "^status: løst$", tekst: "Løste saker: {n}" }] })
+		);
+	}
+
+	test("oppstartsvarsel → systemMessage når brukeren (#14 steg 2)", async () => {
+		const { repoRot, pluginRot, paiHome } = riggTre("varsel");
+		try {
+			riggVarsel(repoRot, paiHome);
+			const ut = await kjørSessionStart(pluginRot, paiHome);
+			expect((JSON.parse(ut) as { systemMessage?: string }).systemMessage).toBe("📋 Løste saker: 1");
+		} finally {
+			rmSync(repoRot, { recursive: true, force: true });
+		}
+	});
+
+	test("oppstartsvarsel og stale-varsel står begge", async () => {
+		// Den ene skal ikke kunne skrive over den andre.
+		const { repoRot, pluginRot, paiHome } = riggTre("begge");
+		try {
+			riggVarsel(repoRot, paiHome);
+			const bin = binærSti(pluginRot);
+			writeFileSync(bin, "#!/bin/sh\n");
+			settAlder(bin, -120);
+			const kilde = join(repoRot, ".opencode", "pai-core", "index.ts");
+			writeFileSync(kilde, "export const x = 1;");
+			settAlder(kilde, 0);
+
+			const melding = (JSON.parse(await kjørSessionStart(pluginRot, paiHome)) as { systemMessage?: string })
+				.systemMessage;
+			expect(melding).toContain("pai claude sync");
+			expect(melding).toContain("📋 Løste saker: 1");
+		} finally {
+			rmSync(repoRot, { recursive: true, force: true });
+		}
+	});
 });

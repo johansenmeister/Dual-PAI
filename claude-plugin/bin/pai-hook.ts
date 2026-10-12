@@ -28,6 +28,7 @@ import { fileLog, fileLogError } from "../src/bootstrap";
 import { dispatch } from "../../.opencode/pai-core";
 import type { PaiResult } from "../../.opencode/pai-core";
 import { reapOrphanedWorkSessions } from "../../.opencode/pai-core/dispatch/session";
+import { oppstartsvarsler } from "../../.opencode/pai-core/lib/oppstartsvarsel";
 import { type ClaudeHookPayload, tilKjernehendelser } from "../src/adapter/in";
 import { slåSammen, tilHookUtdata } from "../src/adapter/out";
 import { hurtigutgang } from "../src/adapter/routes";
@@ -139,6 +140,27 @@ function medStaleVarsel(dokument: string): string {
 	} catch (error) {
 		// En vakt som kaster skal ikke kunne velte hooken den vokter.
 		fileLogError("[pai-hook] Ferskhetssjekken feilet", error);
+		return dokument;
+	}
+}
+
+/**
+ * Oppstartsvarslene (`pai-core/lib/oppstartsvarsel.ts`) til brukeren.
+ *
+ * Modellen får de samme linjene i konteksten fra `context.build`. Her går de
+ * som `systemMessage`, så brukeren ser dem før første melding, og legges
+ * etter et eventuelt stale-varsel i stedet for å erstatte det.
+ */
+function medOppstartsvarsel(dokument: string): string {
+	try {
+		const linjer = oppstartsvarsler();
+		if (linjer.length === 0) return dokument;
+		const svar = JSON.parse(dokument) as Record<string, unknown>;
+		const før = typeof svar.systemMessage === "string" ? [svar.systemMessage] : [];
+		svar.systemMessage = [...før, ...linjer.map((l) => `📋 ${l}`)].join("\n");
+		return JSON.stringify(svar);
+	} catch (error) {
+		fileLogError("[pai-hook] Oppstartsvarslene feilet", error);
 		return dokument;
 	}
 }
@@ -257,7 +279,7 @@ async function main(): Promise<never> {
 	let dokument: string;
 	try {
 		dokument = tilHookUtdata(hendelsesnavn, samlet);
-		if (hendelsesnavn === "SessionStart") dokument = medStaleVarsel(dokument);
+		if (hendelsesnavn === "SessionStart") dokument = medOppstartsvarsel(medStaleVarsel(dokument));
 	} catch (error) {
 		// Serialisering kan feile på sirkulære strukturer. Et tomt svar er
 		// alltid gyldig JSON; et halvt dokument er det aldri.
