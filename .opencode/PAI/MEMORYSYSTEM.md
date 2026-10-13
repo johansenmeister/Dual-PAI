@@ -9,12 +9,12 @@
 
 ## Architecture
 
-**OpenCode's `projects/` is the source of truth. Plugins capture domain-specific events directly. Harvesting tools extract learnings from session transcripts.**
+**The engine's own session store is the source of truth. Plugins capture domain-specific events directly. Harvesting tools extract learnings from Claude Code's session transcripts.**
 
 ```
 User Request
     ↓
-OpenCode projects/ (native session storage - SQLite database, 30-day retention)
+Engine session store (Claude Code: ~/.claude/projects/ JSONL; OpenCode v2: opencode.db)
     ↓
 Plugin Events trigger domain-specific captures:
     ├── Algorithm (AI) → WORK/
@@ -27,7 +27,7 @@ Harvesting (periodic):
     └── LearningPatternSynthesis → LEARNING/SYNTHESIS/ (aggregates ratings)
 ```
 
-**Key insight:** Plugins write directly to specialized directories. There is no intermediate "firehose" layer - OpenCode's `projects/` serves that purpose natively.
+**Key insight:** Plugins write directly to specialized directories. There is no intermediate "firehose" layer - the engine's session store serves that purpose natively.
 
 ---
 
@@ -84,14 +84,12 @@ Harvesting (periodic):
 
 ## Directory Details
 
-### OpenCode projects/ - Native Session Storage
+### Session transcripts - the engine's own storage
 
-**Location:** `~/.opencode/projects/` (SQLite database)
-**What populates it:** OpenCode automatically (every conversation)
-**Content:** Complete session transcripts in SQLite format
-**Format:** Session data stored in SQLite database with structured tables
-**Retention:** 30 days (OpenCode manages cleanup)
-**Purpose:** Source of truth for all session data; harvesting tools read from here
+**Location:** Claude Code: `~/.claude/projects/<slug>/<session>.jsonl` (`$CLAUDE_CONFIG_DIR/projects/` when set; the slug is the cwd with every character outside `[a-zA-Z0-9]` as `-`). OpenCode v2: `~/.local/share/opencode/opencode.db`.
+**What populates it:** The engine automatically (every conversation)
+**Content:** Complete session transcripts
+**Purpose:** Source of truth for all session data. The harvesting tools read Claude Code's JSONL only (`PAI/Tools/claude-transcripts.ts`); OpenCode sessions in `opencode.db` are not read.
 
 This is the actual "firehose" - every message, tool call, and response. PAI leverages this native storage rather than duplicating it.
 
@@ -129,7 +127,7 @@ This is the actual "firehose" - every message, tool call, and response. PAI leve
 **What populates it:**
 - `RatingCapture.plugin.ts` (explicit ratings + implicit sentiment + low-rating learnings)
 - `WorkCompletionLearning.plugin.ts` (significant work session completions)
-- `SessionHarvester.ts` (periodic extraction from projects/ transcripts)
+- `SessionHarvester.ts` (extraction from Claude Code transcripts)
 - `LearningPatternSynthesis.ts` (aggregates ratings into pattern reports)
 
 **Structure:**
@@ -245,10 +243,10 @@ An append-only JSONL file where plugins emit structured, typed events alongside 
 
 | Tool | Purpose | Reads From | Writes To |
 |------|---------|------------|-----------|
-| SessionHarvester.ts | Extract learnings from transcripts | projects/ | LEARNING/ |
+| SessionHarvester.ts | Extract learnings from transcripts | `~/.claude/projects/<cwd slug>/` | LEARNING/ |
 | LearningPatternSynthesis.ts | Aggregate ratings into patterns | LEARNING/SIGNALS/ | LEARNING/SYNTHESIS/ |
-| FailureCapture.ts | Full context dumps for low ratings | projects/, SIGNALS/ | LEARNING/FAILURES/ |
-| ActivityParser.ts | Parse recent file changes | projects/ | (analysis only) |
+| FailureCapture.ts | Full context dumps for low ratings | a transcript path, SIGNALS/ | LEARNING/FAILURES/ |
+| ActivityParser.ts | Parse recent file changes | `~/.claude/projects/*/` | (analysis only) |
 
 ---
 
@@ -257,7 +255,7 @@ An append-only JSONL file where plugins emit structured, typed events alongside 
 ```
 User Request
     ↓
-OpenCode → projects/ (SQLite session storage)
+Engine → session store (Claude Code JSONL / OpenCode opencode.db)
     ↓
 Algorithm (AI) → WORK/{timestamp}_{slug}/PRD.md + STATE/current-work-{sessionId}.json
     ↓
@@ -271,7 +269,7 @@ SessionSummary → WORK/PRD.md (status→COMPLETED), clears STATE/current-work-{
 
 [Periodic harvesting]
     ↓
-SessionHarvester → scans projects/ → writes LEARNING/
+SessionHarvester → scans Claude Code transcripts → writes LEARNING/
 LearningPatternSynthesis → analyzes SIGNALS/ → writes SYNTHESIS/
 ```
 
@@ -292,12 +290,10 @@ tail ~/.opencode/MEMORY/LEARNING/SIGNALS/ratings.jsonl
 
 ### View session transcripts
 ```bash
-# OpenCode stores sessions in SQLite database
-# Use opencode CLI to list recent sessions
-opencode sessions list --recent 5
+# Claude Code: JSONL per session, one directory per working directory
+ls -t ~/.claude/projects/*/*.jsonl | head -5
 
-# Or query the database directly
-sqlite3 ~/.opencode/projects/sessions.db "SELECT id, created_at FROM sessions ORDER BY created_at DESC LIMIT 5"
+# OpenCode v2 keeps its sessions in ~/.local/share/opencode/opencode.db
 ```
 
 ### Check learnings

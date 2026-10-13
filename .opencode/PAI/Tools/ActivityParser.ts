@@ -11,12 +11,17 @@
  *   bun run ActivityParser.ts --today
  *   bun run ActivityParser.ts --today --generate
  *   bun run ActivityParser.ts --session abc-123
+ *
+ * Reads Claude Code's transcripts in every project directory under
+ * ~/.claude/projects/ (see claude-transcripts.ts). OpenCode sessions live in
+ * opencode.db and are not read.
  */
 
 import { parseArgs } from "node:util";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { homedir } from "node:os";
+import { allClaudeProjectDirs, claudeProjectsDir, listTranscripts } from "./claude-transcripts";
 
 // ============================================================================
 // Configuration
@@ -24,7 +29,7 @@ import { homedir } from "node:os";
 
 const OPENCODE_DIR = path.join(homedir(), ".opencode");
 const MEMORY_DIR = path.join(OPENCODE_DIR, "MEMORY");
-const PROJECTS_DIR = path.join(OPENCODE_DIR, "projects");  // OpenCode session storage
+const PROJECTS_DIR = claudeProjectsDir();
 const SYSTEM_UPDATES_DIR = path.join(MEMORY_DIR, "PAISYSTEMUPDATES");  // Canonical system change history
 
 // ============================================================================
@@ -113,7 +118,7 @@ function getRelativePath(filePath: string): string {
 // Event Parsing
 // ============================================================================
 
-// Projects/ format from OpenCode native storage
+// Claude Code transcript line (JSONL)
 interface ProjectsEntry {
   sessionId?: string;
   type?: "user" | "assistant" | "summary";
@@ -135,24 +140,10 @@ interface ProjectsEntry {
  * Get session files from today (modified within last 24 hours)
  */
 function getTodaySessionFiles(): string[] {
-  if (!fs.existsSync(PROJECTS_DIR)) {
-    return [];
-  }
-
-  const now = Date.now();
-  const oneDayAgo = now - 24 * 60 * 60 * 1000;
-
-  const files = fs.readdirSync(PROJECTS_DIR)
-    .filter(f => f.endsWith('.jsonl'))
-    .map(f => ({
-      name: f,
-      path: path.join(PROJECTS_DIR, f),
-      mtime: fs.statSync(path.join(PROJECTS_DIR, f)).mtime.getTime()
-    }))
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+  return listTranscripts(allClaudeProjectDirs())
     .filter(f => f.mtime > oneDayAgo)
-    .sort((a, b) => b.mtime - a.mtime);
-
-  return files.map(f => f.path);
+    .map(f => f.path);
 }
 
 async function parseEvents(sessionFilter?: string): Promise<ParsedActivity> {
@@ -163,7 +154,7 @@ async function parseEvents(sessionFilter?: string): Promise<ParsedActivity> {
   const sessionFiles = getTodaySessionFiles();
 
   if (sessionFiles.length === 0) {
-    console.error(`No session files found for today in: ${PROJECTS_DIR}`);
+    console.error(`No Claude Code transcripts from today under ${PROJECTS_DIR} (OpenCode sessions live in opencode.db and are not read)`);
     return emptyActivity(dateStr, sessionFilter || null);
   }
 

@@ -2,7 +2,9 @@
 /**
  * SessionHarvester - Extract learnings from Claude Code session transcripts
  *
- * Harvests insights from ~/.opencode/projects/ sessions and writes to LEARNING/
+ * Harvests insights from the Claude Code transcripts for the current directory
+ * (~/.claude/projects/<slug>/, see claude-transcripts.ts) and writes to LEARNING/.
+ * OpenCode sessions live in opencode.db and are not read.
  *
  * Commands:
  *   --recent N     Harvest from N most recent sessions (default: 10)
@@ -21,15 +23,14 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { getLearningCategory, isLearningCapture } from "../../pai-core/lib/learning-utils";
 import { homedir } from "node:os";
+import { claudeProjectDir, listTranscripts } from "./claude-transcripts";
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
 const OPENCODE_DIR = process.env.OPENCODE_DIR || path.join(homedir(), ".opencode");
-// Derive the project slug dynamically from current working directory
-const CWD_SLUG = process.cwd().replace(/[/.]/g, "-");
-const PROJECTS_DIR = path.join(OPENCODE_DIR, "projects", CWD_SLUG);
+const PROJECTS_DIR = claudeProjectDir(process.cwd());
 const LEARNING_DIR = path.join(OPENCODE_DIR, "MEMORY", "LEARNING");
 
 // Patterns indicating learning moments in conversations
@@ -99,19 +100,11 @@ interface HarvestedLearning {
 // ============================================================================
 
 function getSessionFiles(options: { recent?: number; all?: boolean; sessionId?: string }): string[] {
-  if (!fs.existsSync(PROJECTS_DIR)) {
-    console.error(`Projects directory not found: ${PROJECTS_DIR}`);
+  const files = listTranscripts([PROJECTS_DIR]);
+  if (files.length === 0) {
+    console.error(`No Claude Code transcripts in ${PROJECTS_DIR} (OpenCode sessions live in opencode.db and are not read)`);
     return [];
   }
-
-  const files = fs.readdirSync(PROJECTS_DIR)
-    .filter(f => f.endsWith('.jsonl'))
-    .map(f => ({
-      name: f,
-      path: path.join(PROJECTS_DIR, f),
-      mtime: fs.statSync(path.join(PROJECTS_DIR, f)).mtime.getTime()
-    }))
-    .sort((a, b) => b.mtime - a.mtime);
 
   const ønsket = options.sessionId;
   if (ønsket) {
