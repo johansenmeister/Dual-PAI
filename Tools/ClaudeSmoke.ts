@@ -80,7 +80,7 @@
 
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, isAbsolute, join } from "node:path";
 import { tolkFlaggsjekk } from "../.opencode/PAI/Tools/pai";
 import { adapterHash, claudeAdapterFiler, pinnetClaudeVersjon, skrivClaudeKvittering } from "../.opencode/PAI/Tools/selvtest";
 import { anonymiser, gyldenPrompt, gyldenSjekker, plukk, skrivFixture } from "./lib/gyldne-payloads";
@@ -328,11 +328,14 @@ async function kjør(o: Oppsett, steg: string, args: string[], env: Record<strin
  */
 const WRAPPER = `#!/bin/sh
 fil=""
+innst=""
 forrige=""
 for a in "$@"; do
 	[ "$forrige" = "--append-system-prompt-file" ] && fil="$a"
+	[ "$forrige" = "--settings" ] && innst="$a"
 	forrige="$a"
 done
+[ -n "$innst" ] && printf '%s' "$innst" > "$SMOKE_W/settings-kopi.json"
 if [ -n "$fil" ]; then
 	cp "$fil" "$SMOKE_W/kontekst-kopi.md"
 	printf '\\n\\nRøyktest-kodeord: %s\\n' "$KODEORD" >> "$fil"
@@ -507,6 +510,16 @@ function stegNull(claude: string): { versjon: string; sjekker: Sjekk[] } {
 	};
 }
 
+/** `autoMemoryDirectory` from the `--settings` JSON the launcher passed, or "". */
+function autoMemoryDirectory(settings: string): string {
+	try {
+		const dir = JSON.parse(settings)?.autoMemoryDirectory;
+		return typeof dir === "string" ? dir : "";
+	} catch {
+		return "";
+	}
+}
+
 function kontekstSjekker(o: Oppsett, s: Strøm, kodeord: string, økt: string | undefined): Sjekk[] {
 	const kopi = lesTekst(join(o.w, "kontekst-kopi.md"));
 	const da = lesDaNavn(lesTekst(join(REPO, ".opencode", "PAI", "USER", "DAIDENTITY.md")));
@@ -514,7 +527,14 @@ function kontekstSjekker(o: Oppsett, s: Strøm, kodeord: string, økt: string | 
 	const meta = økt ? lesTekst(join(økt, "META.yaml")) : "";
 	const thread = økt ? lesTekst(join(økt, "THREAD.md")) : "";
 	const echo = s.kall.find((k) => k.navn === "Bash");
+	const memoryDir = autoMemoryDirectory(lesTekst(join(o.w, "settings-kopi.json")));
 	return [
+		{
+			navn: "the launcher points Claude Code's auto memory into the tree (#438)",
+			ok: isAbsolute(memoryDir) && memoryDir.endsWith(join(".opencode", "MEMORY", "AUTO")),
+			detalj: memoryDir || "the wrapper got no --settings with autoMemoryDirectory",
+		},
+
 		{
 			navn: `kontekstfila er over hook-taket (${HOOK_TAK} tegn)`,
 			ok: kopi.length > HOOK_TAK,

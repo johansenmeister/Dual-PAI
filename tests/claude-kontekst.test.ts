@@ -45,6 +45,13 @@ describe("claudeOppstart", () => {
 	test("resume gir --continue", () => {
 		expect(claudeOppstart("/c", "/p", "/k", { resume: true }, {}).args.at(-1)).toBe("--continue");
 	});
+
+	test("memoryDir points Claude Code's auto memory into the tree through --settings (#438)", () => {
+		const { args } = claudeOppstart("/c", "/p", "/k", { memoryDir: "/tree/.opencode/MEMORY/AUTO" }, {});
+		const i = args.indexOf("--settings");
+		expect(i).toBeGreaterThan(0);
+		expect(JSON.parse(args[i + 1])).toEqual({ autoMemoryDirectory: "/tree/.opencode/MEMORY/AUTO" });
+	});
 });
 
 describe("SessionStart: context.build bare når launcheren ikke ga konteksten", () => {

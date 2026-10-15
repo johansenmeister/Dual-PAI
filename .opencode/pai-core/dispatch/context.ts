@@ -11,8 +11,10 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { autoMemoryDir, autoMemoryIndex } from "../lib/auto-memory";
 import { fileLog, fileLogError } from "../lib/file-logger";
 import { oppstartsvarsler } from "../lib/oppstartsvarsel";
+import { currentHarness } from "../runtime";
 
 /**
  * PAI-katalogen, løst modul-relativt — ikke via `getPaiHome()`.
@@ -125,8 +127,13 @@ export interface UserContextResult {
  * 1. System AISTEERINGRULES.md (behavioral governance)
  * 2. User Identity files (ABOUTME, TELOS, DAIDENTITY) if they exist
  * 3. An index of the hand-written learnings in MEMORY/LEARNING/
+ * 4. The index of Claude Code's auto memory in MEMORY/AUTO/ (#438), unless
+ *    the engine is Claude Code, which loads it itself. The launcher builds
+ *    Claude's context in its own process, so it says so with `autoMemory`.
  */
-export async function loadUserSystemContext(): Promise<UserContextResult | null> {
+export async function loadUserSystemContext(
+	options: { autoMemory?: boolean } = {}
+): Promise<UserContextResult | null> {
 	try {
 		const contextParts: string[] = [];
 
@@ -174,6 +181,15 @@ export async function loadUserSystemContext(): Promise<UserContextResult | null>
 		if (indeks) {
 			contextParts.push(`--- Learnings from earlier sessions ---\n${indeks}`);
 			fileLog("Loaded the learning index from MEMORY/LEARNING");
+		}
+
+		// 3b. Claude Code's auto memory, for the engine that does not load it (#438)
+		if (options.autoMemory ?? currentHarness() !== "claude") {
+			const memories = autoMemoryIndex(autoMemoryDir(process.env.PAI_HOME?.trim() || path.join(PAI_DIR, "..")));
+			if (memories) {
+				contextParts.push(`--- Memories from earlier sessions ---\n${memories}`);
+				fileLog("Loaded the auto memory index from MEMORY/AUTO");
+			}
 		}
 
 		// 4. Oppstartsvarsler fra de lokale speilene (#14 steg 2). Claude-hooken

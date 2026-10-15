@@ -1,11 +1,11 @@
 {
-  "generated": "2026-10-12T09:17:59.949Z",
-  "totalSkills": 52,
+  "generated": "2026-10-15T20:07:44.835Z",
+  "totalSkills": 53,
   "categories": 5,
   "flatSkills": 10,
-  "hierarchicalSkills": 42,
+  "hierarchicalSkills": 43,
   "alwaysLoadedCount": 2,
-  "deferredCount": 50,
+  "deferredCount": 51,
   "skills": {
     "agents": {
       "name": "Agents",
@@ -1004,6 +1004,33 @@
       "tier": "deferred",
       "isHierarchical": false
     },
+    "suggestskills": {
+      "name": "SuggestSkills",
+      "path": "Utilities/SuggestSkills/SKILL.md",
+      "category": "Utilities",
+      "fullDescription": "Discover WHICH new skills to create, from your own work sessions plus low ratings. Read-only and proposal-only — surfaces recurring pain no existing skill or workflow covers, and hands back a ranked shortlist to build with CreateSkill; never creates or edits a skill itself. USE WHEN should I create a skill, what skills do I need, suggest skills, skill gap, am I missing a skill, what should I build next, based on my recent work. NOT FOR creating, validating or updating one skill (use CreateSkill).",
+      "triggers": [
+        "should",
+        "create",
+        "skill",
+        "what",
+        "skills",
+        "need",
+        "suggest",
+        "gap",
+        "missing",
+        "build",
+        "next",
+        "based",
+        "recent",
+        "work"
+      ],
+      "workflows": [
+        "Scan"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
     "system": {
       "name": "System",
       "path": "Utilities/System/SKILL.md",
@@ -1266,7 +1293,7 @@
       "name": "Utilities",
       "path": "Utilities/SKILL.md",
       "category": null,
-      "fullDescription": "Utility and helper skills. USE WHEN browser automation, Cloudflare, create CLI, build CLI, create skill, process documents, PDF, Word, Excel, evaluations, evals, hardening, property tests, fabric patterns, PAI upgrade, parser, prompting, templates.",
+      "fullDescription": "Utility and helper skills. USE WHEN browser automation, Cloudflare, create CLI, build CLI, create skill, suggest skills, skill gap, process documents, PDF, Word, Excel, evaluations, evals, hardening, property tests, fabric patterns, PAI upgrade, parser, prompting, templates.",
       "triggers": [
         "browser",
         "automation",
@@ -1275,6 +1302,9 @@
         "cli",
         "build",
         "skill",
+        "suggest",
+        "skills",
+        "gap",
         "process",
         "documents",
         "pdf",
@@ -1419,6 +1449,7 @@
       "Pptx",
       "Prompting",
       "Sales",
+      "SuggestSkills",
       "System",
       "Xlsx"
     ]

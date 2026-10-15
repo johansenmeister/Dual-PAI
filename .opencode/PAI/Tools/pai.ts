@@ -37,6 +37,7 @@ import { homedir, tmpdir } from "node:os";
 import { join, basename } from "node:path";
 import { claudeInstallKommando, installertClaude, pinnetClaudeVersjon, selvtestClaude, selvtestV2, sjekkTreet } from "./selvtest";
 import type { NøkkelHelse } from "./nokkel-helse";
+import { autoMemoryDir } from "../../pai-core/lib/auto-memory";
 
 // ============================================================================
 // Configuration
@@ -156,15 +157,20 @@ export function v2Oppstart(
  *
  * `PAI_CONTEXT_FILE` forteller hookene at konteksten allerede er der, så
  * SessionStart ikke injiserer den en gang til.
+ *
+ * `memoryDir` points Claude Code's auto memory into the tree (#438), through
+ * `--settings` because a checked-in `.claude/settings.json` may not set it;
+ * see `pai-core/lib/auto-memory.ts`.
  */
 export function claudeOppstart(
   claudeBin: string,
   pluginDir: string,
   kontekstFil: string | null,
-  options: { resume?: boolean },
+  options: { resume?: boolean; memoryDir?: string },
   env: NodeJS.ProcessEnv = process.env
 ): { args: string[]; env: Record<string, string> } {
   const args = [claudeBin, "--plugin-dir", pluginDir];
+  if (options.memoryDir) args.push("--settings", JSON.stringify({ autoMemoryDirectory: options.memoryDir }));
   const miljø: Record<string, string> = {};
   for (const [k, v] of Object.entries(env)) if (v !== undefined) miljø[k] = v;
   delete miljø.PAI_CONTEXT_FILE;
@@ -205,7 +211,8 @@ async function byggClaudeKontekst(): Promise<{ fil: string; katalog: string } | 
     const { loadUserSystemContext } = await import(
       join(repoRot(), ".opencode", "pai-core", "dispatch", "context.ts")
     );
-    const res = await loadUserSystemContext();
+    // Claude Code loads its auto memory itself (#438).
+    const res = await loadUserSystemContext({ autoMemory: false });
     if (!res?.context) return null;
     const katalog = mkdtempSync(join(tmpdir(), "pai-claude-"));
     const fil = join(katalog, "kontekst.md");
@@ -625,7 +632,10 @@ async function launchClaude(options: { resume?: boolean; local?: boolean; mcp?: 
   }
 
   const kontekst = await byggClaudeKontekst();
-  const oppstart = claudeOppstart(resolveClaudeExecutable(), CLAUDE_PLUGIN_DIR, kontekst?.fil ?? null, options);
+  const oppstart = claudeOppstart(resolveClaudeExecutable(), CLAUDE_PLUGIN_DIR, kontekst?.fil ?? null, {
+    ...options,
+    memoryDir: autoMemoryDir(realpathSync(OPENCODE_DIR)),
+  });
 
   if (!options.local) {
     process.chdir(OPENCODE_DIR);

@@ -57,6 +57,9 @@ Harvesting (periodic):
 │   │   └── algorithm-reflections.jsonl
 │   └── SIGNALS/            # User satisfaction ratings
 │       └── ratings.jsonl
+├── AUTO/                   # Claude Code's auto memory: corrections and preferences (#438)
+│   ├── MEMORY.md           # Index, one line per memory
+│   └── {name}.md
 ├── RESEARCH/               # Agent output captures
 │   └── YYYY-MM/
 ├── SECURITY/               # Security audit events
@@ -92,6 +95,15 @@ Harvesting (periodic):
 **Purpose:** Source of truth for all session data. The harvesting tools read Claude Code's JSONL only (`PAI/Tools/claude-transcripts.ts`); OpenCode sessions in `opencode.db` are not read.
 
 This is the actual "firehose" - every message, tool call, and response. PAI leverages this native storage rather than duplicating it.
+
+### AUTO/ - Claude Code's auto memory
+
+**Location:** `MEMORY/AUTO/` in the tree. `pai --claude` passes `--settings '{"autoMemoryDirectory": "<tree>/MEMORY/AUTO"}'`, so Claude Code keeps its memory here instead of in `~/.claude/projects/<slug>/memory/`.
+**What populates it:** Claude Code, when the user corrects it or states a preference: one file per memory, and the index `MEMORY.md`.
+**Who reads it:** Claude Code loads `MEMORY.md` itself. OpenCode gets the same index through the shared context (`pai-core/lib/auto-memory.ts`), and opens the files that touch the task.
+**Purpose:** A correction made in one engine applies in the other, and git takes it to the owner's other machines with the rest of MEMORY.
+
+A plain `claude` started without the launcher still uses the default directory. Memories from before #438 are moved here by hand, with their lines in `MEMORY.md`.
 
 ### WORK/ - Primary Work Tracking
 

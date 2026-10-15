@@ -3,7 +3,7 @@
 # Kilde: .opencode/skills/Utilities/SKILL.md
 # Endringer hører hjemme i kilden; kjør deretter generatoren på nytt.
 name: utilities
-description: Utility and helper skills. USE WHEN browser automation, Cloudflare, create CLI, build CLI, create skill, process documents, PDF, Word, Excel, evaluations, evals, hardening, property tests, fabric patterns, PAI upgrade, parser, prompting, templates.
+description: Utility and helper skills. USE WHEN browser automation, Cloudflare, create CLI, build CLI, create skill, suggest skills, skill gap, process documents, PDF, Word, Excel, evaluations, evals, hardening, property tests, fabric patterns, PAI upgrade, parser, prompting, templates.
 ---
 
 # Utilities - Utility and Helper Skills
@@ -26,6 +26,7 @@ description: Utility and helper skills. USE WHEN browser automation, Cloudflare,
 | **PAIUpgrade** | Monitor and upgrade PAI system | "upgrade", "PAI upgrade", "check updates" |
 | **Parser** | Parse and process various data formats | "parse", "extract", "process data" |
 | **Prompting** | Prompt engineering and optimization | "prompting", "prompt engineering", "templates" |
+| **SuggestSkills** | Find skill gaps from work sessions and low ratings | "suggest skills", "skill gap", "what should I build" |
 
 ## When to Use
 

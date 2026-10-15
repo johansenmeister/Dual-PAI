@@ -397,6 +397,14 @@
       ],
       "navn": "Sales"
     },
+    "utilities-suggest-skills": {
+      "kilde": ".opencode/skills/Utilities/SuggestSkills",
+      "segmenter": [
+        "Utilities",
+        "SuggestSkills"
+      ],
+      "navn": "SuggestSkills"
+    },
     "utilities-system": {
       "kilde": ".opencode/skills/Utilities/System",
       "segmenter": [
@@ -478,6 +486,8 @@
     "pptx": "utilities-pptx",
     "prompting": "utilities-prompting",
     "sales": "utilities-sales",
+    "suggestskills": "utilities-suggest-skills",
+    "suggest-skills": "utilities-suggest-skills",
     "system": "utilities-system",
     "xlsx": "utilities-xlsx"
   }
