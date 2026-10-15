@@ -125,8 +125,16 @@ interface Shape {
 
 const mask = (kind: string) => `[MASKED:${kind}]`;
 
-/** Uppercase env-style names: `GITEA_TOKEN=…`, `POSTGRES_PASSWORD: …`, `- API_KEY=…`. */
-const ENV_ASSIGNMENT = /\b([A-Z][A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY))(\s*[=:]\s*)(["']?)([^\s"'$`{}()<>]{8,})\3/g;
+/**
+ * Uppercase env-style names: `GITEA_TOKEN=…`, `POSTGRES_PASSWORD: …`, `- API_KEY=…`.
+ *
+ * Not `${NAME:?message}`: that is the shell's and compose's required-variable
+ * form, and the text after `?` is the error message, not a value (work issue
+ * #29). `${NAME:-default}` is still checked, because a default can be a real
+ * secret.
+ */
+const ENV_ASSIGNMENT =
+	/\b(?!(?<=\$\{)[A-Z0-9_]+:\?)([A-Z][A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY))(\s*[=:]\s*)(["']?)([^\s"'$`{}()<>]{8,})\3/g;
 
 /** Lowercase keys with a quoted value: `password: "…"`, `"api_key": "…"`. Unquoted lowercase is code too often. */
 const QUOTED_ASSIGNMENT = /\b(password|passwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret)(["']?\s*[:=]\s*)(["'])([^"'\s$`{}]{8,})\3/gi;
@@ -180,11 +188,13 @@ const ALREADY = /^\[MASKED:[^\]]+\]$/;
 
 /**
  * Documentation placeholders: `your_api_key_here`, `xxxx-xxxx`, `sk-ant-...`,
- * `ChangeMe`, `process.env.X`. Skills and `.env.example` files are full of
- * them; masking them tells the model a secret was hidden when none was, and
- * the autosync guard (#370) would refuse every commit that adds one.
+ * `ChangeMe`, `process.env.X`, and a value of one repeated character, the
+ * dummy in a runbook's example command (work issue #29). Skills and
+ * `.env.example` files are full of them; masking them tells the model a secret
+ * was hidden when none was, and the autosync guard (#370) would refuse every
+ * commit that adds one.
  */
-const PLACEHOLDER = /your|(?:^|[-_.])x{4,}(?:$|[-_.])|\.\.\.|…|change|example|placeholder|^process\.env\./i;
+const PLACEHOLDER = /your|(?:^|[-_.])x{4,}(?:$|[-_.])|\.\.\.|…|change|example|placeholder|^process\.env\.|^(.)\1+$/i;
 
 /**
  * Masks every secret in `text`. Known values first, so a token from `.env`

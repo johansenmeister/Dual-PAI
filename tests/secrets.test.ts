@@ -14,7 +14,8 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { forStorage, knownSecrets, maskDeep, maskNotice, maskSecrets, parseEnvSecrets } from "../.opencode/pai-core/lib/secrets";
 
-const r = (n: number, c = "a") => c.repeat(n);
+// Alternates with a digit: a value of one repeated character is a placeholder (work issue #29).
+const r = (n: number, c = "a") => `${c}7`.repeat(n).slice(0, n);
 const GITEA = `${r(20, "3")}${r(20, "f")}`; // 40 hex, like a Gitea token
 const SHA = "88fa026e9d3b1c4f5a6b7c8d9e0f1a2b3c4d5e6f"; // 40 hex, like a commit
 
@@ -73,8 +74,12 @@ describe("maskSecrets: shapes", () => {
 		["assignment", `POSTGRES_PASSWORD=${r(12, "p")}`, r(12, "p")],
 		["assignment", `  - GITEA_TOKEN: "${r(16, "t")}"`, r(16, "t")],
 		["assignment", `"api_key": "${r(16, "k")}"`, r(16, "k")],
+		// A compose default can be a real secret; only `:?message` is exempt (work issue #29).
+		["assignment", `DB_PASSWORD: \${DB_PASSWORD:-${r(12, "d")}}`, r(12, "d")],
+		// Outside `${…}`, `:?` is a separator and a value.
+		["assignment", `API_TOKEN:?${r(12, "q")}`, r(12, "q")],
 		// A run of x's inside a value is not a placeholder: the smoke tests' fake secret (#370).
-		["url-credential", `https://svc-smoke:smokesecret${r(10, "x")}@git.example.com/x.git`, `smokesecret${r(10, "x")}`],
+		["url-credential", `https://svc-smoke:smokesecret${"x".repeat(10)}@git.example.com/x.git`, `smokesecret${"x".repeat(10)}`],
 	];
 	for (const [kind, input, secret] of cases) {
 		test(`${kind}: ${input.slice(0, 40)}`, () => {
@@ -122,6 +127,12 @@ describe("maskSecrets: what must not be masked", () => {
 		"Authorization: Bearer YOUR_AUTH_TOKEN",
 		"GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,",
 		"https://svc:your-token@git.example.com/x.git",
+		// A required variable's error message, and a dummy of one repeated character (work issue #29).
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: compose syntax in a runbook, not a template
+		"CF_API_TOKEN: ${CF_API_TOKEN:?CF_API_TOKEN mangler}",
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: compose syntax in a runbook, not a template
+		"- MYSQL_PASSWORD=${MYSQL_PASSWORD:?MYSQL_PASSWORD mangler i .env}",
+		`docker run --rm -e CF_API_TOKEN=${"a".repeat(40)} caddy validate`,
 	];
 	for (const text of untouched) {
 		test(text.slice(0, 50), () => {
