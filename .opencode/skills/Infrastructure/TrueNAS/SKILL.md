@@ -29,7 +29,7 @@ Overvåk og analyser TrueNAS Scale: systeminfo, pools, disker, datasets, shares,
 - **Protokoll:** JSON-RPC 2.0 over WebSocket — `wss://<vert>/api/current`, utledet fra `TRUENAS_API_URL`
 - **Autentisering:** `auth.login_ex` med `mechanism: "API_KEY_PLAIN"`, `username: "pai-api"`
 - **Credentials:** Leses fra `~/.opencode/.env` (`TRUENAS_API_URL`, `TRUENAS_API_KEY`)
-- **Script:** `Scripts/trueNasApi.ts` — ALL datainnhenting går via dette. Modellen gjør aldri egne WebSocket-kall mot TrueNAS.
+- **Script:** `Scripts/trueNasApi.ts` — ALL datainnhenting går via dette. Modellen gjør aldri egne WebSocket-kall mot TrueNAS. Metoder med argumenter (f.eks. `disk.smartctl`) tar dem som et JSON-array rett etter metodenavnet: `bun Scripts/trueNasApi.ts disk.smartctl '["sdc",["-g","wcache"]]'` — se `TrueNasApi.md`.
 - **Klient:** Bun native WebSocket — ingen eksterne avhengigheter
 - **Tilgang:** Readonly Admin — kun `CALL` metoder, ingen `UPDATE`/`CREATE`/`DELETE`
 - **Versjon:** TrueNAS 25.04.2 Fangtooth (Community Edition)

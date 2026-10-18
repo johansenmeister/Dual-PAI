@@ -1,12 +1,16 @@
 #!/usr/bin/env bun
 /**
  * TrueNAS API Client — WebSocket JSON-RPC 2.0
- * Usage: bun Scripts/trueNasApi.ts [--pretty] [--compact] method1 [method2 ...]
+ * Usage: bun Scripts/trueNasApi.ts [--pretty] [--compact] method1 ['[params]'] [method2 ...]
  *
  * Reads TRUENAS_API_URL and TRUENAS_API_KEY from ~/.opencode/.env (loadPaiEnv)
  * Connects via WebSocket to wss://<host>/api/current, derived from TRUENAS_API_URL
  * Authenticates with auth.login_ex (API_KEY_PLAIN)
  * Calls each method sequentially, outputs JSON to stdout
+ *
+ * A method name may be followed by one JSON-array argument with its params
+ * (parsed by trueNasArgs.ts). Invalid JSON or a value that is not an array
+ * is rejected before anything connects.
  *
  * Flags:
  *   --pretty    Pretty-print JSON output
@@ -18,35 +22,26 @@
  *   bun trueNasApi.ts system.info pool.query
  *   bun trueNasApi.ts --pretty system.info disk.query alert.list
  *   bun trueNasApi.ts --raw pool.query | jq '.[] | select(.status != "ONLINE")'
+ *   bun trueNasApi.ts disk.smartctl '["sdc",["-g","wcache"]]'
  */
 
 import { loadPaiEnv } from "../../../../PAI/Tools/pai-env";
+import { buildRequest, parseArgs } from "./trueNasArgs";
 
 loadPaiEnv();
 
 // Parse args
-const args = process.argv.slice(2);
-const flags = { pretty: false, compact: true, raw: false, timeout: 15000 };
-const methods: string[] = [];
-
-for (const arg of args) {
-  if (arg === "--pretty") {
-    flags.pretty = true;
-    flags.compact = false;
-  } else if (arg === "--compact") {
-    flags.compact = true;
-    flags.pretty = false;
-  } else if (arg === "--raw") {
-    flags.raw = true;
-  } else if (arg === "--timeout" && args.indexOf(arg) + 1 < args.length) {
-    flags.timeout = parseInt(args[args.indexOf(arg) + 1], 10) || 15000;
-  } else if (!arg.startsWith("--")) {
-    methods.push(arg);
-  }
+let parsed: ReturnType<typeof parseArgs>;
+try {
+  parsed = parseArgs(process.argv.slice(2));
+} catch (e: any) {
+  console.error(e.message);
+  process.exit(1);
 }
+const { flags, calls } = parsed;
 
-if (methods.length === 0) {
-  console.error("Usage: bun trueNasApi.ts [--pretty|--compact|--raw] method1 [method2 ...]");
+if (calls.length === 0) {
+  console.error("Usage: bun trueNasApi.ts [--pretty|--compact|--raw] method1 ['[params]'] [method2 ...]");
   process.exit(1);
 }
 
@@ -123,12 +118,8 @@ const timeout = setTimeout(() => {
 }, flags.timeout);
 
 function sendNext() {
-  if (nextCall < methods.length) {
-    ws.send(JSON.stringify({
-      jsonrpc: "2.0",
-      id: nextCall + 2,
-      method: methods[nextCall],
-    }));
+  if (nextCall < calls.length) {
+    ws.send(JSON.stringify(buildRequest(nextCall + 2, calls[nextCall])));
     nextCall++;
   } else {
     resolved = true;
@@ -163,8 +154,8 @@ ws.onmessage = (e: any) => {
   }
   // Store result keyed by method name
   const methodIndex = msg.id - 2;
-  if (methodIndex >= 0 && methodIndex < methods.length) {
-    results[methods[methodIndex]] = msg.result;
+  if (methodIndex >= 0 && methodIndex < calls.length) {
+    results[calls[methodIndex].method] = msg.result;
   }
   sendNext();
 };

@@ -17,6 +17,12 @@ bun ~/.config/opencode/skills/Infrastructure/TrueNAS/Scripts/trueNasApi.ts --pre
   pool.scrub.query pool.snapshottask.query replication.query
 ```
 
+   **Metoder som trenger argumenter** (f.eks. SMART-detaljer for én disk) tar dem som et JSON-array rett etter metodenavnet:
+   ```bash
+   bun ~/.config/opencode/skills/Infrastructure/TrueNAS/Scripts/trueNasApi.ts \
+     disk.smartctl '["sdc",["-g","wcache"]]'
+   ```
+
 3. **Presenter strukturert rapport:**
 
 Hent ut nøkkeldata fra JSON-responsen og presenter:

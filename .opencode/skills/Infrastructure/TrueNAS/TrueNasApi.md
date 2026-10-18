@@ -148,6 +148,16 @@ TRUENAS_API_KEY=<din-nøkkel>
 | `audit.query` | Revisjonslogg | `timestamp`, `username`, `service`, `event` |
 | `auth.sessions` | Aktive sesjoner | Nåværende sesjoner |
 
+## Kall med parametre
+
+`Scripts/trueNasApi.ts` sender normalt bare metodenavnet. Metoder som trenger argumenter (f.eks. `disk.smartctl`) tar dem som et valgfritt JSON-array rett etter metodenavnet på kommandolinja:
+
+```bash
+bun Scripts/trueNasApi.ts disk.smartctl '["sdc",["-g","wcache"]]'
+```
+
+Ugyldig JSON eller noe som ikke er et array blir avvist med en feilmelding før skriptet kobler til.
+
 ## Generelt Bun-skriptmønster
 
 Se `Workflows/CheckStatus.md` for fullstendig eksempel. Kjør skriptet med nøklene lastet fra `~/.opencode/.env`:

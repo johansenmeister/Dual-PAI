@@ -23,6 +23,12 @@
 
 - **Oppdateringsindikatoren er tom etter en restart av Core**, til neste poll. Et tomt
   `update_available` rett etter en restart betyr ikke at alt er oppdatert.
+- **`update_available` er alltid false for et image pinnet til digest.** Er tjenesten satt
+  til `registry.example.com/app@sha256:…`, holder `update_available` i `komodo.ts stacks`
+  og `stack <navn>` seg false helt til digesten endrer seg, selv om utgiveren har sluppet
+  nyere versjoner i mellomtiden. «Ingen oppdatering» betyr da bare at digesten er uendret,
+  ikke at stacken er på siste versjon — det må sjekkes mot registeret eller utgivelsene. Si
+  det til brukeren.
 - **`CheckStackForUpdate` er et skrivekall.** Skillen kan ikke tvinge en sjekk; brukeren
   trykker på knappen i UI-et.
 - **`deployed_hash` ≠ `latest_hash`** betyr at git har en nyere commit enn den som er
@@ -31,6 +37,25 @@
   før et image pinnes, ellers blir det en ny container med andre bits.
 - **Endrede nettverkslabels** får Compose 5.x til å gjenskape nettverket, og alle
   containerne på det.
+
+## Tilstand
+
+- **En delvis stoppet stack heter «unhealthy», og `restart: always` overlever et stopp.**
+  Stoppes bare noen containere i en stack (f.eks. app-containerne) mens andre (database,
+  cache) har `restart: always`, viser `komodo.ts stacks`/`stack <navn>` stacken som
+  unhealthy, med en status som `exited(n), running(m)` — og containerne med
+  `restart: always` starter igjen ved neste reboot av verten, selv om de ble stoppet
+  manuelt. Skal en stack ligge stille over tid: stopp hele stacken i Komodo, eller sett
+  restart-policyen til `no`/`unless-stopped` i compose, og si det til brukeren i stedet
+  for å tolke «unhealthy» som at stacken kjører.
+
+## Deploy-loggen
+
+- **«Compose Up» viser den nøyaktige compose-kommandoen Komodo kjørte.** Steget i
+  `komodo.ts update <id>` sin logg har et `command`-felt med kommandoen slik Komodo kjørte
+  den (for stacker med files_on_host): `-f`-filene, prosjektnavnet og flaggene. Den kan
+  brukes til å forstå eller gjenta en deploy med de samme flaggene. Skillen bare leser
+  den — en manuell deploy er brukerens handling, ikke skillens.
 
 ## Synken
 

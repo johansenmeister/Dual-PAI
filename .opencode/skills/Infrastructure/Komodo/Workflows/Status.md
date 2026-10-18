@@ -11,8 +11,10 @@ Oversikt over stackene: hva kjører, hva har oppdateringer, og hva står ikke so
 
 2. Rapporter, kort:
    - Servere som ikke er `Ok`.
-   - Stacker som ikke er `running`, med status.
-   - Tjenester med `update_available: true`: image nå og `latest_image`.
+   - Stacker som ikke er `running`, med status. Er den et miks av exited og running
+     (en delvis stoppet stack), ikke les «unhealthy» som at stacken kjører (`KnownPitfalls.md`).
+   - Tjenester med `update_available: true`: image nå og `latest_image`. Er imaget pinnet
+     til digest, er `update_available: false` ikke bevis for siste versjon (`KnownPitfalls.md`).
    - Stacker der `deployed_hash` ≠ `latest_hash` (git er foran det som er deployet).
    - `missing_files` som ikke er tomme.
 
