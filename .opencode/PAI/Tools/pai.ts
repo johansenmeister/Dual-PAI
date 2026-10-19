@@ -161,6 +161,12 @@ export function v2Oppstart(
  * `memoryDir` points Claude Code's auto memory into the tree (#438), through
  * `--settings` because a checked-in `.claude/settings.json` may not set it;
  * see `pai-core/lib/auto-memory.ts`.
+ *
+ * Narration is turned off (#452) unless the user set the variable. With it on,
+ * the terminal may show a server-written summary of the prose between tool
+ * calls instead of the model's text, and that summary is never replayed to the
+ * model, so the model cannot see what the user saw. Claude Code reads
+ * `CLAUDE_CODE_ENABLE_NARRATION` as a tri-state boolean; "false" turns it off.
  */
 export function claudeOppstart(
   claudeBin: string,
@@ -182,6 +188,7 @@ export function claudeOppstart(
   if (options.resume) args.push("--continue");
   miljø.PAI_ENABLED = "1";
   miljø.PAI_HARNESS = "claude";
+  miljø.CLAUDE_CODE_ENABLE_NARRATION ??= "false";
   return { args, env: miljø };
 }
 

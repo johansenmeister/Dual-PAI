@@ -7,7 +7,7 @@
  * PURPOSE:
  * Analyzes MEMORY/LEARNING/REFLECTIONS/algorithm-reflections.jsonl for recurring
  * themes, generates a markdown report, writes it to SYNTHESIS/, and emails the
- * report inline via Gmail SMTP.
+ * report inline over SMTP (SendMail.ts).
  *
  * USAGE:
  *   bun MineReflections.ts                  # Analyze + email report
@@ -30,8 +30,8 @@
  * nothing downstream should ever learn about a second shape.
  *
  * ENVIRONMENT (.env):
- *   GMAIL_USER=you@gmail.com            # Sender/recipient email
- *   GMAIL_APP_PASSWORD=xxxx-xxxx-xxxx   # Gmail app password
+ *   SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASSWORD/SMTP_FROM, or GMAIL_USER and
+ *   GMAIL_APP_PASSWORD; REPORT_RECIPIENT. See SendMail.ts (#463).
  *
  * ============================================================================
  */
@@ -39,9 +39,8 @@
 import * as fs from "node:fs";
 import { homedir } from "node:os";
 import * as path from "node:path";
-import * as nodemailer from "nodemailer";
-import { getDAName } from "../../pai-core/lib/identity";
 import { inference } from "./Inference";
+import { mailSetup, sendMail } from "./SendMail";
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
@@ -808,34 +807,11 @@ async function sendEmail(
 	report: MiningReport,
 	markdown: string,
 ): Promise<boolean> {
-	const gmailUser = process.env.GMAIL_USER;
-	const gmailPass = process.env.GMAIL_APP_PASSWORD;
-
-	const recipient = process.env.REPORT_RECIPIENT || gmailUser;
-
-	if (!gmailUser || !gmailPass) {
-		console.error(
-			"Missing GMAIL_USER or GMAIL_APP_PASSWORD in environment. Skipping email.",
-		);
+	const setup = mailSetup();
+	if ("missing" in setup) {
+		console.error(`No mail set up: missing ${setup.missing}. Skipping email.`);
 		return false;
 	}
-
-	if (!recipient) {
-		console.error(
-			"No recipient — set REPORT_RECIPIENT or GMAIL_USER. Skipping email.",
-		);
-		return false;
-	}
-
-	const transporter = nodemailer.createTransport({
-		host: "smtp.gmail.com",
-		port: 587,
-		secure: false,
-		auth: {
-			user: gmailUser,
-			pass: gmailPass,
-		},
-	});
 
 	const regressions = report.upgrade_candidates.filter((c) => c.status === "regression").length;
 	const fresh = report.upgrade_candidates.filter((c) => c.status === "new").length;
@@ -859,14 +835,12 @@ async function sendEmail(
 		.replace(/\n\n/g, "<br><br>")
 		.replace(/\n/g, "<br>");
 
-	const info = await transporter.sendMail({
-		from: `"${getDAName()}" <${gmailUser}>`,
-		to: recipient,
+	const messageId = await sendMail(setup, {
 		subject,
 		html: `<div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 700px;">${html}</div>`,
 	});
 
-	console.log(`Email sent: ${info.messageId}`);
+	console.log(`Email sent: ${messageId}`);
 	return true;
 }
 
@@ -883,28 +857,16 @@ async function reportFailure(
 ): Promise<void> {
 	try {
 		loadEnv();
-		const gmailUser = process.env.GMAIL_USER;
-		const gmailPass = process.env.GMAIL_APP_PASSWORD;
-		const recipient = process.env.REPORT_RECIPIENT || gmailUser;
-
-		if (!gmailUser || !gmailPass || !recipient) {
-			console.error("No mail credentials — failure could not be escalated.");
+		const setup = mailSetup();
+		if ("missing" in setup) {
+			console.error(`No mail set up (missing ${setup.missing}) — failure could not be escalated.`);
 			return;
 		}
-
-		const transporter = nodemailer.createTransport({
-			host: "smtp.gmail.com",
-			port: 587,
-			secure: false,
-			auth: { user: gmailUser, pass: gmailPass },
-		});
 
 		const detail =
 			error instanceof Error ? `${error.message}\n\n${error.stack ?? ""}` : String(error);
 
-		await transporter.sendMail({
-			from: `"${getDAName()}" <${gmailUser}>`,
-			to: recipient,
+		await sendMail(setup, {
 			subject,
 			text: [
 				`MineReflections failed at ${new Date().toISOString()}.`,

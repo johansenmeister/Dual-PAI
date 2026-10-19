@@ -46,6 +46,15 @@ describe("claudeOppstart", () => {
 		expect(claudeOppstart("/c", "/p", "/k", { resume: true }, {}).args.at(-1)).toBe("--continue");
 	});
 
+	test("narration is off, so the terminal shows the model's own text (#452)", () => {
+		expect(claudeOppstart("/c", "/p", "/k", {}, {}).env.CLAUDE_CODE_ENABLE_NARRATION).toBe("false");
+	});
+
+	test("a narration value the user set is kept (#452)", () => {
+		const { env } = claudeOppstart("/c", "/p", "/k", {}, { CLAUDE_CODE_ENABLE_NARRATION: "1" });
+		expect(env.CLAUDE_CODE_ENABLE_NARRATION).toBe("1");
+	});
+
 	test("memoryDir points Claude Code's auto memory into the tree through --settings (#438)", () => {
 		const { args } = claudeOppstart("/c", "/p", "/k", { memoryDir: "/tree/.opencode/MEMORY/AUTO" }, {});
 		const i = args.indexOf("--settings");

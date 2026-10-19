@@ -61,4 +61,10 @@ Correct: bash({ command: "git status", workdir: "/repo" }) // ✅ explicit targe
 Note: `cd /repo && git status` inside ONE bash() call works fine. The issue is persistence across SEPARATE calls.
 See: `docs/PLATFORM-DIFFERENCES.md` for full OpenCode vs Claude Code differences.
 
+**Propose skill improvements when the work is done.** When a task is finished, ask whether it revealed something a skill should have known: a pitfall, a missing command or workflow, a procedure you did by hand. If it did, say so at the end of your answer (which skill, and what it lacked) and ask {PRINCIPAL.NAME} whether to record it. Don't change the skill as a side effect of the task. On yes, file it the way this installation records issues in PAI itself (the PAI issues section of `USER/INFRASTRUCTURE.md`); if there is no such section, the proposal in your answer is the record. Then mail the link:
+  printf '%s\n' "<link>" "<one line on what the skill lacked>" | bun ~/.opencode/PAI/Tools/SendMail.ts --subject "Skill proposal: <skill>: <short title>"
+Exit 2 means no mail is set up here: give the link in your answer and stop there.
+Bad: A deployment needed three manual lookups the skill could have done → the session ends without a word about it.
+Correct: "The deployment skill could not tell whether the service is on the latest version; I checked the registry by hand. Shall I file a skill proposal?"
+
 **Error recovery.** "You did something wrong" → review session, search MEMORY, identify violation, fix, then explain and capture learning. Don't ask "What did I do wrong?"

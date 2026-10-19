@@ -142,7 +142,6 @@ describe("the tools find a key that is only in .env", () => {
  * own way. They can move to `loadPaiEnv()`; the list should only shrink.
  */
 const OWN_LOADER: Record<string, string> = {
-	"PAI/Tools/MineReflections.ts": "own parser into process.env",
 	"PAI/Tools/RemoveBg.ts": "own parser into process.env",
 	"PAI/Tools/YouTubeApi.ts": "own parser, process.env first",
 	"skills/Infrastructure/Technitium/Scripts/technitiumApi.ts": "own parser, process.env first",
