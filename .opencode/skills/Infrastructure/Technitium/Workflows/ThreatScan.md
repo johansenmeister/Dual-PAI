@@ -1,6 +1,6 @@
 # ThreatScan Workflow
 
-L7/DNS-trusselanalyse: hva blokkeres, hvilke klienter spør, og om noe slipper gjennom.
+L7/DNS-trusselanalyse: hva blokkeres, hvilke klienter spør, og om noe slipper gjennom. Komplementerer `FirewallStatus` (nettverkslaget).
 
 **Script:** `Scripts/technitiumApi.ts` — ALL datainnhenting går via dette.
 
@@ -64,4 +64,4 @@ bun $S --compact blocked <tld>
 - **Blokkering AV** → alt slipper gjennom; eskaler.
 - **Blocklister gamle** → nyere C2/ads slipper gjennom; foreslå `blocklist-update`.
 
-7. **Handling:** Ved mistanke om infisert klient → anbefal nettverksisolering. Endringer i blokkliste → `ManageBlocklists`.
+7. **Handling:** Ved mistanke om infisert klient → anbefal nettverksisolering og `FirewallStatus` for korrelasjon. Endringer i blokkliste → `ManageBlocklists`.

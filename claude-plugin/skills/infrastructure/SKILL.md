@@ -3,7 +3,7 @@
 # Kilde: .opencode/skills/Infrastructure/SKILL.md
 # Endringer hører hjemme i kilden; kjør deretter generatoren på nytt.
 name: infrastructure
-description: Drift av homelaben. USE WHEN komodo, docker stack, proxmox, pve, VM status, technitium, dns status, truenas, NAS status.
+description: Drift av homelaben. USE WHEN komodo, docker stack, brannmur, OPNsense, suricata, crowdsec, proxmox, pve, VM status, technitium, dns status, truenas, NAS status.
 ---
 
 # Infrastructure - drift av homelaben
@@ -16,6 +16,7 @@ skill-treet. Hvor dokumentasjonen skrives, står i `PAI/USER/INFRASTRUCTURE.md`.
 
 | Skill | Purpose | Trigger |
 |-------|---------|---------|
+| **FirewallStatus** | OPNsense-overvåking med Suricata og CrowdSec | "brannmur status", "crowdsec alerts", "suricata" |
 | **Komodo** | Docker-stackene i Komodo: status, oppdateringer, deploy-logger og sync-diffen, bare lesing | "komodo", "stack status", "feilet deploy" |
 | **Proxmox** | Proxmox VE-clusteret: VM-er, LXC, lagring, oppgaver | "proxmox status", "hvilke VM-er kjører" |
 | **Technitium** | Technitium DNS: status, blokkering, cache | "dns status", "er domenet blokkert" |

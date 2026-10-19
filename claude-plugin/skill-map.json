@@ -43,6 +43,14 @@
       ],
       "navn": "Infrastructure"
     },
+    "infrastructure-firewall-status": {
+      "kilde": ".opencode/skills/Infrastructure/FirewallStatus",
+      "segmenter": [
+        "Infrastructure",
+        "FirewallStatus"
+      ],
+      "navn": "FirewallStatus"
+    },
     "infrastructure-komodo": {
       "kilde": ".opencode/skills/Infrastructure/Komodo",
       "segmenter": [
@@ -426,6 +434,8 @@
     "contentanalysis": "content-analysis",
     "extractwisdom": "content-analysis-extract-wisdom",
     "extract-wisdom": "content-analysis-extract-wisdom",
+    "firewallstatus": "infrastructure-firewall-status",
+    "firewall-status": "infrastructure-firewall-status",
     "komodo": "infrastructure-komodo",
     "proxmox": "infrastructure-proxmox",
     "technitium": "infrastructure-technitium",

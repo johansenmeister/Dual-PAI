@@ -1,0 +1,1 @@
+../../../.opencode/skills/Infrastructure/FirewallStatus/OpnSenseApi.md

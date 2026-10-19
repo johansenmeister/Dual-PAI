@@ -1,11 +1,11 @@
 {
   "generated": "2026-10-15T20:07:44.835Z",
-  "totalSkills": 53,
+  "totalSkills": 54,
   "categories": 5,
   "flatSkills": 10,
-  "hierarchicalSkills": 43,
+  "hierarchicalSkills": 44,
   "alwaysLoadedCount": 2,
-  "deferredCount": 51,
+  "deferredCount": 52,
   "skills": {
     "agents": {
       "name": "Agents",
@@ -338,6 +338,32 @@
       "tier": "deferred",
       "isHierarchical": true
     },
+    "firewallstatus": {
+      "name": "FirewallStatus",
+      "path": "Infrastructure/FirewallStatus/SKILL.md",
+      "category": "Infrastructure",
+      "fullDescription": "OPNsense brannmur-overvåking og diagnostikk (inkl. Suricata IDS og CrowdSec). USE WHEN brannmur status, firewall status, sjekk brannmur, OPNsense, pakkeinspeksjon, crowdsec alerts, suricata, ids, suricata status, firewall logger, brannmur helse, \"hva er status på firewall\".",
+      "triggers": [
+        "brannmur",
+        "status",
+        "firewall",
+        "sjekk",
+        "opnsense",
+        "pakkeinspeksjon",
+        "crowdsec",
+        "alerts",
+        "suricata",
+        "ids",
+        "logger",
+        "helse",
+        "hva"
+      ],
+      "workflows": [
+        "CheckStatus"
+      ],
+      "tier": "deferred",
+      "isHierarchical": true
+    },
     "firstprinciples": {
       "name": "FirstPrinciples",
       "path": "Thinking/FirstPrinciples/SKILL.md",
@@ -436,11 +462,15 @@
       "name": "Infrastructure",
       "path": "Infrastructure/SKILL.md",
       "category": null,
-      "fullDescription": "Drift av homelaben. USE WHEN komodo, docker stack, proxmox, pve, VM status, technitium, dns status, truenas, NAS status.",
+      "fullDescription": "Drift av homelaben. USE WHEN komodo, docker stack, brannmur, OPNsense, suricata, crowdsec, proxmox, pve, VM status, technitium, dns status, truenas, NAS status.",
       "triggers": [
         "komodo",
         "docker",
         "stack",
+        "brannmur",
+        "opnsense",
+        "suricata",
+        "crowdsec",
         "proxmox",
         "pve",
         "status",
@@ -1404,6 +1434,7 @@
       "ExtractWisdom"
     ],
     "Infrastructure": [
+      "FirewallStatus",
       "Komodo",
       "Proxmox",
       "Technitium",
