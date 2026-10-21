@@ -17,7 +17,7 @@
 import { Database } from "bun:sqlite";
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { hostname, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 const EKTE = join(import.meta.dir, "..", ".opencode");
@@ -32,6 +32,7 @@ const OVERSKRIFTER = {
 	effekt: "Handlers that run without effect (K5",
 	speil: "Read-only mirrors (K57",
 	nøkler: "The keys in .env (#162",
+	maskin: "Machine setup (#472",
 	claude: "Claude Code (self-test",
 } as const;
 
@@ -117,6 +118,11 @@ describe("pai doctor kaller hver sjekk (K51)", () => {
 		writeFileSync(join(tre, ".env.example"), "# ## G\nA_KEY=\n");
 		writeFileSync(join(tre, ".env"), "A_KEY=1\n");
 		chmodSync(join(tre, ".env"), 0o644);
+		// This machine in the profile, with a clone it does not have: #472 should say so.
+		writeFileSync(
+			join(tre, "PAI", "USER", "MASKINER.yaml"),
+			`repoer: { a: { url: git@x:a.git, sti: ~/a } }\nroller: { r: { repoer: [a] } }\nmaskiner: { ${hostname().split(".")[0]}: r }\n`
+		);
 
 		const { kode, seksjoner, ut } = doctor();
 		expect([...seksjoner.keys()], ut).toEqual(Object.keys(OVERSKRIFTER));
@@ -132,10 +138,11 @@ describe("pai doctor kaller hver sjekk (K51)", () => {
 		expect(i("effekt")).toContain("❌ prd-sync: a PRD in the session directory in 3 of the last 3 sessions");
 		expect(i("speil")).toContain(`❌ ${join(home, "speil")}: 1 local change(s) in a read-only mirror`);
 		expect(i("nøkler")).toContain(`❌ ${join(tre, ".env")} is readable by others (644)`);
+		expect(i("maskin")).toContain(`❌ repo a ~/a is not cloned: git clone git@x:a.git ${join(home, "a")}`);
 		expect(i("claude")).toContain("❌ ClaudeSmoke has not passed against Claude Code 0.0.1");
 		// En sjekk som ikke lot seg laste, er ikke en sjekk som kjørte.
 		expect(ut).not.toContain("could not");
-		expect(ut).toContain("❌ 9 problem(s)");
+		expect(ut).toContain("❌ 10 problem(s)");
 		expect(kode).toBe(1);
 	});
 
@@ -149,6 +156,7 @@ describe("pai doctor kaller hver sjekk (K51)", () => {
 		expect(seksjoner.get("db")).toEqual(["  ✅ no opencode.db to check"]);
 		expect(seksjoner.get("speil")).toEqual(["  ✅ no paths in PAI/USER/SKRIVEBESKYTTET.json"]);
 		expect(seksjoner.get("nøkler")).toEqual(["  ✅ no .env yet (every key is optional)"]);
+		expect(seksjoner.get("maskin")).toEqual(["  ✅ no machine profile (PAI/USER/MASKINER.yaml)"]);
 		expect(ut).not.toContain("could not");
 	});
 });

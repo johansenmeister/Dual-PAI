@@ -1,0 +1,34 @@
+# Machine profile for `pai maskin --sjekk` (docs: `pai help`).
+#
+# Copy this file to PAI/USER/MASKINER.yaml and fill it in. It says what each
+# role needs and which machine has which role, by host name (`hostname -s`).
+# `pai maskin --sjekk` compares this machine with it and changes nothing;
+# `pai doctor` shows the same in its "Maskinoppsett" section.
+#
+# Secrets never go here: `env` lists key names in ~/.opencode/.env, never
+# values. Units are symlinked from a repo into ~/.config/systemd/user/, never
+# written by hand. `repo: pai` means this PAI repo's own `systemd/`.
+
+repoer:
+  scripts:
+    url: git@git.example.com:you/scripts.git
+    sti: ~/repos/scripts
+  notes:
+    url: git@git.example.com:you/notes.git
+    sti: ~/repos/notes
+    les: true # read-only clone: never changed locally
+
+roller:
+  server:
+    repoer: [scripts, notes]
+    enheter:
+      - { repo: scripts, fil: systemd/notes-pull.service }
+      - { repo: scripts, fil: systemd/notes-pull.timer, aktiver: true }
+    linger: true # runs without anyone logged in
+    env: [REPORT_RECIPIENT]
+  arbeidsstasjon:
+    repoer: [notes]
+
+maskiner:
+  my-server: server
+  my-laptop: arbeidsstasjon

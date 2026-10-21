@@ -3,13 +3,14 @@
 Dokumentasjon av verifiserte OPNsense REST API endpoints for brannmur-overvåking.
 
 **OPNsense versjon:** endepunktene verifisert på 26.1.10 (2026-07-08); IDS-endepunktene
-og `firmware/status` på 26.7.5 (2026-10-10), alle på 26.7.6_3 (2026-10-11)
+og `firmware/status` på 26.7.5 (2026-10-10), alle på 26.7.6_3 (2026-10-11), og alle på
+26.7.7 CE og 26.4.2p2 BE (2026-10-21, #475: samme måling på begge, alle svarte 200)
 **Versjonsvakten (#414, #466):** scriptet sammenligner brannmurens serie og utgave med
-lista `VERIFIED="26.7/CE"` (serie/utgave, mellomrom mellom parene). Står kombinasjonen ikke
+lista `VERIFIED="26.7/CE 26.4/BE"` (serie/utgave, mellomrom mellom parene). Står kombinasjonen ikke
 der, blir `overall` ADVARSEL med `system.verified.note`. Når endepunktene er verifisert på
 en ny serie eller utgave: legg den til i scriptet og denne linja i samme commit (testen ved
 siden av scriptet holder dem like).
-Utgaven leses fra `product_id` (`opnsense` = CE; `opnsense-business` = BE, UTLEDET).
+Utgaven leses fra `product_id` (`opnsense` = CE; `opnsense-business` = BE, målt på 26.4.2p2 2026-10-21).
 **Base URL:** Fra `~/.opencode/.env` (`OPNSENSE_API_URL`)
 **Autentisering:** HTTP Basic Auth — `OPNSENSE_API_KEY` som brukernavn, `OPNSENSE_API_SECRET` som passord
 **Lesing:** alle kall i denne skillen er GET, unntatt søket `ids/service/queryAlerts` (POST)
@@ -49,6 +50,21 @@ curl -s \
 | `/api/diagnostics/system/systemhealth/` | ❌ 404 | Systemhelse | Ikke tilgjengelig via API i denne versjonen |
 
 **Viktig om filterlogg:** `/api/diagnostics/firewall/log/` returnerer JSON (ikke rå tekst). Hver oppføring har felt: `action` (block/pass), `interface` (igc1=WAN), `src`, `dst`, `label`, `protoname`, `timestamp`, etc.
+
+### Diagnostics — Ressurser
+
+Scriptet bruker ikke disse ennå. Stiene er i snake_case, som ACL-ene i OPNsense: på 26.4.2p2
+BE gir camelCase-stien `systemResources` 403 med samme nøkkel som får 200 på
+`system_resources` (2026-10-21, #475). På 26.7.7 CE svarte begge formene 200. Bruk
+snake_case.
+
+| Endpoint | Status | Beskrivelse | Returnerer |
+|----------|--------|-------------|------------|
+| `/api/diagnostics/system/system_resources` | ✅ | Minne og ZFS ARC | `{"memory":{"total":"…","total_frmt":"…","used":N,"used_frmt":"…","arc":"…","arc_frmt":"…","arc_txt":"ARC size N MB"}}`. Ingen CPU |
+| `/api/diagnostics/system/system_disk` | ✅ | Disker og ZFS-datasett | `{"devices":[{"device","type","blocks","used","available","used_pct","mountpoint"},…]}`. CE har også `total`, `total_bytes`, `used_bytes` og `available_bytes`; BE har dem ikke, så bruk `used_pct` |
+| `/api/diagnostics/firewall/pf_states` | ✅ | State-tabellen | `{"current":"N","limit":"N"}` (strenger) |
+| `/api/diagnostics/cpu_usage/stream` | ✅ | CPU-bruk, som strøm (SSE) | `event: message` / `data: {"total","user","nice","sys","intr","idle"}`, omtrent én hendelse i sekundet. Det eneste stedet med CPU-bruk; les med tidsavbrudd (`curl -m 3`) |
+| `/api/diagnostics/system/systemResources` | ⚠️ | camelCase-formen | 403 på 26.4.2p2 BE, 200 på 26.7.7 CE. Ikke bruk |
 
 ### Firewall — Filterregler
 

@@ -794,6 +794,17 @@ async function cmdDoctor() {
     nei(`could not check the keys: ${e instanceof Error ? e.message : String(e)}`);
   }
 
+  console.log("\nMachine setup (#472: this machine against PAI/USER/MASKINER.yaml)");
+  try {
+    const { maskinHelse } = await import(join(dir, "PAI", "Tools", "maskin-helse.ts"));
+    const h = maskinHelse(dir, homedir()) as { problemer: string[]; varsler: string[]; ok: string };
+    for (const p of h.problemer) nei(p);
+    for (const v of h.varsler) console.log(`  ⚠️  ${v}`);
+    if (h.problemer.length === 0 && h.varsler.length === 0) console.log(`  ✅ ${h.ok}`);
+  } catch (e) {
+    nei(`could not check the machine setup: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
   console.log("\nClaude Code (self-test: pinning, self-update, smoke test; the rest in pai claude doctor)");
   const claude = selvtestClaude(dir, repoRot());
   for (const varsel of claude.varsler) nei(varsel);
@@ -805,6 +816,61 @@ async function cmdDoctor() {
   } else {
     log(`${feil} problem(s)`, "❌");
     process.exit(1);
+  }
+}
+
+/**
+ * `pai maskin --sjekk` — this machine against `PAI/USER/MASKINER.yaml` (#472).
+ *
+ * Phase 1 only reads. Exits 1 when a step is not ok (a `varsel` alone gives 0),
+ * and 2 for usage. `--json` gives the steps for a model to read.
+ */
+async function cmdMaskin(args: string[]) {
+  const value = (flag: string) => {
+    const i = args.indexOf(flag);
+    if (i < 0) return undefined;
+    const v = args[i + 1];
+    if (!v || v.startsWith("--")) error(`${flag} needs a value`);
+    return v;
+  };
+  const known = ["--sjekk", "--json", "--rolle", "--profil"];
+  for (const a of args) if (a.startsWith("--") && !known.includes(a)) error(`Unknown flag for pai maskin: ${a}`);
+  if (!args.includes("--sjekk")) {
+    console.error("Only pai maskin --sjekk exists so far: doing what is missing is phase 2 (docs/maskinoppsett/plan.md).");
+    process.exit(2);
+  }
+  const dir = realpathSync(OPENCODE_DIR);
+  const { check, problems, stepLine } = await import(join(dir, "PAI", "Tools", "maskin.ts"));
+  const r = check(dir, homedir(), { role: value("--rolle"), profile: value("--profil") });
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(r, null, 2));
+    process.exit(r.kind === "checked" && problems(r.steps).length === 0 ? 0 : 1);
+  }
+  switch (r.kind) {
+    case "no-profile":
+      console.log(`No machine profile: ${r.path} does not exist. The template is PAI/MASKINER.template.yaml.`);
+      process.exit(1);
+      break;
+    case "bad-profile":
+      console.log(`The profile ${r.path} has errors:`);
+      for (const e of r.errors) console.log(`  ❌ ${e}`);
+      process.exit(1);
+      break;
+    case "unknown":
+      console.log(`${r.name} is not among the machines in ${r.path}. Add it, or run with --rolle (${r.roles.join(", ")}).`);
+      process.exit(1);
+      break;
+    case "checked": {
+      console.log(`\nMachine setup: ${r.host}, role ${r.role} (${r.path})`);
+      for (const s of r.steps) console.log(`  ${stepLine(s)}`);
+      const p = problems(r.steps);
+      console.log();
+      if (p.length === 0) log("The machine is as the profile says", "✅");
+      else {
+        log(`${p.length} step(s) to fix`, "❌");
+        process.exit(1);
+      }
+    }
   }
 }
 
@@ -1168,6 +1234,8 @@ COMMANDS:
   pai claude doctor          Check the Claude side without changing anything
   pai doctor                 Check the v2 side and the model registry, change nothing
   pai keys                   Show which keys in .env are set, never their values
+  pai maskin --sjekk         Check this machine against PAI/USER/MASKINER.yaml, change nothing
+                             (--rolle <rolle>, --profil <fil>, --json)
   pai -w, --wallpaper        List/switch wallpapers (Kitty + macOS)
   pai help, -h               Show this help
 
@@ -1219,6 +1287,7 @@ async function main() {
   let subCommand: string | undefined;
   let subArg: string | undefined;
   let wallpaperArgs: string[] = [];
+  let maskinArgs: string[] = [];
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -1281,6 +1350,11 @@ async function main() {
       case "keys":
         command = "keys";
         break;
+      case "maskin":
+        command = "maskin";
+        maskinArgs = args.slice(i + 1);
+        i = args.length; // the rest are pai maskin's flags
+        break;
       case "profiles":
         command = "profiles";
         break;
@@ -1319,6 +1393,9 @@ async function main() {
       break;
     case "keys":
       await cmdKeys();
+      break;
+    case "maskin":
+      await cmdMaskin(maskinArgs);
       break;
     case "profiles":
       cmdProfiles();

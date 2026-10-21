@@ -36,7 +36,7 @@ IDS_LIMIT="${IDS_LIMIT:-100}"
 # Seriene og utgavene endepunktene i OpnSenseApi.md er verifisert mot, som serie/utgave
 # (#414, #466). Kjører brannmuren noe annet, blir overall ADVARSEL. En ny kombinasjon
 # legges til i samme commit som verifiseringen, her og i OpnSenseApi.md.
-VERIFIED="26.7/CE"
+VERIFIED="26.7/CE 26.4/BE"
 PRETTY=0
 DETAIL=0
 IP_FILTER=""

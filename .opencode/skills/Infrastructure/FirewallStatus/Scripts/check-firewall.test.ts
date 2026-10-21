@@ -123,6 +123,16 @@ describe("check-firewall.sh: the version guard (#414)", () => {
 		expect(r.overall).toBe("OK");
 	});
 
+	test("every pair in the list is verified, not only the first", () => {
+		const ids: Record<string, string> = { CE: "opnsense", BE: "opnsense-business" };
+		for (const pair of list) {
+			const [s = "", e = ""] = pair.split("/");
+			const r = run({ product_id: ids[e], product_series: s, product_version: `${s}.2` });
+			expect(r.system.verified.matches).toBe(true);
+			expect(r.overall).toBe("OK");
+		}
+	});
+
 	test("another series: not verified, ADVARSEL, and the note names both", () => {
 		const r = run({ product_id: "opnsense", product_series: "27.1", product_version: "27.1" });
 		expect(r.system.verified.matches).toBe(false);
