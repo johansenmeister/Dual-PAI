@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 520" width="1280" height="520" role="img" aria-labelledby="t d">
   <title id="t">Security</title>
-  <desc id="d">Every tool call from either engine passes the security guard in pai-core, which checks for prompt injection in seven categories, matches the command the shell will actually run, and checks file paths for credentials. The outcome is allowed, asks you first (such as git push --force), or blocked (such as rm -rf / or a write to .env). Every decision is logged with secrets redacted.</desc>
+  <desc id="d">Every tool call from either engine passes the security guard in pai-core, which checks the text of the call for API keys and private keys, matches the command the shell will actually run, and checks file paths for credentials. Prompt injection is looked for in what tools return, where it comes in, and flagged to the model rather than blocked. The outcome is allowed, asks you first (such as git push --force), or blocked (such as rm -rf / or a write to .env). Every decision is logged with secrets redacted.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0a0f1f"/>
@@ -44,8 +44,8 @@
     <text class="hc" x="530" y="158">security guard</text>
     <text class="sc mono" x="530" y="180">pai-core</text>
     <rect x="340" y="198" width="380" height="56" rx="10" fill="#0f2236" stroke="#0e7490" stroke-width="1.5"/>
-    <text class="t" x="358" y="222" font-weight="700"><tspan fill="#67e8f9">1</tspan>  Prompt injection</text>
-    <text class="s" x="358" y="242">7 categories, in the text of the call</text>
+    <text class="t" x="358" y="222" font-weight="700"><tspan fill="#67e8f9">1</tspan>  Keys in the text</text>
+    <text class="s" x="358" y="242">API keys and private keys in the call</text>
     <rect x="340" y="262" width="380" height="56" rx="10" fill="#0f2236" stroke="#0e7490" stroke-width="1.5"/>
     <text class="t" x="358" y="286" font-weight="700"><tspan fill="#67e8f9">2</tspan>  Shell command</text>
     <text class="s" x="358" y="306">what the shell will run, not text it stores</text>

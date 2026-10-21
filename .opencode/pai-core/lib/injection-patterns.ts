@@ -7,6 +7,15 @@
  * @module injection-patterns
  */
 
+/**
+ * A case-insensitive phrase that matches only as whole words. `\b` is ASCII in JavaScript,
+ * also with the `u` flag, so `\bDAN` would still match inside "sådan" (K30). Combining
+ * marks count as part of the word: the sanitizer's NFKD turns "å" into "a" plus a ring.
+ */
+function wholeWords(phrase: string): RegExp {
+	return new RegExp(`(?<![\\p{L}\\p{M}\\p{N}_])${phrase}(?![\\p{L}\\p{M}\\p{N}_])`, "iu");
+}
+
 // === KATEGORIE 1: Direkte Instruktions-Übernahme ===
 // Versuche, dem Modell neue Anweisungen zu geben die vorherige überschreiben
 export const INSTRUCTION_OVERRIDE_PATTERNS = [
@@ -31,10 +40,12 @@ export const ROLE_HIJACKING_PATTERNS = [
 	/pretend\s+(?:you\s+are|to\s+be)\s+(?:a\s+|an\s+)?(?:["'][^"']{3,30}["']|hacker|attacker|malware)/i,
 	// explizite Rollen-Keywords (nur bösartige)
 	/roleplay\s+as\s+(?:a\s+|an\s+)?(?:hacker|attacker|malware)/i,
-	/DAN\s+mode/i, // "Do Anything Now" jailbreak
-	/jailbreak\s+mode/i,
-	/developer\s+mode/i, // Fake "developer mode" jailbreak
-	/god\s+mode/i,
+	// The "... mode" phrases as whole words only: without boundaries they matched Norwegian
+	// text ("hvordan modellen", "en god modell"), M-59.
+	wholeWords("DAN\\s+mode"), // "Do Anything Now" jailbreak
+	wholeWords("jailbreak\\s+mode"),
+	wholeWords("developer\\s+mode"), // Fake "developer mode" jailbreak
+	wholeWords("god\\s+mode"),
 ] as const;
 
 // === KATEGORIE 3: System-Prompt-Extraktion ===
@@ -143,12 +154,26 @@ function redactMatchedText(text: string, category: InjectionCategory): string {
 }
 
 /**
+ * The categories that look for instructions aimed at the model. They run on what comes
+ * in (tool output), not on what the model writes itself (#484).
+ */
+export const INSTRUCTION_CATEGORIES: readonly InjectionCategory[] = [
+	"instruction_override",
+	"role_hijacking",
+	"system_prompt_extraction",
+	"safety_bypass",
+	"context_separator",
+	"mcp_tool_injection",
+];
+
+/**
  * Detect all injection patterns and return matches with category
  *
  * @param content - The content to check for injection patterns
+ * @param only - Limit the check to these categories (all when left out)
  * @returns Array of matches with category, pattern, and matched text
  */
-export function detectInjections(content: string): InjectionMatch[] {
+export function detectInjections(content: string, only?: readonly InjectionCategory[]): InjectionMatch[] {
 	const matches: InjectionMatch[] = [];
 	const checks: [InjectionCategory, readonly RegExp[]][] = [
 		["instruction_override", INSTRUCTION_OVERRIDE_PATTERNS],
@@ -160,6 +185,7 @@ export function detectInjections(content: string): InjectionMatch[] {
 		["pii_credential_leak", PII_PATTERNS],
 	];
 	for (const [category, patterns] of checks) {
+		if (only && !only.includes(category)) continue;
 		for (const pattern of patterns) {
 			const match = content.match(pattern);
 			if (match) {

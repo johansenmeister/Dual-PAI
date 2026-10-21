@@ -21,7 +21,7 @@ grønn på nytt.
 | Skill-kall sender `args.skill` = `pai:<flatt-navn>` | M-40 | ja (steg G, K25) |
 | `SessionEnd` fyrer også i `-p` | røyktesten | ja |
 | Plugin-MCP heter `mcp__plugin_pai_pai__<verktøy>`; `.mcp.json`-kommandoen må matche `^\$\{CLAUDE_PLUGIN_ROOT\}/bin/[^/\\]+$` | batch 9 | ja (init) |
-| PostToolUse `hookSpecificOutput.updatedToolOutput` bytter ut outputen modellen ser, for alle verktøy (også Bash, Read, Grep), og `additionalContext` når modellen ved siden av | #367: maskering av hemmeligheter | ja (steg S) |
+| PostToolUse `hookSpecificOutput.updatedToolOutput` bytter ut outputen modellen ser, for alle verktøy (også Bash, Read, Grep), og `additionalContext` når modellen ved siden av | #367: maskering av hemmeligheter; #484: merknaden om instruksjoner i outputen | ja (steg S) |
 | `TaskCreate` finnes med `CLAUDE_CODE_ENABLE_TODO_TOOLS=true` | ISC-sporingen | ja (init; at den krever nøkkelen, er ikke sjekket) |
 | `DISABLE_AUTOUPDATER=1` i `env` stopper den native oppdatereren, og `claude install <versjon>` virker med den | C1: pinningen | nei (målt i fase 2 med debug-loggen) |
 
@@ -29,7 +29,7 @@ grønn på nytt.
 I tillegg, utenfor røyktesten: skallverktøyet heter `shell` med `input.command`;
 `session.context` fyrer per tur; adapteren lastes via `OPENCODE_CONFIG_CONTENT` og
 `--standalone` (B2, B6); en plugin er en katalog med `package.json`, ikke en fil; `result` slik det står etter
-`execute.after` er det modellen får (#367, maskering; dekket av `V2Smoke` steg h); agenter trenger `mode: all`; modellkatalogen ligger i
+`execute.after` er det modellen får (#367 maskering og #484 merknaden om instruksjoner; dekket av `V2Smoke` steg h); agenter trenger `mode: all`; modellkatalogen ligger i
 `opencode.db`, `kv` → `models-dev:catalog`; innloggingen i `credential`-tabellen; de
 skrivende verktøyene er `write`, `edit` og `patch`, og en modell med `gpt-` i id-en får
 bare `patch` (M-55, UTLEDET av kilden).

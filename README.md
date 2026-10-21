@@ -366,10 +366,9 @@ writes a note on what went wrong. `bun .opencode/PAI/Tools/MineReflections.ts
 Every tool call passes through the security guard in `pai-core` before it runs,
 under both engines:
 
-- **Prompt injection.** The text in each tool call is checked against patterns
-  in seven categories (instruction override, role hijacking, system
-  prompt extraction, safety bypass, context separators, MCP tool injection and
-  credential leaks). A match is blocked.
+- **Keys in the text.** The text of each tool call is checked for API keys and
+  private keys, so the assistant cannot write one into a file or send it
+  anywhere. A match is blocked.
 - **Shell commands.** The guard matches what the shell will actually run, not
   text it only writes to a file. Destructive commands such as `rm -rf /` are
   blocked; risky ones such as `git push --force` and `git reset --hard` ask you
@@ -386,6 +385,14 @@ under both engines:
   there, but never sees it. PAI's own logs and memory files are masked the same
   way. A key you paste into a prompt yourself still reaches the model, so rotate
   it then.
+- **Instructions in output.** Prompt injection arrives with what the assistant
+  reads: web pages, issues, MCP results, files written by others. That output is
+  checked against patterns in six categories (instruction override, role
+  hijacking, system prompt extraction, safety bypass, context separators and MCP
+  tool injection). A match is not blocked, because phrase patterns are a signal,
+  not a boundary: the assistant is told that the text is data from the tool, not
+  instructions from you. What a hijacked assistant could do is limited by the
+  checks above.
 - **The log.** Every decision is written to a security log in `STATE/` (see
   [Memory](#memory)), with secrets redacted, including each masking.
 
@@ -401,8 +408,9 @@ update can change what PAI assumes about it. So PAI checks itself:
 
 - **At every start.** Both engines are pinned to an exact version in
   `.opencode/package.json`, and each has a smoke test that runs the real engine
-  with PAI and writes a receipt when every hook has fired and the security guard
-  has blocked what it should: `bun Tools/V2Smoke.ts` and `bun Tools/ClaudeSmoke.ts`.
+  with PAI and writes a receipt when every hook has fired, the security guard
+  has blocked what it should, and tool output came back with secrets masked and
+  planted instructions flagged: `bun Tools/V2Smoke.ts` and `bun Tools/ClaudeSmoke.ts`.
   `pai` and `pai --claude` check that the installed engine is the pinned one, and
   that the smoke test passed against it and against the adapter code as it is
   now. If not, you get one line with the command that fixes it; otherwise

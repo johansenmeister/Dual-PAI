@@ -1,7 +1,7 @@
 {
 	"versjon": "2.0.22",
-	"dato": "2026-10-12",
+	"dato": "2026-10-21",
 	"hooks": 10,
-	"sjekker": 41,
+	"sjekker": 43,
 	"adapter": "dc69b0739d50524b1160447ae04eda8c5fa62c3563c99a3208fc4c8f335e5eb7"
 }

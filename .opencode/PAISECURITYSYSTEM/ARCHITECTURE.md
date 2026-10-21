@@ -122,7 +122,7 @@ Adapteren → kjernens tool.before, med feltnavnene kanonisert
             ↓
 security-validator.ts
     • skall: DANGEROUS_PATTERNS / WARNING_PATTERNS
-    • tekstfelter: injeksjonsmønstre, original og sanert
+    • tekstfelter: nøkkelmønstre (API-nøkler, private nøkler), original og sanert
     • write/edit: legitimasjonsstier (blokk), heuristikker (spør)
             ↓
     Avgjørelse:
@@ -131,6 +131,16 @@ security-validator.ts
     └─ allow    → videre
             ↓
 Revisjonslinje i MEMORY/STATE/security-audit.jsonl
+```
+
+Etter kallet, før modellen ser resultatet (v2 `execute.after` · Claude `PostToolUse`):
+
+```
+Kjernens tool.output
+    • secret-masking.ts: hemmeligheter → [MASKED:<NAVN>]
+    • output-injection.ts: instruksjoner rettet mot modellen → merknad, ikke blokk
+            ↓
+Resultatet modellen ser, med merknaden · revisjonslinje (masked / flagged)
 ```
 
 Detaljene står i `PLUGINS.md` i denne katalogen.
@@ -175,6 +185,7 @@ git stash
 | `pai-core/handlers/security-validator.ts` | Vakten |
 | `pai-core/adapters/types.ts` | `DANGEROUS_PATTERNS`, `WARNING_PATTERNS` |
 | `pai-core/lib/injection-patterns.ts`, `lib/sanitizer.ts` | Injeksjon og sanering |
+| `pai-core/handlers/output-injection.ts` | Instruksjoner i verktøyresultater: merket, ikke blokkert (#484) |
 | `pai-core/lib/tool-names.ts` | Motorenes verktøy- og feltnavn |
 | `MEMORY/STATE/security-audit.jsonl` | Revisjonen |
 | `patterns.example.yaml` (her) | Mal fra oppstrøms; **leses ikke** av vakten |

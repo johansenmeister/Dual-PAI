@@ -78,12 +78,17 @@ async function rute(event: PaiEvent): Promise<PaiResult> {
 			}
 
 			case "tool.output": {
+				// Secrets are masked first, then what is left is checked for instructions
+				// aimed at the model (#367, #484). Neither blocks; both add a note.
 				const { maskToolResult } = await import("./handlers/secret-masking");
+				const { flagToolResult } = await import("./handlers/output-injection");
 				const masked = maskToolResult(event.tool, event.output);
-				if (!masked.notice) return {};
+				const flagged = flagToolResult(event.tool, masked.result);
+				const notices = [masked.notice, flagged.notice].filter((n): n is string => n !== null);
+				if (notices.length === 0) return {};
 				return {
-					output: { value: masked.result, notice: masked.notice },
-					notes: masked.hits.map((h) => `masked:${h.label}`),
+					output: { value: masked.result, notice: notices.join("\n") },
+					notes: [...masked.hits.map((h) => `masked:${h.label}`), ...flagged.matches.map((m) => `flagged:${m.category}`)],
 				};
 			}
 

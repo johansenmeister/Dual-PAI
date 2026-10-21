@@ -5,7 +5,8 @@
  * Equivalent to PAI's security-validator.ts hook.
  *
  * Enhanced in WP-B:
- * - Comprehensive injection pattern detection (7 categories)
+ * - Credential patterns in every text field the model writes (the instruction
+ *   patterns run on tool output instead, handlers/output-injection.ts, #484)
  * - Input sanitization before pattern matching
  * - Security audit logging to security-audit.jsonl
  * - Multi-field scanning (not just args.content)
@@ -35,7 +36,7 @@ import { currentHarness } from "../runtime";
 export interface SecurityAuditEntry {
 	timestamp: string;
 	tool: string;
-	action: "blocked" | "confirmed" | "allowed" | "masked";
+	action: "blocked" | "confirmed" | "allowed" | "masked" | "flagged";
 	reason: string;
 	pattern?: string;
 	category?: InjectionCategory;
@@ -242,28 +243,29 @@ export function extractCommand(input: PermissionInput | ToolInput): string | nul
 }
 
 /**
- * Check all text fields in args for prompt injection patterns
+ * Check all text fields in args for credentials (API keys, private keys).
  *
- * Scans all fields listed in INJECTION_SCAN_FIELDS, not just args.content.
- * Sanitizes input before pattern matching to catch obfuscated attacks.
+ * Only the credential patterns run here. The model writes these fields itself, so the
+ * patterns for instructions aimed at the model run on tool output instead, where
+ * injection comes in, and flag rather than block (#484, handlers/output-injection.ts).
+ * Scans all fields listed in INJECTION_SCAN_FIELDS, not just args.content, and the
+ * sanitized form too (base64, lookalike characters).
  *
  * @param args - The tool arguments to check
- * @returns Match info if injection detected, null otherwise
+ * @returns Match info if a credential was found, null otherwise
  */
-function checkAllFieldsForInjection(args: Record<string, unknown>): {
+function checkAllFieldsForCredentials(args: Record<string, unknown>): {
 	field: string;
 	matches: ReturnType<typeof detectInjections>;
 } | null {
+	const only = ["pii_credential_leak"] as const;
 	for (const field of INJECTION_SCAN_FIELDS) {
 		const value = args[field];
 		if (typeof value !== "string") continue;
 
-		// Sanitize before pattern matching (catches obfuscated attacks)
 		const sanitized = sanitizeForSecurityCheck(value);
-
-		// Check original and sanitized versions
-		const matches = detectInjections(value);
-		const sanitizedMatches = sanitized !== value ? detectInjections(sanitized) : [];
+		const matches = detectInjections(value, only);
+		const sanitizedMatches = sanitized !== value ? detectInjections(sanitized, only) : [];
 
 		const allMatches = [...matches, ...sanitizedMatches];
 		if (allMatches.length > 0) {
@@ -291,18 +293,18 @@ export async function validateSecurity(
 
 		const command = extractCommand(input);
 
-		// Check for prompt injection in ALL text fields FIRST (even if no command)
-		const injectionResult = input.args ? checkAllFieldsForInjection(input.args) : null;
+		// Check for credentials in ALL text fields FIRST (even if no command)
+		const injectionResult = input.args ? checkAllFieldsForCredentials(input.args) : null;
 
 		if (injectionResult) {
 			const firstMatch = injectionResult.matches[0];
-			fileLog(`BLOCKED: Prompt injection detected in field '${injectionResult.field}'`, "error");
+			fileLog(`BLOCKED: Credential detected in field '${injectionResult.field}'`, "error");
 			fileLog(`Category: ${firstMatch.category}, Pattern: ${firstMatch.pattern}`, "error");
 			logSecurityEvent({
 				timestamp: new Date().toISOString(),
 				tool: input.tool,
 				action: "blocked",
-				reason: `Prompt injection in ${injectionResult.field}`,
+				reason: `Credential in ${injectionResult.field}`,
 				category: firstMatch.category,
 				pattern: firstMatch.pattern.toString(),
 				commandPreview: command
@@ -313,14 +315,14 @@ export async function validateSecurity(
 			});
 			return {
 				action: "block",
-				reason: `Potential prompt injection detected in field '${injectionResult.field}'`,
-				message: "Content appears to contain prompt injection patterns and has been blocked.",
+				reason: `Credential detected in field '${injectionResult.field}'`,
+				message: `Content appears to contain a credential (${firstMatch.pattern}) and has been blocked. Refer to secrets by name, never by value.`,
 			};
 		}
 
 		if (!command) {
 			fileLog(`No command extracted from input`, "warn");
-			// No command to validate - allow by default (injection check already passed)
+			// No command to validate - allow by default (credential check already passed)
 			logSecurityEvent({
 				timestamp: new Date().toISOString(),
 				tool: input.tool,

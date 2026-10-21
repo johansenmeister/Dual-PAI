@@ -36,9 +36,13 @@ ende i `bun Tools/V2Smoke.ts`, med et farlig skallmønster og en `write` til
 1. **Skallkommandoer** mot `DANGEROUS_PATTERNS` (blokk) og `WARNING_PATTERNS`
    (spør), begge i `pai-core/adapters/types.ts`. `export`/`set`-prefiks
    fjernes først, så mønsteret treffer verdien og ikke nøkkelordet.
-2. **Prompt-injeksjon** i tekstfeltene (`lib/injection-patterns.ts`, sju
-   kategorier), både på originalen og på en sanert versjon
-   (`lib/sanitizer.ts`: base64, Unicode, mellomrom).
+2. **Nøkler** i tekstfeltene (`lib/injection-patterns.ts`, kategorien
+   `pii_credential_leak`), både på originalen og på en sanert versjon
+   (`lib/sanitizer.ts`: base64, Unicode, mellomrom). De seks kategoriene for
+   instruksjoner rettet mot modellen kjører på verktøyresultatet i stedet
+   (`handlers/output-injection.ts`, #484): der kommer injeksjon inn, og et treff
+   gir modellen en merknad, ikke en blokk. Modellens egen tekst sjekkes ikke for
+   dem.
 3. **Sensitive stier** for `write`/`edit`, i to nivåer:
    - presise legitimasjonsstier (for eksempel `~/.ssh/authorized_keys`): blokk.
      Meldingen sier at endringen skal gjøres for hånd og ikke prøves på nytt.
