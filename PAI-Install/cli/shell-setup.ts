@@ -10,14 +10,19 @@
  * `--profile` skriver ingenting, men gir fila og skallets navn på hver sin
  * linje: `guide/gitea/sync.sh` legger synkaliasene i samme fil (#232).
  *
+ * The function exists only in shells that read the profile, so this also
+ * writes `~/.local/bin/pai`, a small script that does the same, for the agents'
+ * shell tools, cron and systemd (#476, `PAI/Tools/pai-command.ts`).
+ *
  * Bruk:
  *   bun PAI-Install/cli/shell-setup.ts
  *   bun PAI-Install/cli/shell-setup.ts --profile
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir, userInfo } from "node:os";
 import { dirname, join, resolve } from "node:path";
+import { paiCommandPath, writePaiCommand } from "../../.opencode/PAI/Tools/pai-command";
 
 /** The `pai` function between PAI's markers, in fish or POSIX syntax. */
 export function paiFunctionBlock(shellName: string, installDir: string): string {
@@ -42,7 +47,9 @@ export function writePaiFunction(shellConfig: string, shellName: string, install
 		: "";
 
 	let content = existing;
-	content = content.replace(/\n?# PAI shell setup — added by PAI installer[\s\S]*?# end PAI shell setup\n?/g, "");
+	// Also the block without "— added by PAI installer", written by hand from a runbook:
+	// the catch-all below took only its first lines and left the rest (#476).
+	content = content.replace(/\n?# PAI shell setup(?: — added by PAI installer)?\n[\s\S]*?# end PAI shell setup\n?/g, "");
 	content = content.replace(
 		/\n?#\s*PAI\s*(?:alias|shell\s*setup|setup|installer|installed|PAI)[^\n]*[\s\S]*?(?=\n(?:#|alias\b|export\b|set\b|source\b|pai\(\)|opencode\(\)|function\s+pai\b|function\s+opencode\b|function\s+\w+\b)|$)/gi,
 		""
@@ -97,7 +104,14 @@ if (import.meta.main) {
 	if (process.argv.includes("--profile")) {
 		console.log(`${file}\n${shell}`);
 	} else {
-		writePaiFunction(file, shell, resolve(import.meta.dir, "..", ".."));
+		const installDir = resolve(import.meta.dir, "..", "..");
+		writePaiFunction(file, shell, installDir);
+		// Real path: `pai doctor` compares it with the tree behind ~/.opencode.
+		if (writePaiCommand(homedir(), realpathSync(installDir)) === "foreign") {
+			console.error(
+				`${paiCommandPath(homedir())} is not PAI's and was left alone, so shells that do not read ${file} have no pai command.`
+			);
+		}
 		console.log(file);
 	}
 }

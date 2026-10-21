@@ -16,9 +16,10 @@
 
 import { Database } from "bun:sqlite";
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { hostname, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { writePaiCommand } from "../.opencode/PAI/Tools/pai-command";
 
 const EKTE = join(import.meta.dir, "..", ".opencode");
 const PAI_TS = join(EKTE, "PAI", "Tools", "pai.ts");
@@ -139,6 +140,7 @@ describe("pai doctor kaller hver sjekk (K51)", () => {
 		expect(i("speil")).toContain(`❌ ${join(home, "speil")}: 1 local change(s) in a read-only mirror`);
 		expect(i("nøkler")).toContain(`❌ ${join(tre, ".env")} is readable by others (644)`);
 		expect(i("maskin")).toContain(`❌ repo a ~/a is not cloned: git clone git@x:a.git ${join(home, "a")}`);
+		expect(i("maskin")).toContain(`⚠️  ${join(home, ".local", "bin", "pai")} is missing`);
 		expect(i("claude")).toContain("❌ ClaudeSmoke has not passed against Claude Code 0.0.1");
 		// En sjekk som ikke lot seg laste, er ikke en sjekk som kjørte.
 		expect(ut).not.toContain("could not");
@@ -148,6 +150,7 @@ describe("pai doctor kaller hver sjekk (K51)", () => {
 
 	test("taus der treet er i orden: eksplisitt OPENCODE_DIR, ingen MCP-servere, ingen økter", () => {
 		symlinkSync(join(EKTE, ".env.example"), join(tre, ".env.example"));
+		writePaiCommand(home, dirname(realpathSync(tre)));
 		const { seksjoner, ut } = doctor({ OPENCODE_DIR: join(home, ".opencode") });
 		expect([...seksjoner.keys()], ut).toEqual(Object.keys(OVERSKRIFTER));
 		expect(seksjoner.get("tre")).toEqual([`  ✅ ${tre}`]);
