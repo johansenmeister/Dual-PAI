@@ -3,10 +3,15 @@
  *
  * `PAI/USER/MASKINER.yaml` says what each role needs (clones, systemd user
  * units linked from a repo, linger, the `.env` keys) and which machine has
- * which role, by host name. Phase 1 only reads: `observe` looks at the machine,
- * and `assess` is a pure function from profile, role and observation to steps
- * with a status. `pai maskin --sjekk` prints them, and `maskin-helse.ts` gives
- * `pai doctor` a section from the same steps.
+ * which role, by host name. `observe` looks at the machine, and `assess` is a
+ * pure function from profile, role and observation to steps with a status.
+ * `pai maskin --sjekk` prints them, and `maskin-helse.ts` gives `pai doctor` a
+ * section from the same steps.
+ *
+ * Phase 2: `plan` is a pure function to the actions that make a `missing`
+ * step ok (clone, link, daemon-reload, enable, linger), and `apply` runs them,
+ * each checking first. Drift is never acted on: something that is there and
+ * wrong is shown with its command, and left alone.
  *
  * The profile's keys (`repoer`, `roller`, `maskiner`, `sti`, `les`, `enheter`,
  * `aktiver`) are data, as written in the plan; everything else here is English.
@@ -19,9 +24,9 @@
  */
 
 import { spawnSync } from "bun";
-import { existsSync, lstatSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, symlinkSync } from "node:fs";
 import { hostname, userInfo } from "node:os";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { parse } from "yaml";
 import { parseEnv } from "./pai-env";
 
@@ -204,7 +209,8 @@ export interface Context {
 	unitDir: string;
 	envFile: string;
 	user: string;
-	run: (cmd: string, args: string[], cwd?: string) => { code: number; out: string };
+	/** `err` is stderr, for a command that changes something and can fail. */
+	run: (cmd: string, args: string[], cwd?: string) => { code: number; out: string; err?: string };
 }
 
 export function defaultContext(opencodeDir: string, home: string, env: NodeJS.ProcessEnv = process.env): Context {
@@ -217,8 +223,15 @@ export function defaultContext(opencodeDir: string, home: string, env: NodeJS.Pr
 		user: userInfo().username,
 		run: (cmd, args, cwd) => {
 			try {
-				const r = spawnSync([cmd, ...args], { cwd, stdout: "pipe", stderr: "pipe", env: { ...env, LC_ALL: "C" } });
-				return { code: r.exitCode ?? -1, out: r.stdout.toString().trim() };
+				const r = spawnSync([cmd, ...args], {
+					cwd,
+					stdin: "inherit",
+					stdout: "pipe",
+					stderr: "pipe",
+					// No password prompt from git: a clone that needs one fails and says so.
+					env: { ...env, LC_ALL: "C", GIT_TERMINAL_PROMPT: "0" },
+				});
+				return { code: r.exitCode ?? -1, out: r.stdout.toString().trim(), err: r.stderr.toString().trim() };
 			} catch {
 				// The command is not on PATH.
 				return { code: -1, out: "" };
@@ -471,6 +484,155 @@ export function check(
 	if ("unknown" in r) return { kind: "unknown", path, name: r.unknown, roles: Object.keys(profile.roller) };
 	const ctx = opts.ctx ?? defaultContext(opencodeDir, home);
 	return { kind: "checked", path, host, role: r.role, steps: assess(profile, r.role, observe(profile, r.role, ctx), ctx) };
+}
+
+export type Action =
+	| { type: "clone"; name: string; url: string; path: string }
+	| { type: "link"; name: string; source: string; link: string }
+	| { type: "daemon-reload" }
+	| { type: "enable"; name: string }
+	| { type: "linger" };
+
+/**
+ * What makes the role's `missing` steps ok, in the order they must run. Pure.
+ * Drift is not here: a wrong link, a regular file, another origin or a failed
+ * unit is the user's to look at. A unit whose repo is not cloned yet waits for
+ * the next round, after the clone (`apply` observes again).
+ */
+export function plan(profile: Profile, roleName: string, obs: Observation, ctx: Pick<Context, "home" | "paiRepo" | "unitDir">): Action[] {
+	const role = profile.roller[roleName];
+	if (!role) return [];
+	const clones: Action[] = [];
+	for (const name of role.repoer) {
+		const spec = profile.repoer[name];
+		if (spec && !obs.repos[name]?.exists) clones.push({ type: "clone", name, url: spec.url, path: expandHome(spec.sti, ctx.home) });
+	}
+	const links: Action[] = [];
+	const enables: Action[] = [];
+	for (const u of role.enheter) {
+		const name = basename(u.fil);
+		const o = obs.units[name];
+		if (!o?.sourceExists || o.failed) continue;
+		if (u.repo !== PAI_REPO && !obs.repos[u.repo]?.exists) continue;
+		if (o.kind === "missing") links.push({ type: "link", name, source: join(unitRepoRoot(profile, u, ctx), u.fil), link: join(ctx.unitDir, name) });
+		else if (o.kind !== "symlink" || !o.pointsRight) continue;
+		if (u.aktiver && o.enabled !== "enabled") enables.push({ type: "enable", name });
+	}
+	const reload: Action[] = links.length + enables.length > 0 ? [{ type: "daemon-reload" }] : [];
+	const linger: Action[] = role.linger && obs.linger === false ? [{ type: "linger" }] : [];
+	return [...clones, ...links, ...reload, ...enables, ...linger];
+}
+
+export interface Done {
+	action: Action;
+	ok: boolean;
+	message: string;
+}
+
+export function actionLine(a: Action): string {
+	switch (a.type) {
+		case "clone":
+			return `git clone ${a.url} ${a.path}`;
+		case "link":
+			return `ln -s ${a.source} ${a.link}`;
+		case "daemon-reload":
+			return "systemctl --user daemon-reload";
+		case "enable":
+			return `systemctl --user enable --now ${a.name}`;
+		case "linger":
+			return "loginctl enable-linger";
+	}
+}
+
+/**
+ * Runs the actions. Each checks first, so a second run does nothing, and a
+ * path that has something on it is never written over. Linger only after
+ * `confirm` says yes: it keeps the user's services running after logout.
+ */
+export function apply(actions: Action[], ctx: Context, confirm: (question: string) => boolean): Done[] {
+	const done: Done[] = [];
+	const fail = (action: Action, r: { code: number; out: string; err?: string }) =>
+		done.push({ action, ok: false, message: (r.err || r.out || `exit ${r.code}`).split("\n").slice(-3).join(" ") });
+	for (const a of actions) {
+		switch (a.type) {
+			case "clone": {
+				if (existsSync(a.path)) {
+					done.push({ action: a, ok: false, message: `${a.path} exists and is not a clone; left alone` });
+					break;
+				}
+				mkdirSync(dirname(a.path), { recursive: true });
+				const r = ctx.run("git", ["clone", "-q", a.url, a.path]);
+				if (r.code === 0) done.push({ action: a, ok: true, message: `cloned to ${a.path}` });
+				else fail(a, r);
+				break;
+			}
+			case "link": {
+				let there = true;
+				try {
+					lstatSync(a.link);
+				} catch {
+					there = false;
+				}
+				if (there) {
+					done.push({ action: a, ok: false, message: `${a.link} exists; left alone` });
+					break;
+				}
+				mkdirSync(dirname(a.link), { recursive: true });
+				symlinkSync(a.source, a.link);
+				done.push({ action: a, ok: true, message: `linked to ${a.source}` });
+				break;
+			}
+			case "daemon-reload":
+			case "enable": {
+				const args = a.type === "enable" ? ["--user", "enable", "--now", a.name] : ["--user", "daemon-reload"];
+				const r = ctx.run("systemctl", args);
+				if (r.code === 0) done.push({ action: a, ok: true, message: a.type === "enable" ? "enabled and started" : "reloaded" });
+				else fail(a, r);
+				break;
+			}
+			case "linger": {
+				if (!confirm(`Turn on linger for ${ctx.user}, so the user services run without anyone logged in?`)) {
+					done.push({ action: a, ok: false, message: "not turned on (no yes)" });
+					break;
+				}
+				const r = ctx.run("loginctl", ["enable-linger"]);
+				if (r.code === 0) done.push({ action: a, ok: true, message: "on" });
+				else fail(a, r);
+				break;
+			}
+		}
+	}
+	return done;
+}
+
+/**
+ * `pai maskin`: plan and apply until nothing more can be done, then check.
+ * Two rounds are enough: the second links the units of the repos the first
+ * cloned. A round that does nothing ends it.
+ */
+export function setUp(
+	opencodeDir: string,
+	home: string,
+	confirm: (question: string) => boolean,
+	opts: { profile?: string; role?: string; host?: string; ctx?: Context } = {},
+): { done: Done[]; result: CheckResult } {
+	const done: Done[] = [];
+	const first = check(opencodeDir, home, opts);
+	if (first.kind !== "checked") return { done, result: first };
+	const path = opts.profile ?? join(opencodeDir, PROFILE_PATH);
+	const profile = parseProfile(readFileSync(path, "utf8"), path);
+	const ctx = opts.ctx ?? defaultContext(opencodeDir, home);
+	const tried = new Set<string>();
+	for (let round = 0; round < 2; round++) {
+		// A failed action is not tried again; daemon-reload goes with each round's links.
+		const actions = plan(profile, first.role, observe(profile, first.role, ctx), ctx).filter(
+			(a) => a.type === "daemon-reload" || !tried.has(actionLine(a)),
+		);
+		if (actions.every((a) => a.type === "daemon-reload")) break;
+		for (const a of actions) tried.add(actionLine(a));
+		done.push(...apply(actions, ctx, confirm));
+	}
+	return { done, result: check(opencodeDir, home, { ...opts, ctx }) };
 }
 
 const ICON: Record<Status, string> = { ok: "✅", missing: "❌", drift: "❌", manual: "✋", warning: "⚠️ " };

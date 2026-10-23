@@ -820,10 +820,13 @@ async function cmdDoctor() {
 }
 
 /**
- * `pai maskin --sjekk` — this machine against `PAI/USER/MASKINER.yaml` (#472).
+ * `pai maskin` — make this machine what `PAI/USER/MASKINER.yaml` says (#472).
  *
- * Phase 1 only reads. Exits 1 when a step is not ok (a `varsel` alone gives 0),
- * and 2 for usage. `--json` gives the steps for a model to read.
+ * `--sjekk` only reads. Without it, the steps that are `missing` are done
+ * (clone, link, daemon-reload, enable --now, and linger after a yes), and the
+ * machine is checked again. Drift is shown, never acted on. Exits 1 when a step
+ * is not ok afterwards (a `varsel` alone gives 0), and 2 for usage. `--json`
+ * gives the result for a model to read.
  */
 async function cmdMaskin(args: string[]) {
   const value = (flag: string) => {
@@ -835,15 +838,21 @@ async function cmdMaskin(args: string[]) {
   };
   const known = ["--sjekk", "--json", "--rolle", "--profil"];
   for (const a of args) if (a.startsWith("--") && !known.includes(a)) error(`Unknown flag for pai maskin: ${a}`);
-  if (!args.includes("--sjekk")) {
-    console.error("Only pai maskin --sjekk exists so far: doing what is missing is phase 2 (docs/maskinoppsett/plan.md).");
-    process.exit(2);
-  }
   const dir = realpathSync(OPENCODE_DIR);
-  const { check, problems, stepLine } = await import(join(dir, "PAI", "Tools", "maskin.ts"));
-  const r = check(dir, homedir(), { role: value("--rolle"), profile: value("--profil") });
-  if (args.includes("--json")) {
-    console.log(JSON.stringify(r, null, 2));
+  const { actionLine, check, problems, setUp, stepLine } = await import(join(dir, "PAI", "Tools", "maskin.ts"));
+  const opts = { role: value("--rolle"), profile: value("--profil") };
+  const json = args.includes("--json");
+  // Linger is the only question. Without a terminal there is no one to say yes.
+  const confirm = (q: string) => {
+    if (!process.stdin.isTTY) return false;
+    const a = prompt(`  ${q} [y/N]`);
+    return a?.trim().toLowerCase() === "y";
+  };
+  const { done, result: r } = args.includes("--sjekk")
+    ? { done: [], result: check(dir, homedir(), opts) }
+    : setUp(dir, homedir(), json ? () => false : confirm, opts);
+  if (json) {
+    console.log(JSON.stringify(args.includes("--sjekk") ? r : { done, result: r }, null, 2));
     process.exit(r.kind === "checked" && problems(r.steps).length === 0 ? 0 : 1);
   }
   switch (r.kind) {
@@ -861,12 +870,20 @@ async function cmdMaskin(args: string[]) {
       process.exit(1);
       break;
     case "checked": {
+      if (!args.includes("--sjekk")) {
+        console.log(`\nDone on ${r.host}`);
+        if (done.length === 0) console.log("  nothing to do");
+        for (const d of done as { action: unknown; ok: boolean; message: string }[])
+          console.log(d.ok ? `  ✅ ${actionLine(d.action)}` : `  ❌ ${actionLine(d.action)}: ${d.message}`);
+      }
       console.log(`\nMachine setup: ${r.host}, role ${r.role} (${r.path})`);
       for (const s of r.steps) console.log(`  ${stepLine(s)}`);
       const p = problems(r.steps);
       console.log();
       if (p.length === 0) log("The machine is as the profile says", "✅");
       else {
+        if (args.includes("--sjekk") && p.some((s: { status: string }) => s.status === "missing"))
+          console.log("pai maskin does the steps that are missing; the rest are yours.");
         log(`${p.length} step(s) to fix`, "❌");
         process.exit(1);
       }
@@ -1235,6 +1252,7 @@ COMMANDS:
   pai doctor                 Check the v2 side and the model registry, change nothing
   pai keys                   Show which keys in .env are set, never their values
   pai maskin --sjekk         Check this machine against PAI/USER/MASKINER.yaml, change nothing
+  pai maskin                 Do what is missing (clone, link, enable; linger after a yes), then check
                              (--rolle <rolle>, --profil <fil>, --json)
   pai -w, --wallpaper        List/switch wallpapers (Kitty + macOS)
   pai help, -h               Show this help

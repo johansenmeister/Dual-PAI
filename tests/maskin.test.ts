@@ -1,19 +1,24 @@
 /**
- * Contract test: the machine profile and `pai maskin --sjekk` (#472, phase 1).
+ * Contract test: the machine profile, `pai maskin --sjekk` (#472, phase 1) and
+ * `pai maskin` (phase 2).
  *
  * `parseProfile` refuses what the profile cannot mean, all errors at once.
- * `assess` is pure, so each status is tested from a built observation.
- * `observe` and `check` run against real git repos and symlinks in a temp
- * HOME, with `run` replaced, so no test asks the real systemd anything.
+ * `assess` and `plan` are pure, so each status and each action is tested from
+ * a built observation. `observe`, `check`, `apply` and `setUp` run against real
+ * git repos and symlinks in a temp HOME, with `run` replaced for everything but
+ * git, so no test asks or changes the real systemd.
  *
  * @module tests/maskin
  */
 
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
+	type Action,
+	actionLine,
+	apply,
 	assess,
 	type Context,
 	check,
@@ -22,8 +27,10 @@ import {
 	type Profile,
 	ProfileError,
 	parseProfile,
+	plan,
 	problems,
 	roleFor,
+	setUp,
 	shortHost,
 	stepLine,
 } from "../.opencode/PAI/Tools/maskin";
@@ -259,6 +266,80 @@ describe("assess is pure: each status from an observation", () => {
 	});
 });
 
+describe("plan is pure: the actions for what is missing, never for drift", () => {
+	const p: Profile = parseProfile(PROFILE);
+	const ctx = { home: "/h", paiRepo: "/pai", unitDir: "/u" };
+	const unit = (o: Partial<Observation["units"][string]> = {}) => ({
+		sourceExists: true,
+		kind: "symlink" as const,
+		pointsRight: true,
+		target: "/x",
+		enabled: "enabled",
+		failed: false,
+		...o,
+	});
+	const obs = (o: Partial<Observation> = {}): Observation => ({
+		repos: {
+			scripts: { exists: true, remote: "git@git.example.com:org/scripts.git", dirty: false },
+			docs: { exists: true, remote: "git@git.example.com:org/docs.git", dirty: false },
+		},
+		units: { "docs-pull.service": unit({ enabled: "static" }), "docs-pull.timer": unit() },
+		linger: true,
+		envSet: new Set(),
+		cronLines: 0,
+		...o,
+	});
+	const lines = (o: Observation) => plan(p, "server", o, ctx).map(actionLine);
+
+	test("as the profile says: nothing to do, also with .env keys missing (they are yours)", () => {
+		expect(lines(obs())).toEqual([]);
+	});
+
+	test("missing links: link, reload, then enable the one with aktiver", () => {
+		const o = obs({
+			units: { "docs-pull.service": unit({ kind: "missing", target: null, enabled: "not-found" }), "docs-pull.timer": unit({ kind: "missing", target: null, enabled: "not-found" }) },
+		});
+		expect(lines(o)).toEqual([
+			"ln -s /h/repos/scripts/systemd/docs-pull.service /u/docs-pull.service",
+			"ln -s /h/repos/scripts/systemd/docs-pull.timer /u/docs-pull.timer",
+			"systemctl --user daemon-reload",
+			"systemctl --user enable --now docs-pull.timer",
+		]);
+	});
+
+	test("a linked unit that is not enabled is enabled", () => {
+		expect(lines(obs({ units: { "docs-pull.service": unit({ enabled: "static" }), "docs-pull.timer": unit({ enabled: "disabled" }) } }))).toEqual([
+			"systemctl --user daemon-reload",
+			"systemctl --user enable --now docs-pull.timer",
+		]);
+	});
+
+	test("drift gets no action: a regular file, a wrong link, a missing source, a failed unit", () => {
+		for (const bad of [
+			{ kind: "file" as const, target: null, enabled: "disabled" },
+			{ pointsRight: false, enabled: "disabled" },
+			{ sourceExists: false, kind: "missing" as const, enabled: "disabled" },
+			{ failed: true, enabled: "disabled" },
+		]) {
+			expect(lines(obs({ units: { "docs-pull.service": unit({ enabled: "static" }), "docs-pull.timer": unit(bad) } })), JSON.stringify(bad)).toEqual([]);
+		}
+		const other = obs();
+		other.repos.scripts.remote = "git@other:x.git";
+		expect(lines(other)).toEqual([]);
+	});
+
+	test("a repo that is not cloned is cloned; its units wait for the next round", () => {
+		const o = obs({ units: { "docs-pull.service": unit({ sourceExists: false, kind: "missing" }), "docs-pull.timer": unit({ sourceExists: false, kind: "missing" }) } });
+		o.repos.scripts = { exists: false, remote: null, dirty: null };
+		expect(lines(o)).toEqual(["git clone git@git.example.com:org/scripts.git /h/repos/scripts"]);
+	});
+
+	test("linger only when it is off, not when loginctl did not answer", () => {
+		expect(lines(obs({ linger: false }))).toEqual(["loginctl enable-linger"]);
+		expect(lines(obs({ linger: null }))).toEqual([]);
+	});
+});
+
 /** A temp HOME with a git repo, a PAI tree and a stubbed `run`. */
 function machine() {
 	const home = tmp("maskin-home-");
@@ -368,10 +449,27 @@ describe("pai maskin on the command line", () => {
 		return home;
 	}
 
-	test("without --sjekk: exit 2, and it says phase 2 does the rest", () => {
-		const r = pai(["maskin"], tree());
-		expect(r.kode).toBe(2);
-		expect(r.ut).toContain("Only pai maskin --sjekk exists so far");
+	test("without --sjekk it clones what is missing, then checks; a second run does nothing", () => {
+		const home = tree();
+		const source = join(home, "kilde");
+		Bun.spawnSync(["git", "init", "-q", source]);
+		Bun.spawnSync(["git", "-C", source, "-c", "user.name=t", "-c", "user.email=t@example.com", "commit", "-q", "--allow-empty", "-m", "x"]);
+		const profil = join(home, "p.yaml");
+		writeFileSync(profil, `repoer: { a: { url: ${source}, sti: ~/a } }\nroller: { r: { repoer: [a] } }\n`);
+		const r = pai(["maskin", "--profil", profil, "--rolle", "r"], home);
+		expect(r.ut).toContain(`✅ git clone ${source} ${join(home, "a")}\n`);
+		expect(r.ut).toContain("✅ repo a ~/a");
+		expect(r.kode).toBe(0);
+		const again = pai(["maskin", "--profil", profil, "--rolle", "r"], home);
+		expect(again.ut).toContain("nothing to do");
+		expect(again.kode).toBe(0);
+	});
+
+	test("--sjekk says pai maskin does the missing steps", () => {
+		const home = tree();
+		const profil = join(home, "p.yaml");
+		writeFileSync(profil, "repoer: { a: { url: git@x:a.git, sti: ~/a } }\nroller: { r: { repoer: [a] } }\n");
+		expect(pai(["maskin", "--sjekk", "--profil", profil, "--rolle", "r"], home).ut).toContain("pai maskin does the steps that are missing");
 	});
 
 	test("an unknown flag is refused", () => {
@@ -397,5 +495,163 @@ describe("pai maskin on the command line", () => {
 		const r = pai(["maskin", "--sjekk", "--json", "--profil", profil, "--rolle", "r"], home);
 		expect(JSON.parse(r.ut)).toMatchObject({ kind: "checked", role: "r" });
 		expect(r.kode).toBe(0);
+	});
+});
+
+/** A machine whose systemctl remembers what was enabled, and whose loginctl remembers linger. */
+function statefulMachine() {
+	const m = machine();
+	const enabled = new Set<string>();
+	let linger = false;
+	const calls: string[] = [];
+	const base = m.ctx.run;
+	m.ctx.run = (cmd, args, cwd) => {
+		const key = `${cmd} ${args.join(" ")}`;
+		calls.push(key);
+		if (cmd === "git") return base(cmd, args, cwd);
+		if (key.startsWith("systemctl --user enable --now ")) {
+			enabled.add(args.at(-1) ?? "");
+			return { code: 0, out: "" };
+		}
+		if (key === "systemctl --user daemon-reload") return { code: 0, out: "" };
+		if (key.startsWith("systemctl --user is-enabled ")) {
+			const n = args.at(-1) ?? "";
+			return enabled.has(n) ? { code: 0, out: "enabled" } : n.endsWith(".service") ? { code: 0, out: "static" } : { code: 1, out: "disabled" };
+		}
+		if (key === "loginctl enable-linger") {
+			linger = true;
+			return { code: 0, out: "" };
+		}
+		if (key.startsWith("loginctl show-user")) return { code: 0, out: linger ? "yes" : "no" };
+		return { code: 1, out: "" };
+	};
+	return { ...m, calls };
+}
+
+describe("apply and setUp: a temp machine made as the profile says", () => {
+	test("from nothing: clone, then link the clone's units, reload, enable, and linger after a yes", () => {
+		const m = statefulMachine();
+		// The profile's repo is cloned from the machine's own scripts repo, to a new place.
+		const profile = MACHINE_PROFILE.replace("url: git@git.example.com:org/scripts.git, sti: ~/repos/scripts", `url: ${m.scripts}, sti: ~/klon/scripts`);
+		writeFileSync(join(m.opencode, "PAI", "USER", "MASKINER.yaml"), profile);
+		const questions: string[] = [];
+		const { done, result } = setUp(m.opencode, m.home, (q) => {
+			questions.push(q);
+			return true;
+		}, { host: "srv-1", ctx: m.ctx });
+
+		const unitDir = join(m.home, ".config", "systemd", "user");
+		expect(done.map((d) => `${d.ok ? "ok" : "no"} ${actionLine(d.action)}`)).toEqual([
+			`ok git clone ${m.scripts} ${join(m.home, "klon", "scripts")}`,
+			`ok ln -s ${join(m.home, "pai", "systemd", "pai-pull.timer")} ${join(unitDir, "pai-pull.timer")}`,
+			"ok systemctl --user daemon-reload",
+			"ok systemctl --user enable --now pai-pull.timer",
+			"ok loginctl enable-linger",
+			// Round two: the clone's units.
+			`ok ln -s ${join(m.home, "klon", "scripts", "systemd", "docs-pull.service")} ${join(unitDir, "docs-pull.service")}`,
+			`ok ln -s ${join(m.home, "klon", "scripts", "systemd", "docs-pull.timer")} ${join(unitDir, "docs-pull.timer")}`,
+			"ok systemctl --user daemon-reload",
+			"ok systemctl --user enable --now docs-pull.timer",
+		]);
+		expect(questions).toHaveLength(1);
+		expect(readlinkSync(join(unitDir, "docs-pull.timer"))).toBe(join(m.home, "klon", "scripts", "systemd", "docs-pull.timer"));
+		if (result.kind !== "checked") throw new Error(result.kind);
+		// Only the .env key the user sets is left.
+		expect(problems(result.steps).map((s) => `${s.type} ${s.name}`)).toEqual(["env REPORT_RECIPIENT"]);
+
+		const again = setUp(m.opencode, m.home, () => true, { host: "srv-1", ctx: m.ctx });
+		expect(again.done).toEqual([]);
+	});
+
+	test("linger without a yes is not turned on, and loginctl enable-linger is never run", () => {
+		const m = statefulMachine();
+		writeFileSync(join(m.opencode, "PAI", "USER", "MASKINER.yaml"), "roller: { r: { linger: true } }\nmaskiner: { srv-1: r }\n");
+		const { done, result } = setUp(m.opencode, m.home, () => false, { host: "srv-1", ctx: m.ctx });
+		expect(done).toEqual([{ action: { type: "linger" }, ok: false, message: "not turned on (no yes)" }]);
+		expect(m.calls).not.toContain("loginctl enable-linger");
+		if (result.kind !== "checked") throw new Error(result.kind);
+		expect(problems(result.steps).map((s) => s.type)).toEqual(["linger"]);
+	});
+
+	test("an enable that fails is shown with systemd's words, and not tried again in round two", () => {
+		const m = statefulMachine();
+		writeFileSync(join(m.opencode, "PAI", "USER", "MASKINER.yaml"), "roller: { r: { enheter: [{ repo: pai, fil: systemd/pai-pull.timer, aktiver: true }] } }\nmaskiner: { srv-1: r }\n");
+		const run = m.ctx.run;
+		m.ctx.run = (cmd, args, cwd) =>
+			args.includes("enable") ? { code: 1, out: "", err: "Failed to enable unit: Unit pai-pull.service not found." } : run(cmd, args, cwd);
+		const { done } = setUp(m.opencode, m.home, () => false, { host: "srv-1", ctx: m.ctx });
+		expect(done.map((d) => `${d.ok ? "ok" : "no"} ${actionLine(d.action)}`)).toEqual([
+			`ok ln -s ${join(m.home, "pai", "systemd", "pai-pull.timer")} ${join(m.home, ".config", "systemd", "user", "pai-pull.timer")}`,
+			"ok systemctl --user daemon-reload",
+			"no systemctl --user enable --now pai-pull.timer",
+		]);
+		expect(done[2].message).toBe("Failed to enable unit: Unit pai-pull.service not found.");
+	});
+
+	test("drift is left alone: a regular file where a link should be is not touched", () => {
+		const m = statefulMachine();
+		writeFileSync(join(m.opencode, "PAI", "USER", "MASKINER.yaml"), MACHINE_PROFILE);
+		const unitDir = join(m.home, ".config", "systemd", "user");
+		mkdirSync(unitDir, { recursive: true });
+		writeFileSync(join(unitDir, "docs-pull.timer"), "[Timer]\n# by hand\n");
+		const { done } = setUp(m.opencode, m.home, () => false, { host: "srv-1", ctx: m.ctx });
+		expect(readFileSync(join(unitDir, "docs-pull.timer"), "utf8")).toBe("[Timer]\n# by hand\n");
+		expect(done.map((d) => actionLine(d.action))).not.toContain("systemctl --user enable --now docs-pull.timer");
+	});
+
+	test("apply checks first: something on the path is left alone, and a failed clone says why", () => {
+		const m = statefulMachine();
+		const link = join(m.home, "l.timer");
+		writeFileSync(link, "x");
+		const there = join(m.home, "finnes");
+		mkdirSync(there);
+		const actions: Action[] = [
+			{ type: "link", name: "l.timer", source: join(m.scripts, "systemd", "docs-pull.timer"), link },
+			{ type: "clone", name: "a", url: join(m.home, "ingen-repo"), path: join(m.home, "ny") },
+			{ type: "clone", name: "b", url: m.scripts, path: there },
+		];
+		const done = apply(actions, m.ctx, () => true);
+		expect(done.map((d) => d.ok)).toEqual([false, false, false]);
+		expect(lstatSync(link).isSymbolicLink()).toBe(false);
+		expect(done[1].message).toContain("does not exist");
+		expect(existsSync(join(m.home, "ny"))).toBe(false);
+		expect(done[2].message).toBe(`${there} exists and is not a clone; left alone`);
+	});
+});
+
+/**
+ * The units in the PAI repo's `systemd/` (plan rule: units are symlinked, never
+ * written from text, so a broken one is broken on every machine). Needs a user
+ * manager (MEASURED: without XDG_RUNTIME_DIR verify fails on any unit), so the
+ * tool is proved able first, on a good and a bad unit.
+ */
+const VERIFY = Bun.which("systemd-analyze");
+function verify(dir: string, files: string[]): { code: number; out: string } {
+	const r = Bun.spawnSync([VERIFY ?? "systemd-analyze", "--user", "verify", ...files.map((f) => join(dir, f))], { stdout: "pipe", stderr: "pipe" });
+	return { code: r.exitCode ?? -1, out: r.stdout.toString() + r.stderr.toString() };
+}
+const verifyWorks = (() => {
+	if (!VERIFY) return false;
+	const d = mkdtempSync(join(tmpdir(), "maskin-verify-"));
+	dirs.push(d);
+	writeFileSync(join(d, "ok.service"), "[Unit]\nDescription=ok\n[Service]\nType=oneshot\nExecStart=/bin/true\n");
+	return verify(d, ["ok.service"]).code === 0;
+})();
+
+describe.skipIf(!verifyWorks)("systemd-analyze --user verify on the units in systemd/", () => {
+	test("the tool catches what has given false success before: % in ExecStart and a calendar it does not know", () => {
+		const d = tmp("maskin-verify-bad-");
+		writeFileSync(join(d, "pst.service"), "[Unit]\nDescription=x\n[Service]\nType=oneshot\nExecStart=/bin/echo %Q\n");
+		writeFileSync(join(d, "cal.timer"), "[Unit]\nDescription=x\n[Timer]\nOnCalendar=daglig\n");
+		expect(verify(d, ["pst.service"]).code).toBe(1);
+		expect(verify(d, ["cal.timer"]).code).toBe(1);
+	});
+
+	test("every unit in the PAI repo's systemd/ verifies", () => {
+		const dir = join(import.meta.dir, "..", "systemd");
+		const files = existsSync(dir) ? readdirSync(dir).filter((f) => /\.(service|timer|path|socket|target)$/.test(f)) : [];
+		if (files.length === 0) return;
+		const r = verify(dir, files);
+		expect(r.code, r.out).toBe(0);
 	});
 });
