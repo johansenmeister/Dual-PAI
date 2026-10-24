@@ -18,7 +18,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { aliasSti, lesAliasTabell, nullstillAliasCache, slåOppAgentAlias } from "../.opencode/pai-core/lib/agent-alias";
-import { HOOK_TAK, lesHookKontekst, lesStrøm, miljø, tilleggskontekst } from "../Tools/ClaudeSmoke";
+import { HOOK_TAK, lesHookKontekst, lesStrøm, miljø, tilleggskontekst, validateClean } from "../Tools/ClaudeSmoke";
 import { CLAUDE_HOOK_TAK } from "../claude-plugin/src/adapter/out";
 
 const ROT = join(import.meta.dir, "..");
@@ -137,5 +137,47 @@ describe("ClaudeSmoke: de rene delene", () => {
 		expect(lesHookKontekst(transkript)).toEqual(["<persisted-output>\nOutput too large"]);
 		expect(tilleggskontekst(JSON.stringify({ hookSpecificOutput: { additionalContext: "PAI: kort" } }))).toBe("PAI: kort");
 		expect(tilleggskontekst("{}")).toBe("");
+	});
+});
+
+describe("ClaudeSmoke: plugin validate (M-42)", () => {
+	// Abridged from `claude plugin validate` 2.1.308 (MEASURED 2026-10-24).
+	const directory = [
+		"Plugin directory checks for /x/claude-plugin. The plugin directory is the catalog that plugins are submitted to; this is a subset of what it runs.",
+		"",
+		"⚠ Found 1 plugin directory warning:",
+		"",
+		"  ❯ .claude-plugin/plugin.json icon: No icon (ICON_MISSING).",
+		"",
+		"These plugin directory checks do not change the result below.",
+		"",
+		"ℹ Advice (does not change the verdict):",
+		"",
+		"  ❯ /x/claude-plugin/README.md: This README has no line that installs \"pai\" from a marketplace.",
+		"",
+	].join("\n");
+	const header = "Validating plugin manifest: /x/claude-plugin/.claude-plugin/plugin.json\n\n";
+
+	test("the directory's catalog warnings and advice do not count", () => {
+		expect(validateClean(0, `${header}${directory}✔ Validation passed\n`)).toBe(true);
+	});
+
+	test("a warning about the plugin itself counts", () => {
+		const own = "⚠ Found 1 warning:\n\n  ❯ finnesIkke: Unknown field 'finnesIkke'. Claude Code ignores it at load time.\n\n";
+		expect(validateClean(0, `${header}${own}${directory}✔ Validation passed with warnings\n`)).toBe(false);
+	});
+
+	test("output without the directory section (before 2.1.295) is read as before", () => {
+		expect(validateClean(0, `${header}✔ Validation passed\n`)).toBe(true);
+		expect(validateClean(0, `${header}⚠ Found 1 warning:\n✔ Validation passed with warnings\n`)).toBe(false);
+		expect(validateClean(1, `${header}✔ Validation passed\n`)).toBe(false);
+	});
+
+	test("the verdict decides even when the warning is worded differently", () => {
+		expect(validateClean(0, `${header}${directory}✔ Validation passed with warnings\n`)).toBe(false);
+	});
+
+	test("a warning about the plugin counts even when the verdict does not say so", () => {
+		expect(validateClean(0, `${header}⚠ Found 1 warning:\n\n${directory}✔ Validation passed\n`)).toBe(false);
 	});
 });

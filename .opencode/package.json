@@ -19,6 +19,6 @@
     "@opencode/cli"
   ],
   "pai": {
-    "claudeCode": "2.1.283"
+    "claudeCode": "2.1.308"
   }
 }

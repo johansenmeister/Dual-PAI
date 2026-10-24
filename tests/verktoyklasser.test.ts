@@ -21,6 +21,9 @@ const CLAUDE_2_1_283 = [
 	"TaskGet", "TaskList", "TaskStop", "TaskUpdate", "ToolSearch", "WebFetch", "WebSearch", "Workflow", "Write",
 ];
 
+/** The init list in `claude -p` 2.1.308: 2.1.283's plus `PublishPlugin` (MEASURED 2026-10-24 in ClaudeSmoke). */
+const CLAUDE_2_1_308 = [...CLAUDE_2_1_283, "PublishPlugin"];
+
 /** `name` i `packages/core/src/tool/plugin/*.ts` i v2 2.0.18 og 2.0.21, pluss Code Modes `execute` (UTLEDET av kilden). */
 const V2_2_0_18 = [
 	"edit", "glob", "grep", "list_mcp_resources", "read_mcp_resource", "opencode", "session_rename",
@@ -31,6 +34,7 @@ const V2_2_0_18 = [
 describe("klassifiseringen", () => {
 	test.each([
 		["Claude Code 2.1.283", CLAUDE_2_1_283],
+		["Claude Code 2.1.308", CLAUDE_2_1_308],
 		["OpenCode v2 2.0.18", V2_2_0_18],
 	])("hvert verktøy i %s er klassifisert", (_motor, navn) => {
 		expect(uklassifiserte(navn)).toEqual([]);

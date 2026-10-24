@@ -483,6 +483,19 @@ function hookSjekk(s: Strøm, hendelse: string): { fyrt: boolean; ok: boolean } 
 	return { fyrt: svar.length > 0, ok: svar.length > 0 && svar.every((h) => h.utfall === "success") };
 }
 
+/**
+ * Whether `claude plugin validate` passed without warnings about the plugin
+ * itself (M-42). From 2.1.295 the output also has the plugin directory's
+ * catalog checks and advice (icon, README install line), which "do not change
+ * the result below": only the part before them is the plugin's own validation,
+ * and a warning there makes the verdict "Validation passed with warnings"
+ * (MEASURED 2026-10-24 on 2.1.308 with an unknown key in `plugin.json`).
+ */
+export function validateClean(exitCode: number | null, output: string): boolean {
+	const own = output.split(/^Plugin directory checks/m)[0] ?? "";
+	return exitCode === 0 && /Validation passed\s*$/m.test(output) && !/warning/i.test(own);
+}
+
 function stegNull(claude: string): { versjon: string; sjekker: Sjekk[] } {
 	const ver = Bun.spawnSync([claude, "--version"], { stdin: "ignore" });
 	const versjon = /(\d+\.\d+\.\d+)/.exec(ver.stdout.toString())?.[1] ?? "";
@@ -498,7 +511,7 @@ function stegNull(claude: string): { versjon: string; sjekker: Sjekk[] } {
 			{ navn: "claude --version gir en versjon", ok: versjon !== "", detalj: ver.stdout.toString().trim() },
 			{
 				navn: "claude plugin validate: grønn uten advarsler (M-42)",
-				ok: val.exitCode === 0 && /Validation passed/.test(valUt) && !/warning/i.test(valUt),
+				ok: validateClean(val.exitCode, valUt),
 				detalj: valUt.trim().split("\n").slice(-3).join(" | "),
 			},
 			{

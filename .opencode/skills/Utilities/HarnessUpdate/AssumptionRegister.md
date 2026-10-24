@@ -5,7 +5,7 @@ rad er MÅLT; kilden står i `docs/dual-harness/handoff.md` eller
 `runbooks/hooksystemet.md`. En ny motorversjon er ikke godkjent før hver rad er
 grønn på nytt.
 
-**Claude Code** (sist målt 2.1.283, av `ClaudeSmoke` 2026-10-07, 33 sjekker; «CS» = sjekket der):
+**Claude Code** (sist målt 2.1.308, av `ClaudeSmoke` 2026-10-24, 36 sjekker; «CS» = sjekket der):
 
 | Antakelse | Hvis den brytes | CS |
 |---|---|---|

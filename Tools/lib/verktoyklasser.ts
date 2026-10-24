@@ -45,6 +45,8 @@ export const IKKE_SKRIVENDE: Readonly<Record<string, string>> = {
 	Workflow: "orkestrerer subagenter, som vaktes hver for seg",
 	DesignSync: "kontotjeneste, ingen lokal fil",
 	ShareOnboardingGuide: "laster opp ONBOARDING.md, skriver ikke",
+	// Claude Code 2.1.308 (MEASURED 2026-10-24, the init list in ClaudeSmoke)
+	PublishPlugin: "uploads a plugin folder to the org library after the user says yes, writes no file",
 	AskUserQuestion: "spør brukeren",
 	EnterPlanMode: "modusbytte",
 	ExitPlanMode: "modusbytte",
