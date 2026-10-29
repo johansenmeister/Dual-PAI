@@ -10,10 +10,15 @@
  * Ser på alt git sporer, unntatt markdown (runbookene beskriver maskinene med
  * vilje), `docs/`, `tests/` og MEMORY. Fail-open uten git, som K15 og K42.
  *
+ * The skills' markdown is what the model runs, though, so the shell blocks in
+ * markdown under `.opencode/skills/` are checked too: no `/home/<user>` there, only `~` or
+ * `$HOME` (#399; a job skill sourced one user's `.env` by its full path).
+ *
  * @module tests/maskinstier
  */
 
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const REPO = join(import.meta.dir, "..");
@@ -61,5 +66,55 @@ describe("ingen maskinstier i koden (K52)", () => {
 				fil
 			).toBe(true);
 		}
+	});
+});
+
+/** A home directory inside a container, not on a machine: the user of the official node images. */
+const CONTAINER_HJEM = new Set(["/home/node"]);
+
+const SKALL = /^(bash|sh|shell|zsh|console)$/;
+
+/** The shell blocks read, and `fil:linje: treff` for each `/home/<user>` in them. */
+function skallblokkTreff(): { blokker: number; funn: string[] } | null {
+	const r = Bun.spawnSync(["git", "ls-files", "-z", "--", ".opencode/skills/*.md"], {
+		cwd: REPO,
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+	if (r.exitCode !== 0) return null;
+	const funn: string[] = [];
+	let blokker = 0;
+	for (const fil of r.stdout.toString().split("\0").filter(Boolean)) {
+		let iBlokk = false;
+		let skall = false;
+		readFileSync(join(REPO, fil), "utf-8")
+			.split("\n")
+			.forEach((linje, i) => {
+				const gjerde = linje.match(/^\s*```\s*(\S*)/);
+				if (gjerde) {
+					skall = !iBlokk && SKALL.test(gjerde[1] ?? "");
+					if (skall) blokker++;
+					iBlokk = !iBlokk;
+					return;
+				}
+				if (!iBlokk || !skall) return;
+				for (const m of linje.matchAll(/\/home\/[a-z][a-z0-9_.-]*/g))
+					if (!CONTAINER_HJEM.has(m[0])) funn.push(`${fil}:${i + 1}: ${m[0]}`);
+			});
+	}
+	return { blokker, funn };
+}
+
+describe("ingen maskinstier i skallblokkene i skillene (#399)", () => {
+	test("a shell block in a skill uses ~ or $HOME, not /home/<user>", () => {
+		const svar = skallblokkTreff();
+		if (svar === null) return;
+		expect(svar.funn).toEqual([]);
+	});
+
+	test("the check reads shell blocks, so an empty file list is not a pass", () => {
+		const svar = skallblokkTreff();
+		if (svar === null) return;
+		expect(svar.blokker).toBeGreaterThan(50);
 	});
 });

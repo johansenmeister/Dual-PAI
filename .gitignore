@@ -78,3 +78,10 @@ EXPLORATION-*.txt
 
 # OpenCode Desktop skriver tjenestepassordet her (serve --service); ~/.config/opencode peker inn i repoet
 config/opencode/service.json
+
+# Obsidian: åpne filer og paneloppsett per maskin, skrives hele tiden; resten av .obsidian synkes
+.obsidian/workspace*.json
+
+# assets/ i roten finnes bare i public: bygg.sh flytter bildene dit fra docs/kopiene/bilder.
+# Obsidian lager en tom note her (memory.svg.md) når en bildelenke i README.public.md klikkes.
+/assets/*.md

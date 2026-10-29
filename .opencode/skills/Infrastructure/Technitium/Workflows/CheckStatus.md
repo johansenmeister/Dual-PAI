@@ -17,7 +17,10 @@ bun $S --compact top clients LastHour 5
 bun $S --compact top blocked LastHour 5
 bun $S --compact settings version enableBlocking blockingType blockListUrls blockListNextUpdatedOn
 bun $S --compact apps
+bun $S --compact cluster
 ```
+
+Er klyngen initialisert (`clusterInitialized`), tas `stats` og `top` med `--node cluster`, så tallene gjelder hele klyngen.
 
 3. **Presenter strukturert rapport:**
 
@@ -26,7 +29,7 @@ bun $S --compact apps
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🖥️  SERVER
-  Versjon:       15.2
+  Versjon:       15.6.2
   Bruker:        pai-api
   Blokkering:    PÅ (type: NxDomain)
   Blocklister:   2 lister
@@ -44,6 +47,10 @@ bun $S --compact apps
   1. stats.grafana.org   14 425
   2. ads.mozilla.org         27
 
+🔗 KLYNGE
+  <primær>        Primary    Self
+  <sekundær>      Secondary  Connected (sist sett 22:46)
+
 🧩 APPER
   Query Logs (Sqlite) 9.1
 
@@ -56,5 +63,6 @@ bun $S --compact apps
    - `blockListNextUpdatedOn` i fortiden → blocklister er ikke oppdatert; vurder `blocklist-update`
    - Blokkert-andel > 30% → uvanlig høyt, sjekk `ThreatScan`
    - Tom `blockListUrls` → ingen lister konfigurert
+   - En node i `unhealthy` (tilstand `Unreachable`) → si hvilken, og når den sist ble sett
 
 5. **Etter rapport:** tilby `ThreatScan` for dypere analyse av blokkerte domener.

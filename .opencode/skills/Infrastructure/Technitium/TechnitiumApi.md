@@ -2,7 +2,7 @@
 
 **Protokoll:** HTTP REST (GET/POST), JSON-svar
 **Endepunkt:** `https://<vert>:53443/api`
-**Versjon:** Technitium DNS Server 15.2
+**Versjon:** Technitium DNS Server 15.6.2
 **Rolle:** `pai-api` (DNS Administrator — utvid til read-only senere om ønskelig)
 **Auth:** `Authorization: Bearer <token>` på alle kall (påkrevd fra v15.0)
 
@@ -146,6 +146,23 @@ Nyttige nøkler fra `settings/get`: `version`, `dnsServerDomain`, `enableBlockin
 | `GET /api/dhcp/leases/list` | DHCP-leases |
 | `GET /api/dhcp/scopes/list` | DHCP-scopes |
 
+### Klynge (`/api/admin/cluster/*`)
+
+Når klyngen er initialisert, tar nesten alle kall `node=<domene>` og går da til den noden; uten parameteren gjelder kallet noden som svarer. `node=cluster` gir tall for hele klyngen i `dashboard/stats/get` og `stats/getTop`.
+
+| Endepunkt | Beskrivelse | Viktige parametere | Tilgang |
+|-----------|-------------|--------------------|---------|
+| `GET /api/admin/cluster/state` | Noder, type, tilstand, versjon (`cluster`) | `node?`, `includeServerIpAddresses?` | les (`Administration: View`) |
+| `/api/admin/cluster/init` | Lag klyngen, med denne som primær | `clusterDomain`, `primaryNodeIpAddresses` | **write** |
+| `/api/admin/cluster/primary/join` | Ta inn en sekundær (kalles av den som blir med) | — | **write** |
+| `/api/admin/cluster/primary/removeSecondary`, `deleteSecondary`, `updateSecondary` | Fjern, slett eller endre en sekundær | `secondaryNodeId` | **write** |
+| `/api/admin/cluster/primary/transferConfig`, `setOptions`, `delete` | Konfigurasjon til sekundærene, intervallene, slett klyngen | — | **write** |
+| `/api/admin/cluster/initJoin` | Bli med i en klynge som sekundær | primærens URL og innlogging | **write** |
+| `/api/admin/cluster/secondary/leave`, `resync`, `notify`, `updatePrimary`, `promote` | Forlat, synk på nytt, bytt eller bli primær | — | **write** |
+| `/api/admin/cluster/updateIpAddress` | Endre nodens IP-adresser | — | **write** |
+
+Skriptet har bare `cluster` (les). Write-endepunktene krever `Administration: Modify`; spør brukeren, og gjør dem i Web-UI-et.
+
 ## Scriptets kommandoer
 
 Se `SKILL.md` for full liste. Kjernekommandoer:
@@ -160,6 +177,8 @@ bun $S --compact blocked com
 bun $S --compact export-blocked
 bun $S --compact logs 50 --qname example.com
 bun $S --compact settings enableBlocking blockListUrls blockListNextUpdatedOn
+bun $S --compact cluster
+bun $S --compact stats LastDay --node cluster
 ```
 
 ## Viktige merknader

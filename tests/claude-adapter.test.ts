@@ -766,7 +766,10 @@ describe("subagent-fangsten går ÉN vei, ikke to", () => {
 	let tidligere: string | undefined;
 	beforeAll(() => {
 		tidligere = process.env.PAI_HOME;
-		process.env.PAI_HOME = mkdtempSync(join(tmpdir(), "pai-dobbel-"));
+		// #453: inside the suite's own temp home, which tests/preload.ts removes
+		// last. Writes from this block land after it is done, so removing the
+		// directory here races them, and they make it again.
+		process.env.PAI_HOME = mkdtempSync(join(tidligere ?? tmpdir(), "pai-dobbel-"));
 	});
 	afterAll(() => {
 		if (tidligere === undefined) delete process.env.PAI_HOME;

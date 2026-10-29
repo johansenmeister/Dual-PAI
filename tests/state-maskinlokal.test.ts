@@ -92,6 +92,10 @@ const SKRIVERE: Record<string, { spor: string; navn: string }[]> = {
 	".opencode/PAI/Tools/AlgorithmPhaseReport.ts": [
 		{ spor: '"algorithm-phase.json"', navn: "algorithm-phase.json" },
 	],
+	// #469: a shell script that writes under STATE/, found once `.sh` was scanned.
+	".opencode/skills/Infrastructure/FirewallStatus/Scripts/check-firewall.sh": [
+		{ spor: "MEMORY/STATE/firewall-history.csv", navn: "firewall-history.csv" },
+	],
 };
 // biome-ignore-end lint/suspicious/noTemplateCurlyInString: slutten på tabellen
 
@@ -102,6 +106,11 @@ const LESERE = new Set([
 	".opencode/pai-core/handlers/compaction-intelligence.ts",
 	".opencode/pai-core/handlers/integrity-check.ts",
 ]);
+
+/** Kildefiler som bare nevner en sti under `STATE/` i en kommentar, med grunnen. */
+const NEVNER: Record<string, string> = {
+	".opencode/pai-core/handlers/work-tracker.ts": "the comment on where the current work is kept",
+};
 
 /**
  * Navn ingen skriver lager i dag. De prøver at regelen dekker en skriver som
@@ -120,8 +129,11 @@ const KODEROTER = [
 	"claude-plugin",
 ];
 
-/** En sti under `STATE/` bygges enten med `getStateDir()` eller med literalen `"STATE"`. */
-const BRUKER_STATE = /getStateDir\(|["'`]STATE["'`]/;
+/**
+ * En sti under `STATE/` bygges med `getStateDir()`, med literalen `"STATE"`, eller
+ * står i én streng (`~/.opencode/MEMORY/STATE/x`, vanlig i skallskript; #469).
+ */
+const BRUKER_STATE = /getStateDir\(|["'`]STATE["'`]|MEMORY\/STATE\//;
 
 function kildefiler(rot: string): string[] {
 	let oppføringer: { name: string; isDirectory(): boolean; isFile(): boolean; parentPath: string }[];
@@ -134,7 +146,14 @@ function kildefiler(rot: string): string[] {
 	// den rekursive lesingen følger den. Filen skal telle én gang, under sitt
 	// eget navn.
 	return oppføringer
-		.filter((o) => o.isFile() && /\.(ts|js|mjs)$/.test(o.name) && !o.parentPath.includes("node_modules"))
+		// The tests next to the skills build STATE paths in a temp tree; they are not writers.
+		.filter(
+			(o) =>
+				o.isFile() &&
+				/\.(ts|js|mjs|sh|py)$/.test(o.name) &&
+				!/\.test\.ts$/.test(o.name) &&
+				!o.parentPath.includes("node_modules")
+		)
 		.map((o) => realpathSync(join(o.parentPath, o.name)).replace(`${realpathSync(REPO)}/`, ""));
 }
 
@@ -157,7 +176,7 @@ describe("MEMORY/STATE/ er maskinlokal (K17)", () => {
 		const funnet = [...new Set(KODEROTER.flatMap(kildefiler))]
 			.filter((f) => BRUKER_STATE.test(readFileSync(join(REPO, f), "utf-8")))
 			.sort();
-		const kjent = [...Object.keys(SKRIVERE), ...LESERE].sort();
+		const kjent = [...Object.keys(SKRIVERE), ...LESERE, ...Object.keys(NEVNER)].sort();
 
 		// En ny fil her er en ny skriver: legg navnene den lager i SKRIVERE,
 		// eller filen i LESERE hvis den bare leser.

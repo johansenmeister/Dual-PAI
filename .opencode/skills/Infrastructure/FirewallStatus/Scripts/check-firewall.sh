@@ -15,6 +15,9 @@
 #   ./check-firewall.sh --ip 1.2.3.4  # filtrer filterlogg på én IP (src eller dst)
 #   ./check-firewall.sh --rules      # inkluder alle ikke-legacy filterregler (kompakt)
 #
+# ACME-statusen leses fra sertifikatet brannmuren serverer på API-adressen (#493),
+# ikke fra api/acmeclient/*. ACME_RENEW_DAYS (standard 60) er fornyelsesintervallet.
+#
 # Exit-koder:
 #   0 = OK, data hentet
 #   1 = manglende credentials/miljø
@@ -156,6 +159,26 @@ api_get "/api/ids/service/status"                  > "$TMPDIR/ids_svc.json"
 api_get "/api/ids/settings/get"                    > "$TMPDIR/ids_set.json"
 api_post "/api/ids/service/queryAlerts" "{\"current\":1,\"rowCount\":${IDS_LIMIT}}" > "$TMPDIR/ids_alerts.json"
 
+# --- Steg 2b: Sertifikatet brannmuren serverer (#493) -------------------------
+# Leses over TLS, ikke fra api/acmeclient/*: svarene der kan inneholde DNS-tokenet og
+# kontoens private nøkkel, og privilegiet kan ikke gis som bare lesing (OpnSenseApi.md).
+# Ingen nøkkel trengs. Testene gir en PEM i OPNSENSE_CERT_FILE og klokka i OPNSENSE_NOW;
+# med fixtures og uten fil er sertifikatet ukjent.
+ACME_RENEW_DAYS="${ACME_RENEW_DAYS:-60}"
+cert_pem() {
+  if [[ -n "${OPNSENSE_CERT_FILE:-}" ]]; then cat "$OPNSENSE_CERT_FILE"; return; fi
+  [[ -n "${OPNSENSE_FIXTURES:-}" ]] && return
+  local hp="${OPNSENSE_API_URL#*://}" host port=443
+  hp="${hp%%/*}"; host="${hp%:*}"
+  [[ "$hp" == *:* ]] && port="${hp##*:}"
+  openssl s_client -connect "$host:$port" -servername "$host" </dev/null 2>/dev/null || true
+}
+CERT_INFO=""
+if command -v openssl >/dev/null; then
+  CERT_INFO=$(cert_pem | openssl x509 -noout -startdate -enddate -issuer -subject 2>/dev/null || true)
+fi
+cert_felt() { sed -n "s/^$1= *//p" <<<"$CERT_INFO" | head -1; }
+
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # --- Steg 3: Aggreger alt med jq ----------------------------------------------
@@ -181,9 +204,17 @@ RESULT=$(jq -n \
   --argjson detail "$DETAIL" \
   --argjson rules_dump "$RULES_DUMP" \
   --arg ip_filter "$IP_FILTER" \
+  --arg cert_nb "$(cert_felt notBefore)" \
+  --arg cert_na "$(cert_felt notAfter)" \
+  --arg cert_issuer "$(cert_felt issuer)" \
+  --arg cert_subject "$(cert_felt subject)" \
+  --argjson renew_days "$ACME_RENEW_DAYS" \
+  --argjson now "${OPNSENSE_NOW:-$(date +%s)}" \
 '
 # Hjelpefunksjon: topp-N frekvenstelling -> [[verdi, antall], ...]
 def topn(n): map(select(. != null and . != "")) | group_by(.) | map([.[0], length]) | sort_by(-.[1]) | .[:n];
+# A date as openssl prints it ("Aug 19 21:02:34 2026 GMT", the day space-padded) -> epoch.
+def certdato: gsub("  +"; " ") | strptime("%b %d %H:%M:%S %Y GMT") | mktime;
 # OPNsense option fields: {key: {value, selected}} -> the selected entries.
 def selected: (. // {}) | to_entries | map(select(.value.selected == 1));
 
@@ -376,6 +407,37 @@ def selected: (. // {}) | to_entries | map(select(.value.selected == 1));
       }
     end),
 
+  # Fornyelsen vurderes bare for kortlivede sertifikater (≤ 100 dager, som fra ACME):
+  # er det eldre enn intervallet pluss to dager, gikk ikke siste fornyelse gjennom.
+  certificate: (
+    if $cert_na == "" then {readable: false, assessment: "UKJENT"}
+    else
+      ($cert_nb | certdato) as $nb
+      | ($cert_na | certdato) as $na
+      | ((($na - $nb) / 86400) | floor) as $life
+      | ((($na - $now) / 86400) | floor) as $left
+      | ((($now - $nb) / 86400) | floor) as $age
+      | ($life <= 100 and $age > $renew_days + 2) as $overdue
+      | {
+        readable: true,
+        subject: $cert_subject,
+        issuer: $cert_issuer,
+        not_before: ($nb | todate),
+        not_after: ($na | todate),
+        days_left: $left,
+        age_days: $age,
+        lifetime_days: $life,
+        renew_after_days: (if $life <= 100 then $renew_days else null end),
+        renewal_overdue: $overdue,
+        assessment: (
+          if $left < 0 then "UTLØPT"
+          elif $left < 14 then "UTLØPER SNART"
+          elif $overdue then "FORNYELSE UTEBLITT"
+          else "OK"
+          end)
+      }
+    end),
+
   overall: "beregnes_nedenfor"
 }
 | .overall = (
@@ -383,6 +445,7 @@ def selected: (. // {}) | to_entries | map(select(.value.selected == 1));
        and (.crowdsec.assessment == "AKTIV" or .crowdsec.assessment == "IKKE INSTALLERT")
        and (.suricata.assessment == "AKTIV" or .suricata.assessment == "IKKE INSTALLERT")
        and .system.verified.matches
+       and (.certificate.assessment == "OK" or .certificate.assessment == "UKJENT")
     then "OK"
     else "ADVARSEL"
     end)

@@ -15,7 +15,7 @@ If this directory exists, load and apply any PREFERENCES.md, configurations, or 
 Overvåk og administrer Technitium DNS Server: serverstatus, query-stats, blokkerte/allowed domener, DNS-cache, soner, query-logger og blocklister.
 
 **Host:** `TECHNITIUM_API_URL` i `~/.opencode/.env` (typisk `https://<vert>:53443`, selvsignert sertifikat); hvor den kjører, står i `PAI/USER/INFRASTRUCTURE.md`
-**Versjon:** Technitium DNS Server 15.2
+**Versjon:** Technitium DNS Server 15.6.2 (sjekkes med `status`, feltet `version`)
 **Bruker:** `pai-api` (token-basert, ikke-utløpende)
 **Auth:** `Authorization: Bearer <token>` (kreves fra v15.0 på alle kall)
 
@@ -47,11 +47,29 @@ bun $S --compact resolve example.com A    # DNS-oppslag via serveren
 
 ## Read-kommandoer (ufarlige)
 
-`status` · `stats [type]` · `top <clients|domains|blocked> [type] [limit]` · `zones` · `records <zone> [domain] [--all]` · `cache [domain]` · `blocked [domain] [up|down]` · `allowed [domain] [up|down]` · `export-blocked` · `export-allowed` · `resolve <domain> [type] [server]` · `settings [key...]` · `apps` · `metrics [json|text]` · `dhcp-leases` · `dhcp-scopes` · `logs [limit] [--qname X] [--client IP] [--rcode X]` · `logs-files`
+`status` · `stats [type]` · `top <clients|domains|blocked> [type] [limit]` · `zones` · `records <zone> [domain] [--all]` · `cache [domain]` · `blocked [domain] [up|down]` · `allowed [domain] [up|down]` · `export-blocked` · `export-allowed` · `resolve <domain> [type] [server]` · `settings [key...]` · `apps` · `metrics [json|text]` · `dhcp-leases` · `dhcp-scopes` · `logs [limit] [--qname X] [--client IP] [--rcode X]` · `logs-files` · `cluster`
+
+`--node <domene>` sender `stats`, `top` og `cluster` til én node i klyngen i stedet for den som svarer; `--node cluster` gir tall for hele klyngen i `stats` og `top`.
 
 ## Write-kommandoer (endre tilstand — spør brukeren først)
 
 `cache-flush [domain]` · `blocked-add <domain>` · `blocked-delete <domain>` · `blocked-flush` · `blocked-import <file|domains>` · `allowed-add <domain>` · `allowed-delete <domain>` · `allowed-flush` · `blocklist-update` · `blocking-disable <minutes>`
+
+## Klynge
+
+Er klyngen initialisert, leses noder, helse og synk med `cluster`, ikke fra Web-UI-et. Navnet på klyngen står i svaret (`clusterDomain`), og hvilken node som svarte, i `self`.
+
+| Felt | Betydning |
+|------|-----------|
+| `nodes[].type` | `Primary` eller `Secondary` |
+| `nodes[].state` | `Self` = noden som svarte, `Connected`, `Unreachable` |
+| `unhealthy` | nodene som verken er `Self` eller `Connected` |
+| `nodes[].lastSeen` | siste hjerteslag fra noden (mangler for `Self` og for en node som aldri er sett) |
+| `heartbeatRefreshIntervalSeconds` | hvor ofte nodene hilser på hverandre |
+
+- **Sekundæren svarer DNS uansett** når primæren er nede; det som stopper, er endringer i konfigurasjonen, som gjøres på primæren.
+- **`--node cluster`** gir summen for hele klyngen i `stats` og `top` (MÅLT 2026-10-28 på 15.6.2: primær + sekundær = klynge).
+- **Endringer i klyngen** (init, join, leave, resync, promote, fjerne en node) ligger under `/api/admin/cluster/*`, krever `Administration: Modify` og er **write**. Skriptet har ingen kommando for dem; spør brukeren, og gjør dem i Web-UI-et.
 
 ## Kjente særheter (verifisert 2026-09-12 mot v15.2)
 
@@ -61,6 +79,7 @@ bun $S --compact resolve example.com A    # DNS-oppslag via serveren
 - **`/api/logs/query` krever app-parametere:** `name=Query Logs (Sqlite)` og `classPath=QueryLogsSqlite.App`. Scriptet setter disse automatisk.
 - **Blokkeringstype:** `settings blockingType` = `NxDomain`. Det finnes **ingen** `useNxDomainForBlocking`-nøkkel i 15.2 (docsen er utdatert). Blokkerte domener svarer altså NXDOMAIN.
 - **Passord med spesialtegn:** ved `createToken`/`login` i URL, bruk `curl -G --data-urlencode "pass=..."` — ellers bryter `&` i passordet query-strengen.
+- **Klyngesvaret (MÅLT 2026-10-28 mot 15.6.2) avviker fra APIDOCS:** `ipAddresses` er en liste (APIDOCS: `ipAddress`), `upSince` finnes uten å være dokumentert, og `configLastSynced` manglet fra begge nodene. `cluster` tar med det som finnes.
 - **`blocklist-update` og `blocking-disable` endrer global tilstand** — ikke kjør uten eksplisitt samtykke. `blocking-disable` slår av all blokkering i N minutter.
 
 ## Eksempler

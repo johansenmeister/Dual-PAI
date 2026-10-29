@@ -13,7 +13,7 @@
  * @module tests/leveranse
  */
 
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -275,6 +275,64 @@ describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_kilde and lev_kopi_upushet aga
 		git(clone, "push", "-q", "origin", "HEAD:main");
 		expect(lev("lev_kopi_kilde")).toBe("bbb2222");
 		expect(lev("lev_kopi_upushet")).toBe("");
+	});
+});
+
+describe.skipIf(!existsSync(LEVERANSE))("lev_kopi_tilstand: what happens to a clone before the build (#330, #449)", () => {
+	let dir = "";
+	const git = (cwd: string, ...a: string[]): string => {
+		const p = Bun.spawnSync(["git", "-C", cwd, ...a], {
+			env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" },
+		});
+		if (p.exitCode !== 0) throw new Error(`git ${a.join(" ")}: ${p.stderr}`);
+		return p.stdout.toString().trim();
+	};
+	const tilstand = (clone: string): string =>
+		Bun.spawnSync(["bash", "-c", `. "${LEVERANSE}" && lev_kopi_tilstand "$1"`, "_", clone]).stdout.toString().trim();
+	const bygg = (clone: string, kilde: string) =>
+		git(clone, "commit", "-q", "--allow-empty", "-m", `chore: oppdatert fra PAI ${kilde} (1 commit)`);
+
+	/** A remote with one build, and two clones of it: «denne» (this machine's) and «annen». */
+	function oppsett(): { denne: string; annen: string } {
+		dir = mkdtempSync(join(tmpdir(), "pai-leveranse-tilstand-"));
+		git(dir, "init", "-q", "--bare", "-b", "main", "remote.git");
+		git(dir, "clone", "-q", join(dir, "remote.git"), "denne");
+		const denne = join(dir, "denne");
+		bygg(denne, "aaa1111");
+		git(denne, "push", "-q", "origin", "HEAD:main");
+		git(dir, "clone", "-q", join(dir, "remote.git"), "annen");
+		return { denne, annen: join(dir, "annen") };
+	}
+	afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+	test("in step with origin/main: ok", () => {
+		const { denne } = oppsett();
+		expect(tilstand(denne)).toBe("ok");
+	});
+
+	test("another clone pushed a build: behind after the fetch, and set to origin/main", () => {
+		const { denne, annen } = oppsett();
+		bygg(annen, "bbb2222");
+		git(annen, "push", "-q", "origin", "HEAD:main");
+		// Before the fetch the clone cannot know; that is what #449 was.
+		expect(tilstand(denne)).toBe("ok");
+		git(denne, "fetch", "-q", "origin");
+		expect(tilstand(denne)).toBe("nullstill 0 1");
+	});
+
+	test("an unpushed build on top of an old main, and behind", () => {
+		const { denne, annen } = oppsett();
+		bygg(annen, "bbb2222");
+		git(annen, "push", "-q", "origin", "HEAD:main");
+		bygg(denne, "ccc3333");
+		git(denne, "fetch", "-q", "origin");
+		expect(tilstand(denne)).toBe("nullstill 1 1");
+	});
+
+	test("an unpushed commit that is not a build stops", () => {
+		const { denne } = oppsett();
+		git(denne, "commit", "-q", "--allow-empty", "-m", "Update README.md");
+		expect(tilstand(denne)).toBe("stopp");
 	});
 });
 

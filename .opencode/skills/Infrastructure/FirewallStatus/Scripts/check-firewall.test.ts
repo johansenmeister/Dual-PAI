@@ -15,8 +15,8 @@ const SCRIPT = join(import.meta.dir, "check-firewall.sh");
 const API_DOC = join(import.meta.dir, "..", "OpnSenseApi.md");
 const dirs: string[] = [];
 
-/** A healthy firewall; `product` replaces firmware/status' product block. */
-function run(product: Record<string, string>) {
+/** A healthy firewall; `product` replaces firmware/status' product block, `extra` adds to the environment. */
+function run(product: Record<string, string>, extra: Record<string, string> = {}) {
 	const dir = mkdtempSync(join(tmpdir(), "fw-fixtures-"));
 	dirs.push(dir);
 	const answers: Record<string, unknown> = {
@@ -38,7 +38,9 @@ function run(product: Record<string, string>) {
 	for (const [name, body] of Object.entries(answers)) writeFileSync(join(dir, `${name}.json`), JSON.stringify(body));
 	const env = join(dir, "env");
 	writeFileSync(env, "OPNSENSE_API_URL=https://firewall.invalid\nOPNSENSE_API_KEY=k\nOPNSENSE_API_SECRET=s\n");
-	const p = Bun.spawnSync(["bash", SCRIPT], { env: { ...process.env, OPNSENSE_ENV_FILE: env, OPNSENSE_FIXTURES: dir } });
+	const p = Bun.spawnSync(["bash", SCRIPT], {
+		env: { ...process.env, OPNSENSE_ENV_FILE: env, OPNSENSE_FIXTURES: dir, ...extra },
+	});
 	expect(p.exitCode).toBe(0);
 	return JSON.parse(p.stdout.toString());
 }
@@ -267,5 +269,85 @@ describe("check-firewall.sh --history: the file comes from .env (#466)", () => {
 		const csv = join(dir, "explicit.csv");
 		expect(runDelta({ csv, history: true, envExtra: `FIREWALL_HISTORY_CSV=${join(dir, "other.csv")}\n` }).history_file).toBe(csv);
 		expect(runDelta().history_file).toBeNull();
+	});
+});
+
+/**
+ * #493: the ACME status comes from the certificate the firewall serves, not from
+ * api/acmeclient/*, whose answers can hold the DNS token and the account key. The
+ * test makes a real certificate and moves the clock with OPNSENSE_NOW.
+ */
+describe.skipIf(!Bun.which("openssl"))("check-firewall.sh: the certificate (#493)", () => {
+	const DAG = 86_400;
+	const verifiedNow = () => {
+		const { series, edition } = verified();
+		return { product_id: edition === "BE" ? "opnsense-business" : "opnsense", product_series: series, product_version: `${series}.1` };
+	};
+
+	/** A self-signed certificate valid for `days`, and its notBefore as epoch seconds. */
+	function cert(days: number): { file: string; start: number } {
+		const dir = mkdtempSync(join(tmpdir(), "fw-cert-"));
+		dirs.push(dir);
+		const file = join(dir, "cert.pem");
+		const r = Bun.spawnSync([
+			"openssl", "req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-nodes",
+			"-subj", "/CN=firewall.invalid", "-days", String(days), "-keyout", join(dir, "key.pem"), "-out", file,
+		]);
+		expect(r.exitCode).toBe(0);
+		const start = Bun.spawnSync(["openssl", "x509", "-noout", "-startdate", "-in", file]).stdout.toString();
+		return { file, start: Math.floor(Date.parse(start.replace(/^notBefore=/, "").trim()) / 1000) };
+	}
+
+	const at = (c: { file: string; start: number }, ageDays: number, extra: Record<string, string> = {}) =>
+		run(verifiedNow(), { OPNSENSE_CERT_FILE: c.file, OPNSENSE_NOW: String(c.start + ageDays * DAG), ...extra });
+
+	test("a 90-day certificate 30 days old: OK, and the days are counted", () => {
+		const r = at(cert(90), 30);
+		expect(r.certificate).toMatchObject({
+			readable: true,
+			subject: expect.stringContaining("firewall.invalid"),
+			days_left: 60,
+			age_days: 30,
+			lifetime_days: 90,
+			renew_after_days: 60,
+			renewal_overdue: false,
+			assessment: "OK",
+		});
+		expect(r.overall).toBe("OK");
+	});
+
+	test("70 days old with a 60-day interval: the renewal did not happen, ADVARSEL", () => {
+		const r = at(cert(90), 70);
+		expect(r.certificate.renewal_overdue).toBe(true);
+		expect(r.certificate.assessment).toBe("FORNYELSE UTEBLITT");
+		expect(r.overall).toBe("ADVARSEL");
+	});
+
+	test("ACME_RENEW_DAYS moves the line", () => {
+		expect(at(cert(90), 70, { ACME_RENEW_DAYS: "80" }).certificate.assessment).toBe("OK");
+	});
+
+	test("under 14 days left, and expired", () => {
+		const c = cert(90);
+		expect(at(c, 80).certificate.assessment).toBe("UTLØPER SNART");
+		expect(at(c, 91).certificate.assessment).toBe("UTLØPT");
+		expect(at(c, 91).overall).toBe("ADVARSEL");
+	});
+
+	test("a long-lived certificate is not judged on renewal", () => {
+		const r = at(cert(365), 200);
+		expect(r.certificate.renew_after_days).toBeNull();
+		expect(r.certificate.renewal_overdue).toBe(false);
+		expect(r.certificate.assessment).toBe("OK");
+	});
+
+	test("without a certificate it is unknown, and overall is not touched", () => {
+		const r = run(verifiedNow());
+		expect(r.certificate).toEqual({ readable: false, assessment: "UKJENT" });
+		expect(r.overall).toBe("OK");
+	});
+
+	test("the script never calls api/acmeclient", () => {
+		expect(readFileSync(SCRIPT, "utf8")).not.toMatch(/api_(get|post)\s+"\/api\/acmeclient/);
 	});
 });

@@ -20,14 +20,21 @@
  * ende-til-ende med en `settings.json` uten nøkkelen.
  */
 
-import { describe, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { afterAll, describe, expect, test } from "bun:test";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PAI_ENV, flett, lesInnstillinger, patch, skrivInnstillinger } from "../Tools/PatchClaudeSettings";
 
+const kataloger: string[] = [];
+afterAll(() => {
+	for (const k of kataloger) rmSync(k, { recursive: true, force: true });
+});
+
 function temp(): string {
-	return join(mkdtempSync(join(tmpdir(), "pai-settings-")), "settings.json");
+	const k = mkdtempSync(join(tmpdir(), "pai-settings-"));
+	kataloger.push(k);
+	return join(k, "settings.json");
 }
 
 describe("flett — regel 1: ingenting utenfor env", () => {

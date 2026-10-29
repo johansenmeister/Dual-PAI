@@ -33,6 +33,11 @@
  *   logs [limit] [--qname X] [--client IP] [--rcode X] [--qtype A]
  *                                       Query DNS logs (Query Logs Sqlite app)
  *   logs-files                          List available log files
+ *   cluster                             Cluster nodes, their state and health (#501)
+ *
+ * `--node <domain>` sends a read to one cluster node instead of the one that
+ * answers (stats, top, cluster); `--node cluster` aggregates stats and top over
+ * the whole cluster.
  *
  * Write commands (need Modify/Delete permissions):
  *   cache-flush [domain]                 Flush whole cache, or delete one domain
@@ -50,6 +55,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
+import { summarizeCluster } from "./cluster";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -236,6 +242,7 @@ const READ_ONLY = new Set([
 	"dhcp-scopes",
 	"logs",
 	"logs-files",
+	"cluster",
 ]);
 
 // Query Logs (Sqlite) app identity on this server — used by /api/logs/query.
@@ -301,6 +308,7 @@ function buildBlockedExport(domains: string): string {
 
 async function run(): Promise<void> {
 	const { command, positional, flags } = parseArgs(process.argv.slice(2));
+	const node = typeof flags.node === "string" ? flags.node : undefined;
 
 	if (!command) {
 		console.error(
@@ -322,7 +330,7 @@ async function run(): Promise<void> {
 		}
 		case "stats": {
 			const type = normalizeStatsType(positional[0]);
-			const r = await apiGet("/api/dashboard/stats/get", { type, utc: true });
+			const r = await apiGet("/api/dashboard/stats/get", { type, utc: true, node });
 			emitResult(r);
 			return;
 		}
@@ -340,8 +348,14 @@ async function run(): Promise<void> {
 			}
 			const type = normalizeStatsType(positional[1]);
 			const limit = positional[2] ?? "100";
-			const r = await apiGet("/api/dashboard/stats/getTop", { type, statsType, limit });
+			const r = await apiGet("/api/dashboard/stats/getTop", { type, statsType, limit, node });
 			emitResult(r);
+			return;
+		}
+		case "cluster": {
+			const r = await apiGet("/api/admin/cluster/state", { node });
+			if (!r.ok) emitResult(r);
+			emit(summarizeCluster(r.response));
 			return;
 		}
 		case "zones": {

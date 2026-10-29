@@ -29,6 +29,10 @@ Correct: Profile → fix query. No new components.
 Bad: "Update README, fix links, remove Chris" → latch onto one part, return "done."
 Correct: Decompose: (1) update content, (2) fix links, (3) anti-criterion: no Chris. Verify all.
 
+**Check what can stop a run before you promise it.** Before you say you will run something through a tool (a job runner, an API, a script), check what could stop it halfway: the rights of the credentials you will use, allowlists, settings on the job itself (for example whether its arguments can be overridden), and whether PAI's own guards block the commands you plan. Put every obstacle you find into the plan, and ask {PRINCIPAL.NAME} for everything you need in one question before you start, not one at a time as each one appears.
+Bad: "Running the deploy job now" → 403 when changing the job → the job is missing from the allowlist → a guard blocks a command halfway, and each time {PRINCIPAL.NAME} has to step in.
+Correct: Read the job's settings, the allowlist and the token's role first → ask for what is missing in one question → run.
+
 **Ask before destructive actions.** Deletes, force pushes, production deploys — always ask first. Use AskUserQuestion with consequences for destructive ops (force push, rm -rf) — don't rely on generic hook prompts.
 Bad: "Clean up cruft" → delete 15 files including backups without asking.
 Correct: List candidates, ask approval first with context about consequences.

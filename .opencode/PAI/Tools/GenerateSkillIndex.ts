@@ -5,9 +5,12 @@
  * Parses all SKILL.md files and builds a searchable index for dynamic skill discovery.
  * Run this after adding/modifying skills to update the index.
  *
- * Usage: bun run ~/.opencode/PAI/Tools/GenerateSkillIndex.ts
+ * Usage: bun run ~/.opencode/PAI/Tools/GenerateSkillIndex.ts [--sjekk]
  *
  * Output: ~/.opencode/skills/skill-index.json
+ *
+ * `--sjekk` writes nothing: it compares what it would write with the file,
+ * apart from `generated`, and exits 1 with one line when they differ (#279).
  */
 
 import { readdir, readFile, writeFile, stat, realpath } from 'node:fs/promises';
@@ -16,6 +19,8 @@ import { existsSync } from 'node:fs';
 
 const SKILLS_DIR = join(import.meta.dir, '..', '..', 'skills');
 const OUTPUT_FILE = join(SKILLS_DIR, 'skill-index.json');
+const SJEKK = process.argv.includes('--sjekk');
+const log: (...args: unknown[]) => void = SJEKK ? () => {} : console.log;
 
 interface SkillEntry {
   name: string;
@@ -267,10 +272,10 @@ async function parseSkillFile(filePath: string): Promise<SkillEntry | null> {
 }
 
 async function main() {
-  console.log('🔍 Generating skill index for hierarchical structure...\n');
+  log('🔍 Generating skill index for hierarchical structure...\n');
 
   const skillFiles = await findSkillFiles(SKILLS_DIR);
-  console.log(`Found ${skillFiles.length} SKILL.md files\n`);
+  log(`Found ${skillFiles.length} SKILL.md files\n`);
 
   const index: SkillIndex = {
     generated: new Date().toISOString(),
@@ -326,7 +331,7 @@ async function main() {
 
       const icon = skill.tier === 'always' ? '🔒' : '📦';
       const structure = skill.isHierarchical ? `📁 ${skill.category}/` : '📄 flat';
-      console.log(`  ${icon} ${structure} ${skill.name}: ${skill.triggers.length} triggers, ${skill.workflows.length} workflows`);
+      log(`  ${icon} ${structure} ${skill.name}: ${skill.triggers.length} triggers, ${skill.workflows.length} workflows`);
     }
   }
 
@@ -344,18 +349,26 @@ async function main() {
   }
   index.skills = sortedSkills;
 
+  if (SJEKK) {
+    const utenTid = (i: object) => JSON.stringify({ ...i, generated: undefined });
+    const fil = existsSync(OUTPUT_FILE) ? JSON.parse(await readFile(OUTPUT_FILE, 'utf-8')) : null;
+    if (fil && utenTid(fil) === utenTid(index)) return;
+    console.error(`skill-index.json is stale: run bun ${relative(process.cwd(), import.meta.path)}`);
+    process.exit(1);
+  }
+
   // Write the index
   await writeFile(OUTPUT_FILE, JSON.stringify(index, null, 2));
 
-  console.log(`\n✅ Index generated: ${OUTPUT_FILE}`);
-  console.log(`\n📊 Structure Overview:`);
-  console.log(`   Total Skills: ${index.totalSkills}`);
-  console.log(`   📁 Categories: ${index.categories}`);
-  console.log(`   📄 Flat Skills: ${index.flatSkills}`);
-  console.log(`   📁 Hierarchical: ${index.hierarchicalSkills}`);
-  console.log(`\n⚡ Loading Strategy:`);
-  console.log(`   Always Loaded: ${index.alwaysLoadedCount}`);
-  console.log(`   Deferred: ${index.deferredCount}`);
+  log(`\n✅ Index generated: ${OUTPUT_FILE}`);
+  log(`\n📊 Structure Overview:`);
+  log(`   Total Skills: ${index.totalSkills}`);
+  log(`   📁 Categories: ${index.categories}`);
+  log(`   📄 Flat Skills: ${index.flatSkills}`);
+  log(`   📁 Hierarchical: ${index.hierarchicalSkills}`);
+  log(`\n⚡ Loading Strategy:`);
+  log(`   Always Loaded: ${index.alwaysLoadedCount}`);
+  log(`   Deferred: ${index.deferredCount}`);
 
   // Calculate token estimates
   const avgFullTokens = 150;
@@ -366,18 +379,18 @@ async function main() {
     ? ((currentTokens - newTokens) / currentTokens * 100).toFixed(1)
     : "0.0";
 
-  console.log(`\n💰 Estimated token impact:`);
-  console.log(`   Current: ~${currentTokens.toLocaleString()} tokens`);
-  console.log(`   After:   ~${newTokens.toLocaleString()} tokens`);
-  console.log(`   Savings: ~${savings}%`);
+  log(`\n💰 Estimated token impact:`);
+  log(`   Current: ~${currentTokens.toLocaleString()} tokens`);
+  log(`   After:   ~${newTokens.toLocaleString()} tokens`);
+  log(`   Savings: ~${savings}%`);
 
   // Show category breakdown (sorted)
   if (index.categories > 0) {
-    console.log(`\n📂 Category Breakdown:`);
+    log(`\n📂 Category Breakdown:`);
     const sortedCategories = Object.keys(index.categoryMap).sort((a, b) => a.localeCompare(b));
     for (const category of sortedCategories) {
       const skills = index.categoryMap[category];
-      console.log(`   ${category}: ${skills.length} skills`);
+      log(`   ${category}: ${skills.length} skills`);
     }
   }
 }

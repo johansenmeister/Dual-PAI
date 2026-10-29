@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-15T20:07:44.835Z",
+  "generated": "2026-10-28T23:10:14.174Z",
   "totalSkills": 54,
   "categories": 5,
   "flatSkills": 10,
@@ -342,7 +342,7 @@
       "name": "FirewallStatus",
       "path": "Infrastructure/FirewallStatus/SKILL.md",
       "category": "Infrastructure",
-      "fullDescription": "OPNsense brannmur-overvåking og diagnostikk (inkl. Suricata IDS og CrowdSec). USE WHEN brannmur status, firewall status, sjekk brannmur, OPNsense, pakkeinspeksjon, crowdsec alerts, suricata, ids, suricata status, firewall logger, brannmur helse, \"hva er status på firewall\".",
+      "fullDescription": "OPNsense brannmur-overvåking og diagnostikk (inkl. Suricata IDS og CrowdSec). USE WHEN brannmur status, firewall status, sjekk brannmur, OPNsense, pakkeinspeksjon, crowdsec alerts, suricata, ids, suricata status, firewall logger, brannmur helse, brannmur sertifikat, acme, \"hva er status på firewall\".",
       "triggers": [
         "brannmur",
         "status",
@@ -356,6 +356,8 @@
         "ids",
         "logger",
         "helse",
+        "sertifikat",
+        "acme",
         "hva"
       ],
       "workflows": [

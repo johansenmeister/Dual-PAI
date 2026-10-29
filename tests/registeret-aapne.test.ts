@@ -137,6 +137,33 @@ describe("M-03 — et antall er ikke en karakter", () => {
 	});
 });
 
+// #446: the same class as M-03. A digit after the separator is a range, a list
+// or a time, not a comment on a score.
+describe("#446 — a separator followed by a digit is not a score", () => {
+	test.each([
+		"1-2 fullført. ja, commit begge",
+		"1, 2 fullført",
+		"1 - 2 og 3 gjenstår",
+		"3: 4 filer endret",
+		"8:30 møte",
+	])("«%s» gives no score", async (melding) => {
+		const { detectRating } = await import("../.opencode/pai-core/handlers/rating-capture");
+		expect(detectRating(melding)).toBeNull();
+	});
+
+	test.each([
+		["8 - bra", 8, "bra"],
+		["8: ok", 8, "ok"],
+		["8, takk", 8, "takk"],
+		["10 - perfekt", 10, "perfekt"],
+	])("«%s» is still %d", async (melding, karakter, kommentar) => {
+		const { detectRating } = await import("../.opencode/pai-core/handlers/rating-capture");
+		const r = detectRating(melding);
+		expect(r?.score).toBe(karakter);
+		expect(r?.comment).toBe(kommentar);
+	});
+});
+
 describe("M-05 — en lesefeil på META.yaml trunkerer den ikke", () => {
 	test("EACCES gir feil og urørt META, og tilstanden står igjen", async () => {
 		const { completeWorkSession, createWorkSession } = await import(

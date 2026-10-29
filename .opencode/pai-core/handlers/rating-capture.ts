@@ -54,8 +54,9 @@ const RATING_PATTERNS = [
 	/^(\d{1,2})!*$/,
 	// "8/10" or "9/10"
 	/^(\d{1,2})\/10/,
-	// "8 - comment" or "8: comment" or "8, comment"
-	/^(\d{1,2})\s*[-:,]\s*(.+)$/,
+	// "8 - comment" or "8: comment" or "8, comment". Not when the comment starts
+	// with a digit: "1-2 done" and "1, 2 …" are a range or a list, "8:30" a time (#446).
+	/^(\d{1,2})\s*[-:,](?!\s*\d)\s*(.+)$/,
 ];
 
 /**

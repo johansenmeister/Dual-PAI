@@ -19,6 +19,9 @@
  *      suite inherited `PAI_CONTEXT_FILE`, and the Claude adapter left out
  *      `context.build` as it should in a session, so two tests failed on the
  *      machine and nowhere else (job issue 15, 2026-10-08).
+ *   6. Temp directories noted. One that a test made under `tmpdir()` and left
+ *      behind fails the suite at the end (#453: 461 of them had piled up in
+ *      `/tmp` on one machine, a tmpfs that is only emptied on reboot).
  *
  * Den globale `afterAll` kjører én gang etter alle filene. Har noe i de ekte
  * trærne endret seg, kaster den, og bun teller det som en feilet test med
@@ -29,13 +32,21 @@
  */
 
 import { afterAll, mock } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ekteMemoryRøtter, endringer, INFERENCE_STUBB, taØyeblikksbilde } from "./lib/test-isolasjon";
 
 const røtter = ekteMemoryRøtter();
 const før = taØyeblikksbilde(røtter);
+
+/** The prefixes the tests give their temp directories. Directories only: the suite's log file is meant to stay. */
+const TEMP_PREFIKS = /^(pai-|model-sync-)/;
+const tempKataloger = () =>
+	readdirSync(tmpdir(), { withFileTypes: true })
+		.filter((o) => o.isDirectory() && TEMP_PREFIKS.test(o.name))
+		.map((o) => o.name);
+const tempFør = new Set(tempKataloger());
 
 const testHjem = mkdtempSync(join(tmpdir(), "pai-test-hjem-"));
 process.env.PAI_HOME = testHjem;
@@ -79,6 +90,19 @@ afterAll(() => {
 
 afterAll(() => {
 	rmSync(testHjem, { recursive: true, force: true });
+
+	const igjen = tempKataloger().filter((n) => !tempFør.has(n));
+	if (igjen.length > 0) {
+		throw new Error(
+			[
+				`bun test left ${igjen.length} temp director${igjen.length === 1 ? "y" : "ies"} in ${tmpdir()}:`,
+				...igjen.slice(0, 10).map((n) => `  ${n}`),
+				...(igjen.length > 10 ? [`  … and ${igjen.length - 10} more`] : []),
+				"Remove it in the test that made it (afterEach/afterAll; tests/preload.ts, #453).",
+				"If a PAI session or a smoke test ran on the machine at the same time, it may be theirs: run the suite again.",
+			].join("\n")
+		);
+	}
 
 	const funn = endringer(før, taØyeblikksbilde(røtter));
 	if (funn.length === 0) return;

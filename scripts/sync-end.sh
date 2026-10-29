@@ -6,7 +6,15 @@ set -euo pipefail
 # Repoet er katalogen over denne fila, uansett hva klonen heter på maskinen
 # (`pai-opencode` på én maskin, `pai` på en annen). `PAI_REPO` overstyrer.
 REPO="${PAI_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+. "$(dirname "${BASH_SOURCE[0]}")/sync-vakt.sh"
 cd "$REPO"
+
+# #496: før noe rører indeksen. `git add -A` midt i en rebase gjør konfliktene
+# til «løst», og committen havner på en løs HEAD med markørene i.
+if ! repo_i_orden; then
+  echo "✗ Nothing was committed or pushed." >&2
+  exit 1
+fi
 
 # K16: `git add -A` tar med alt som ikke er ignorert, så én manglende linje i
 # .gitignore sender en nøkkel til Gitea. Vakten ser på det som skal pushes:
@@ -75,6 +83,20 @@ hemmeligheter() {
   fi
 }
 
+# #496: konfliktmarkører i nye linjer, også når fila ikke lenger står som
+# uløst (en `git add` etter en stash-konflikt). Git setter alltid et navn etter
+# `<<<<<<<` og `>>>>>>>`; en `=======` alene er også en Markdown-overskrift.
+konfliktmarkorer() {
+  nye_linjer "$(pushbase)" |
+    awk '
+      /^diff --git / { hode = 1; next }
+      hode && /^\+\+\+ / { fil = substr($0, 7); next }
+      /^@@/ { hode = 0; next }
+      !hode && (/^\+(<<<<<<<|>>>>>>>) / || /^\+(<<<<<<<|>>>>>>>)$/) && !(fil in sett) {
+        sett[fil] = 1; printf "%s\tconflict markers\n", fil
+      }'
+}
+
 # K47: skills endres i produksjonsøkter, der ingen kjører testene. Et gammelt
 # Claude-speil gjør `main` rød og gir de andre maskinene den gamle kroppen.
 # Generatoren er deterministisk og idempotent, så den kjøres her (~0,3 s når
@@ -103,7 +125,10 @@ if [ -n "$(git status --porcelain)" ]; then
   git add -A
 fi
 
-funn=$(hemmeligheter)
+funn=$(
+  hemmeligheter
+  konfliktmarkorer
+)
 if [ -n "$funn" ]; then
   # Git legger en tab etter en `+++`-sti med mellomrom; tab er IFS-blanktegn,
   # så `read` slår den sammen med skilletegnet.
@@ -111,6 +136,7 @@ if [ -n "$funn" ]; then
     # Ut av indeksen igjen, så en manuell `git commit` ikke tar den med.
     git --literal-pathspecs reset -q -- "$sti" 2>/dev/null || true
     case "$grunn" in
+    "conflict markers") raad="Resolve the conflict in the file. If the marker is intended, commit and push the file yourself." ;;
     *"in the content"*) raad="Remove the value from the file." ;;
     *) raad="Add it to .gitignore, or remove it." ;;
     esac

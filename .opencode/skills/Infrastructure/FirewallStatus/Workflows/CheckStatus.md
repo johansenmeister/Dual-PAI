@@ -61,6 +61,7 @@ Scriptet returnerer ferdig aggregerte tall og vurderinger. Feltoversikt:
 | `inspection.*` | blocks/passes/rejects (siste N), `wan_blocks_in`, topplister, siste blokkering, `assessment` |
 | `rules.*` | Totalt, CrowdSec-regler, aktive/deaktiverte, topp 5 egendefinerte |
 | `crowdsec.*` | `installed`, service, komponentstatus, alerts/bans, `decisions` (IP/årsak/utløpstid), topp scenarier/land, siste 5 alerts, `assessment` |
+| `certificate.*` | Sertifikatet på API-adressen, lest over TLS: `subject`, `issuer`, `not_before`/`not_after`, `days_left`, `age_days`, `lifetime_days`, `renew_after_days` (fornyelsesintervallet, bare for kortlivede ≤ 100 dager), `renewal_overdue`, `assessment` (`OK` / `UTLØPER SNART` / `FORNYELSE UTEBLITT` / `UTLØPT` / `UKJENT`) |
 | `suricata.*` | `installed`, `running`, `mode`, `pattern_matcher`, `interfaces_monitored`, `alert_count` (av `alerts_window`), `last_alert_ts`, `top_signatures`, `notable_alerts`, `assessment` |
 | `delta` | Mot forrige rad i historikk-fila: `previous_checked_utc`, og for `version`, `rules_total`, `cs_active_bans`, `overall` og `cs_alerts_total` hver sin `{previous, current, changed}` (tallfelt har også `diff`). `changed` lister feltene som faktisk endret seg — **`cs_alerts_total` er aldri med i `changed`**, uansett hvor mye den har endret seg (se Steg 3). `null` når det ikke finnes en lesbar forrige rad (første kjøring, eller en avkortet rad). |
 
@@ -149,6 +150,18 @@ Generer strukturert rapport på NORSK fra JSON-feltene:
 
 ---
 
+## 🔐 Sertifikat — [certificate.assessment]
+
+| Metrikk | Verdi |
+|---------|-------|
+| Utsteder | [certificate.issuer] |
+| Gyldig til | [certificate.not_after] ([certificate.days_left] dager igjen) |
+| Alder | [certificate.age_days] dager (fornyes etter [certificate.renew_after_days]) |
+
+*(Står `certificate.readable` til false, skriv «Sertifikatet kunne ikke leses».)*
+
+---
+
 ## 💻 System
 
 | Metrikk | Verdi |
@@ -166,7 +179,11 @@ Generer strukturert rapport på NORSK fra JSON-feltene:
 på WAN — sjekk at inspeksjon kjører". crowdsec.assessment == DELVIS → spesifiser
 hvilke komponenter som er deaktivert. suricata.assessment != AKTIV (og ikke IKKE
 INSTALLERT) → nevn det; notable_alerts ikke tom → list dem. system.verified.matches ==
-false → skriv system.verified.note ordrett, og at tallene kan være feil til endepunktene er
+false → skriv system.verified.note ordrett,
+certificate.assessment FORNYELSE UTEBLITT → «Sertifikatet er [age_days] dager gammelt og skulle
+vært fornyet etter [renew_after_days]: sjekk ACME-klienten i Web-UI-et (Services → ACME Client →
+Log Files)»; UTLØPER SNART eller UTLØPT → det samme, med dagene igjen. Er intervallet ikke 60
+dager, settes `ACME_RENEW_DAYS` i `.env`, og at tallene kan være feil til endepunktene er
 verifisert på nytt. update_available == true →
 nevn ny versjon.
 Ellers: "Ingen problemer funnet ✅"]

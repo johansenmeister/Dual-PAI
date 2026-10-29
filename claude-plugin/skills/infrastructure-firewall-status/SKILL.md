@@ -3,7 +3,7 @@
 # Kilde: .opencode/skills/Infrastructure/FirewallStatus/SKILL.md
 # Endringer hører hjemme i kilden; kjør deretter generatoren på nytt.
 name: infrastructure-firewall-status
-description: OPNsense brannmur-overvåking og diagnostikk (inkl. Suricata IDS og CrowdSec). USE WHEN brannmur status, firewall status, sjekk brannmur, OPNsense, pakkeinspeksjon, crowdsec alerts, suricata, ids, suricata status, firewall logger, brannmur helse, "hva er status på firewall".
+description: OPNsense brannmur-overvåking og diagnostikk (inkl. Suricata IDS og CrowdSec). USE WHEN brannmur status, firewall status, sjekk brannmur, OPNsense, pakkeinspeksjon, crowdsec alerts, suricata, ids, suricata status, firewall logger, brannmur helse, brannmur sertifikat, acme, "hva er status på firewall".
 ---
 
 ## Customization
@@ -15,7 +15,7 @@ If this directory exists, load and apply any PREFERENCES.md, configurations, or 
 
 # FirewallStatus
 
-Sjekker OPNsense brannmur-status: systemhelse, filterlogger, pakkeinspeksjon, CrowdSec varsler, og ytelse.
+Sjekker OPNsense brannmur-status: systemhelse, filterlogger, pakkeinspeksjon, CrowdSec varsler, sertifikatet (ACME) og ytelse.
 
 ## Workflow Routing
 
@@ -39,6 +39,9 @@ Sjekker OPNsense brannmur-status: systemhelse, filterlogger, pakkeinspeksjon, Cr
 - **Versjonsvakt:** `system.verified` sier om brannmuren kjører en serie og utgave
   endepunktene er verifisert på (lista `VERIFIED` i scriptet, #414). Står den ikke der,
   er `overall` ADVARSEL, og rapporten sier det.
+- **Sertifikatet (#493):** `certificate` leses over TLS fra API-adressen: dager igjen, og om
+  siste ACME-fornyelse gikk gjennom (alder mot `ACME_RENEW_DAYS`, standard 60). Aldri via
+  `api/acmeclient/*`, som kan gi ut DNS-tokenet og kontonøkkelen (`OpnSenseApi.md`).
 - **API-dokumentasjon:** `OpnSenseApi.md` (SkillSearch('firewallstatus api'))
 - **Arkiv:** mappa historikk-fila ligger i (`history_file` i JSON-en) — spør bruker før skriving
 

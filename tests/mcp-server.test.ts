@@ -22,7 +22,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -36,16 +36,19 @@ import { tilKjernehendelser } from "../claude-plugin/src/adapter/in";
 
 const ROT = join(import.meta.dir, "..");
 let tidligereHome: string | undefined;
+let testHjem: string;
 
 beforeEach(() => {
 	// ALLE testene her skriver til STATE. Uten en temp-PAI_HOME havner de i
 	// brukerens EKTE MEMORY-tre — det skjedde for `claude-adapter.test.ts`,
 	// som la igjen en peker mot en levende økt.
 	tidligereHome = process.env.PAI_HOME;
-	process.env.PAI_HOME = mkdtempSync(join(tmpdir(), "pai-mcp-"));
+	testHjem = mkdtempSync(join(tmpdir(), "pai-mcp-"));
+	process.env.PAI_HOME = testHjem;
 });
 
 afterEach(() => {
+	rmSync(testHjem, { recursive: true, force: true });
 	if (tidligereHome === undefined) delete process.env.PAI_HOME;
 	else process.env.PAI_HOME = tidligereHome;
 });
@@ -94,6 +97,12 @@ describe("sesjonspekeren", () => {
 
 	test("katalogoppslaget er siste utvei og tar den nyeste", () => {
 		skrivSesjonsPeker("gammel", process.pid, "/tmp/delt");
+		// #448: the two writes can land in the same millisecond, and then
+		// readdir order decides. The old pointer is a minute older, as in use.
+		const sti = join(process.env.PAI_HOME as string, "MEMORY/STATE/sessions/by-ppid", `${process.pid}.json`);
+		const gammel = JSON.parse(readFileSync(sti, "utf-8"));
+		gammel.at -= 60_000;
+		writeFileSync(sti, JSON.stringify(gammel), "utf-8");
 		skrivSesjonsPeker("ny", process.ppid, "/tmp/delt");
 		expect(finnSesjonForKatalog("/tmp/delt")).toBe("ny");
 		expect(finnSesjonForKatalog("/tmp/annen")).toBeNull();

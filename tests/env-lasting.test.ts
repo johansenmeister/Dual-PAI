@@ -22,7 +22,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { dirname, extname, join } from "node:path";
 import { loadPaiEnv, paiEnvDir, parseEnv } from "../.opencode/PAI/Tools/pai-env";
-import { envReads, templateKeys } from "./lib/env-lesere";
+import { envReads, markdownFences, shellReads, templateKeys } from "./lib/env-lesere";
 
 const TREE = join(import.meta.dir, "..", ".opencode");
 const ROOTS = ["skills", "PAI/Tools", "Tools", "tools"];
@@ -193,6 +193,29 @@ describe("every reader of a template key loads .env (#185)", () => {
 		// `loadPaiEnv();` on its own line after the imports. Shell and workflows:
 		// `set -a; . ~/.opencode/.env; set +a` before the first use.
 		expect(missing).toEqual([]);
+	});
+
+	test("in a workflow, the shell block that uses a key sources .env itself (#398)", () => {
+		// The shell tool in both engines starts a new shell per call, so a block
+		// that sources .env does nothing for the next block: its call goes out
+		// with an empty key, silently. A block that starts with `#!` is the
+		// content of a script file, not a call, and is left out.
+		const blokker = [...byFile.keys()]
+			.filter((f) => f.endsWith(".md"))
+			.flatMap((f) =>
+				markdownFences(readFileSync(join(TREE, f), "utf-8"))
+					.filter((b) => ["bash", "sh", "shell", "zsh"].includes(b.lang) && !b.body.startsWith("#!"))
+					.map((b) => ({ f, b, keys: shellReads(b.body).filter((k) => template.has(k)) }))
+					.filter(({ keys }) => keys.length > 0)
+			);
+		// Not empty: a parser that finds no block gives a green test. Public has the
+		// fewest such blocks, 4 (the home skills are left out), so the bound is low.
+		expect(blokker.length).toBeGreaterThan(2);
+		const uten = blokker
+			.filter(({ b }) => !SOURCES_ENV.test(b.body))
+			.map(({ f, b, keys }) => `${f}: ${keys.join(", ")} in «${b.body.split("\n")[0]}»`);
+		// Put `set -a; . ~/.opencode/.env; set +a` at the top of the block.
+		expect(uten).toEqual([]);
 	});
 
 	test("every OWN_LOADER file that exists still reads a template key", () => {

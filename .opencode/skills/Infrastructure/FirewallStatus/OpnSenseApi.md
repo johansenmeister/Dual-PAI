@@ -154,6 +154,22 @@ Disse er satt opp med `quick: true` og `action: block` i begge retninger (in/out
 
 ---
 
+## ACME-klienten: ikke kall `api/acmeclient/*` (#493)
+
+Sertifikatstatusen leses fra sertifikatet brannmuren serverer på API-adressen, over TLS
+(`check-firewall.sh`, feltet `certificate`): dager igjen fra `notAfter`, og om siste fornyelse
+gikk gjennom fra alderen (`notBefore`) mot fornyelsesintervallet (`ACME_RENEW_DAYS`, standard
+60). Ingen nøkkel trengs.
+
+API-et til os-acme-client brukes ikke:
+- **Svarene kan inneholde hemmeligheter.** `validations/search` og `accounts/search` returnerte
+  hele modellen på en brannmur, med DNS-API-tokenet og kontoens private nøkkel, selv om
+  kildekoden på `master` bare lister ufarlige felter.
+- **Privilegiet kan ikke gis som bare lesing.** «Services: ACME Client» dekker `api/acmeclient/*`,
+  også `sign`, `revoke` og `removekey`; OPNsense har bare av eller på per side.
+
+Gi ikke API-brukeren den siden. Feilsøking av en fornyelse skjer i Web-UI-et.
+
 ## Sikkerhetsnotat
 
 API-nøkkelen tilhører den begrensede `Claude`-brukeren. OPNsense gir rettigheter per

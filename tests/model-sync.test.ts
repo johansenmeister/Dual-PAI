@@ -2,8 +2,8 @@
  * Tests for model-sync.ts — fixture-based, no live registry required.
  */
 
-import { describe, expect, test } from "bun:test";
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { afterAll, describe, expect, test } from "bun:test";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { Database } from "bun:sqlite";
@@ -22,6 +22,17 @@ import {
   readCatalog,
   replaceWholeIds,
 } from "../.opencode/tools/model-sync";
+
+// #453: every temp directory this file makes is removed when it is done.
+const tempKataloger: string[] = [];
+afterAll(() => {
+  for (const k of tempKataloger) rmSync(k, { recursive: true, force: true });
+});
+function tempDir(prefix: string): string {
+  const k = mkdtempSync(join(tmpdir(), prefix));
+  tempKataloger.push(k);
+  return k;
+}
 
 // ============================================================================
 // extractModelIds — true positives and path false-positive guards
@@ -120,7 +131,7 @@ describe("classifyId", () => {
 
 /** Same shape as v2 2.0.18 writes it: {updatedAt, digest, body}, body a JSON string. */
 function catalogDb(value: unknown, key = "models-dev:catalog"): string {
-  const path = join(mkdtempSync(join(tmpdir(), "model-sync-db-")), "opencode.db");
+  const path = join(tempDir("model-sync-db-"), "opencode.db");
   const db = new Database(path);
   db.run("CREATE TABLE kv (key TEXT PRIMARY KEY, value TEXT)");
   db.query("INSERT INTO kv (key, value) VALUES (?, ?)").run(key, value as string);
@@ -264,7 +275,7 @@ describe("helsesjekk (K29)", () => {
 // ============================================================================
 
 function fixtureDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "model-sync-test-"));
+  const dir = tempDir("model-sync-test-");
   mkdirSync(join(dir, ".opencode", "profiles"), { recursive: true });
   mkdirSync(join(dir, ".opencode", "plugins", "lib"), { recursive: true });
   mkdirSync(join(dir, "runbooks"), { recursive: true });
@@ -401,7 +412,7 @@ describe("replace — helhets-anker", () => {
   });
 
   test("planReplace teller det ankeret faktisk vil bytte", () => {
-    const dir = mkdtempSync(join(tmpdir(), "model-sync-anker-"));
+    const dir = tempDir("model-sync-anker-");
     const fil = join(dir, "p.yaml");
     writeFileSync(
       fil,
@@ -415,7 +426,7 @@ describe("replace — helhets-anker", () => {
   test("applyReplace bruker SAMME anker som dry-run", () => {
     // Sto de to på hver sin regel, ville diffen operatøren godkjente ikke
     // vært den som ble skrevet — og det er verre enn ingen dry-run.
-    const dir = mkdtempSync(join(tmpdir(), "model-sync-apply-"));
+    const dir = tempDir("model-sync-apply-");
     const fil = join(dir, "p.yaml");
     const før = "x: xai/grok-4.3-fast\ny: xai/grok-4.3\n";
     writeFileSync(fil, før, "utf-8");
@@ -453,7 +464,7 @@ describe("collectGoverned", () => {
     // fra plugins/lib til pai-core/lib i batch 3, og `.filter(existsSync)`
     // svelget den gamle stien. Fallback-modellkartet var ustyrt uten at noe
     // feilet. En manglende styrt fil skal være HØYLYTT.
-    const rot = mkdtempSync(join(tmpdir(), "model-sync-gov-"));
+    const rot = tempDir("model-sync-gov-");
     mkdirSync(join(rot, ".opencode", "profiles"), { recursive: true });
     writeFileSync(join(rot, ".opencode", "profiles", "a.yaml"), "model: xai/grok-4.7\n", "utf-8");
     const g = collectGoverned(rot, join(rot, ".opencode"));
@@ -464,7 +475,7 @@ describe("collectGoverned", () => {
   test("agentfilene og switch-provider er styrt", () => {
     // Jobbens harness fant begge som stille drift: en `model:` i en agents
     // frontmatter, og modell-ID-er skrevet for hånd i `--help`-teksten.
-    const rot = mkdtempSync(join(tmpdir(), "model-sync-gov-"));
+    const rot = tempDir("model-sync-gov-");
     mkdirSync(join(rot, ".opencode", "agents"), { recursive: true });
     mkdirSync(join(rot, ".opencode", "tools"), { recursive: true });
     writeFileSync(join(rot, ".opencode", "agents", "Engineer.md"), "---\nmodel: xai/grok-4.7\n---\n", "utf-8");
